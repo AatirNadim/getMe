@@ -29,6 +29,7 @@ type Segment struct {
 	
 }
 
+// takes in the id of the new segment to be created, and the base path where it should be created
 func NewSegment(id int, basePath string) (*Segment, error) {
 	path := filepath.Join(basePath, fmt.Sprintf("segment_%d.log", id))
 
@@ -100,7 +101,7 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 }
 
 
-
+// takes in the starting position of the entry in the segment file and returns the entry
 func (segment *Segment) Get(pos uint32) (*Entry, error) {
 	segment.mu.RLock()
 	defer segment.mu.RUnlock()
