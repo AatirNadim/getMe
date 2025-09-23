@@ -90,7 +90,7 @@ func (sm *SegmentManager) Append(entry *Entry) (uint32, error) {
 	activeSegment := sm.segments[len(sm.segments) - 1]
 
 
-	res, err := activeSegment.Append(entry)
+	_, err := activeSegment.Append(entry)
 
 
 	if err != nil {
@@ -128,8 +128,76 @@ func (sm *SegmentManager) Read(segmentId int, offset uint32) (*Entry, error) {
 	return segment.Get(offset)
 }
 
-func (sm *SegmentManager)
+func (sm *SegmentManager) Update(entry *Entry) (uint32, int, error) {
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+
+	activeSegment := sm.segments[len(sm.segments) - 1]
+
+	res, err := activeSegment.Append(entry)
+	if err != nil {
+		if err == utils.ErrSegmentFull {
+			newSegment, err := sm.CreateNewSegment(sm.basePath)
+
+			if err != nil {
+				return 0, 0, err
+			}
+
+			res, err := newSegment.Append(entry)
+			if err != nil {
+				return 0, 0, err
+			}
+
+			return res, newSegment.id, nil
+		} else {
+			return 0, 0, err
+		}
+	}
+	return res, activeSegment.id, nil
+}
+
+func (sm *SegmentManager) Delete(key []byte) (uint32, int, error) {
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+
+	activeSegment := sm.segments[len(sm.segments) - 1]
+
+	deletionEntry := CreateDeletionEntry(key)
+
+	_, err := sm.appendEntryToLatestSegment(deletionEntry)
+
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return 0, activeSegment.id, nil	
+
+}
 
 
 
 
+func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, error) {
+	activeSegment := sm.segments[len(sm.segments) - 1]
+
+	res, err := activeSegment.Append(entry)
+	if err != nil {
+		if err == utils.ErrSegmentFull {
+			newSegment, err := sm.CreateNewSegment(sm.basePath)
+
+			if err != nil {
+				return 0, err
+			}
+
+			res, err := newSegment.Append(entry)
+			if err != nil {
+				return 0, err
+			}
+
+			return res, nil
+		} else {
+			return 0, err
+		}
+	}
+	return res, nil
+}

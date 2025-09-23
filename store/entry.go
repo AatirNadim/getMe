@@ -19,12 +19,12 @@ type Entry struct {
 }
 
 
-func (e *Entry) addPreviousEntryDeletionEntry() *Entry {
+func CreateDeletionEntry(key []byte) *Entry {
 	return &Entry {
 		TimeStamp: uint32(time.Now().Unix()),
-		KeySize:   e.KeySize,
+		KeySize:   uint32(len(key)),
 		ValueSize: 0,
-		Key:       e.Key,
+		Key:       key,
 		Value:     nil,
 	}
 }
