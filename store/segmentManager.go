@@ -13,7 +13,6 @@ type SegmentManager struct {
 	mu sync.RWMutex
 	basePath string
 	segments []*Segment
-	activeId int
 }
 
 
@@ -36,7 +35,6 @@ func loadSegments(basePath string) (*SegmentManager, error) {
 	}
 	segments := make([]*Segment, 0, len(paths))
 
-	segManager := &SegmentManager{}
 
 	for _, path := range paths {
 		var id int
@@ -52,15 +50,11 @@ func loadSegments(basePath string) (*SegmentManager, error) {
 
 		segments[id] = segment // plugging the segments based on the index present in their names
 
-	
-		if id > segManager.activeId {
-			segManager.activeId = id + 1
-		}
 	}
 
 	return &SegmentManager{
-		segments: segments, // this list is sorted based on the index
-		activeId: segManager.activeId,
+		segments: segments,
+		basePath: basePath, // this list is sorted based on the index
 	}, nil
 
 }
@@ -87,30 +81,13 @@ func (sm *SegmentManager) Append(entry *Entry) (uint32, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-	activeSegment := sm.segments[len(sm.segments) - 1]
 
-
-	_, err := activeSegment.Append(entry)
-
-
+	_, err := sm.appendEntryToLatestSegment(entry)
+	
 	if err != nil {
-		if err == utils.ErrSegmentFull {
-			newSegment, err := sm.CreateNewSegment(sm.basePath)
-
-			if err != nil {
-				return 0, err
-			}
-
-			res, err := newSegment.Append(entry)
-			if err != nil {
-				return 0, err
-			}
-
-			return res, nil
-		} else {
-			return 0, err
-		}
+		return 0, err
 	}
+	
 	return 0, nil
 }
 
@@ -132,28 +109,14 @@ func (sm *SegmentManager) Update(entry *Entry) (uint32, int, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-	activeSegment := sm.segments[len(sm.segments) - 1]
 
-	res, err := activeSegment.Append(entry)
+	res, err := sm.appendEntryToLatestSegment(entry)
+
 	if err != nil {
-		if err == utils.ErrSegmentFull {
-			newSegment, err := sm.CreateNewSegment(sm.basePath)
-
-			if err != nil {
-				return 0, 0, err
-			}
-
-			res, err := newSegment.Append(entry)
-			if err != nil {
-				return 0, 0, err
-			}
-
-			return res, newSegment.id, nil
-		} else {
-			return 0, 0, err
-		}
+		return 0, 0, err
 	}
-	return res, activeSegment.id, nil
+
+	return res, sm.segments[len(sm.segments) - 1].id, nil
 }
 
 func (sm *SegmentManager) Delete(key []byte) (uint32, int, error) {
