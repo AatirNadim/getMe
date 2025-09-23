@@ -77,9 +77,10 @@ func (e *Entry) Serialize() []byte {
 }
 
 
-func (e *Entry) Deserialize(bytarr []byte) (error, []byte) {
+func DeserializeEntry(bytarr []byte) (*Entry, error) {
 	offset := 0
 
+	e := &Entry{}
 	e.TimeStamp = binary.LittleEndian.Uint32(bytarr[offset:])
 
 	offset += 4
@@ -91,7 +92,7 @@ func (e *Entry) Deserialize(bytarr []byte) (error, []byte) {
 	e.ValueSize = binary.LittleEndian.Uint32(bytarr[offset:])
 
 	if int(e.KeySize)+int(e.ValueSize) != len(bytarr)-12 {
-		return utils.ErrInvalidEntry, nil
+		return nil, utils.ErrInvalidEntry
 	}
 
 	offset += 4
@@ -108,6 +109,5 @@ func (e *Entry) Deserialize(bytarr []byte) (error, []byte) {
 		e.Value = nil
 	}
 
-	return nil, bytarr
-
+	return e, nil
 }
