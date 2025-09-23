@@ -2,8 +2,10 @@ package store
 
 import (
 	"encoding/binary"
+	"fmt"
 	"getMeMod/store/utils"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
@@ -13,6 +15,7 @@ const DefaultMaxSegmentSize = 1024 * 1024 * 20 // 20 MB
 const MaxEntriesPerSegment = 10000
 
 
+// represents a log segment file, stored on the disk
 type Segment struct {
 	mu sync.RWMutex
 	id int
@@ -26,8 +29,52 @@ type Segment struct {
 	
 }
 
+func NewSegment(id int, basePath string) (*Segment, error) {
+	path := filepath.Join(basePath, fmt.Sprintf("segment_%d.log", id))
 
-func (segment *Segment) Append(entry* Entry) (uint32, error) {
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
+
+	if err != nil {
+		return nil, err
+	}
+	
+	segment := &Segment{
+		id:         id,
+		path:      path,
+		file:      file,
+		isActive:  true,
+		maxCount:  MaxEntriesPerSegment,
+		maxSize:   DefaultMaxSegmentSize,
+		
+	}
+
+	return segment, nil
+}
+
+
+func OpenSegment(id int, basePath string) (*Segment, error) {
+	path := filepath.Join(basePath, fmt.Sprintf("segment_%d.log", id))
+	file, err := os.OpenFile(path, os.O_RDWR|os.O_APPEND, 0644)
+
+	if err != nil {
+		return nil, err
+	}
+
+	segment := &Segment{
+		id:         id,
+		path:      path,
+		file:      file,
+		isActive:  true,
+		maxCount:  MaxEntriesPerSegment,
+		maxSize:   DefaultMaxSegmentSize,
+
+	}
+
+	return segment, nil
+}
+
+
+func (segment *Segment) Append(entry *Entry) (uint32, error) {
 	segment.mu.Lock()
 
 	defer segment.mu.Unlock()
@@ -53,19 +100,20 @@ func (segment *Segment) Append(entry* Entry) (uint32, error) {
 }
 
 
-func (segment *Segment) Get(pos uint32) (error, *Entry) {
+
+func (segment *Segment) Get(pos uint32) (*Entry, error) {
 	segment.mu.RLock()
 	defer segment.mu.RUnlock()
 
 	if pos >= uint32(segment.size) {
-		return utils.ErrInvalidEntry, nil
+		return nil, utils.ErrInvalidEntry
 	}
 
 	// read the entry header first to determine sizes
 	header := make([]byte, 12)
 	_, err := segment.file.ReadAt(header, int64(pos))
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	keySize := binary.LittleEndian.Uint32(header[4:8])
@@ -75,10 +123,10 @@ func (segment *Segment) Get(pos uint32) (error, *Entry) {
 
 	entry, err := DeserializeEntry(serializedEntry)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
-	return nil, entry
+	return entry, nil
 }
 
 
