@@ -10,6 +10,7 @@ import (
 // we are dealing with the segment ids instead of the actual segment locations
 
 
+// the size of an entry instance will be variable, depending on the key and value sizes
 type Entry struct {
 	TimeStamp uint32
 	KeySize   uint32
@@ -19,14 +20,14 @@ type Entry struct {
 }
 
 
-func CreateDeletionEntry(key []byte) *Entry {
+func CreateDeletionEntry(key []byte) (*Entry, error) {
 	return &Entry {
 		TimeStamp: uint32(time.Now().Unix()),
 		KeySize:   uint32(len(key)),
 		ValueSize: 0,
 		Key:       key,
 		Value:     nil,
-	}
+	}, nil
 }
 
 
@@ -45,7 +46,7 @@ func (e *Entry) getEntrySize() uint32 {
 
 
 
-func (e *Entry) Serialize() []byte {
+func (e *Entry) Serialize() ([]byte, error) {
 	bytarr := make([]byte, e.getEntrySize())
 
 	offset := 0
@@ -72,7 +73,7 @@ func (e *Entry) Serialize() []byte {
 		copy(bytarr[offset:], e.Value)
 	}
 
-	return bytarr
+	return bytarr, nil
 
 }
 
