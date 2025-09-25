@@ -3,8 +3,8 @@ package store
 import (
 	"encoding/binary"
 	"fmt"
+	"getMeMod/store/logger"
 	"getMeMod/store/utils"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -152,7 +152,7 @@ func (segment *Segment) Get(pos uint32) (*Entry, error) {
 
 func isSpaceAvailableInCurrentSegment(segment *Segment, entry *Entry) bool {
 
-	log.Printf("Current segment size: %d, max size: %d, entry count: %d, max count: %d, new entry size: %d\n", segment.size, segment.maxSize, segment.entryCount, segment.maxCount, entry.getEntrySize())
+	logger.Info("Current segment size: %d, max size: %d, entry count: %d, max count: %d, new entry size: %d\n", segment.size, segment.maxSize, segment.entryCount, segment.maxCount, entry.getEntrySize())
 	return segment.size + int(entry.getEntrySize()) <= segment.maxSize && segment.entryCount < segment.maxCount
 }
 
@@ -160,7 +160,7 @@ func isSpaceAvailableInCurrentSegment(segment *Segment, entry *Entry) bool {
 func (segment *Segment) CreateDeletionEntry(key []byte) (*Entry, error) {
 
 	// create a deletion entry for the given key
-	log.Println("segment file: Creating deletion entry for key:", string(key))
+	logger.Info("segment file: Creating deletion entry for key:", string(key))
 	entry, err := CreateDeletionEntry(key)
 	if err != nil {
 		return nil, err

@@ -1,6 +1,8 @@
 package store
 
 import (
+	"getMeMod/store/logger"
+	"getMeMod/store/utils"
 	"sync"
 	"time"
 )
@@ -20,6 +22,8 @@ func NewStore(basePath string) *Store {
 		panic(err)
 	}
 
+	logger.Info("creating a new store instance on the base path:", basePath)
+
 	return &Store{
 		basePath:      basePath,
 		hashTable:     NewHashTable(),
@@ -33,7 +37,8 @@ func (s *Store) Get(key string) (string, bool, error) {
 
 	entry, exists := s.hashTable.Get(key)
 	if !exists {
-		return "", false, nil
+		logger.Error("key not found: ", key)
+		return "", false, utils.ErrKeyNotFound
 	}
 
 	data, err := s.segmentManager.Read(entry.segmentId, entry.offset)
@@ -48,6 +53,8 @@ func (s *Store) Put(key string, value string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	logger.Info("Putting key:", key, "with value: ", value)
+
 	keyBytes := s.convertStringToBytes(key)
 	valueBytes := s.convertStringToBytes(value)
 
@@ -59,10 +66,14 @@ func (s *Store) Put(key string, value string) error {
 		Value:     valueBytes,
 	}
 
+	logger.Info("appending entry with key:", key, " to segment manager")
+
 	segmentId, offset, err := s.segmentManager.Append(entry)
 	if err != nil {
 		return err
 	}
+
+	logger.Info("updating hash table with key:", key, " segmentId:", segmentId, " offset:", offset)
 
 	s.hashTable.Put(key, segmentId, offset)
 	return nil
@@ -71,10 +82,15 @@ func (s *Store) Put(key string, value string) error {
 func (s *Store) Delete(key string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	logger.Info("Deleting key:", key)
+
 	_, err := s.segmentManager.Delete(s.convertStringToBytes(key))
 	if err != nil {
 		return err
 	}
+
+	logger.Info("removing key:", key, " from hash table")
 	s.hashTable.Delete(key)
 	return nil
 }

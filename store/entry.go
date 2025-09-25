@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"time"
 	"getMeMod/store/utils"
+	"getMeMod/store/logger"
 )
 
 
@@ -47,6 +48,8 @@ func (e *Entry) getEntrySize() uint32 {
 
 
 func (e *Entry) Serialize() ([]byte, error) {
+	logger.Info("Serializing entry with key: ", string(e.Key), " and value size: ", e.ValueSize)
+
 	bytarr := make([]byte, e.getEntrySize())
 
 	offset := 0
@@ -79,6 +82,9 @@ func (e *Entry) Serialize() ([]byte, error) {
 
 
 func DeserializeEntry(bytarr []byte) (*Entry, error) {
+
+	logger.Info("Deserializing entry")
+
 	offset := 0
 
 	e := &Entry{}

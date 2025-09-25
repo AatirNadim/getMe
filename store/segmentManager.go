@@ -2,6 +2,7 @@ package store
 
 import (
 	"fmt"
+	"getMeMod/store/logger"
 	"os"
 	"path/filepath"
 	"sync"
@@ -51,12 +52,16 @@ func NewSegmentManager(basePath string) (*SegmentManager, error) {
 // loads existing segments from the disk, from the base path
 func (sm *SegmentManager) populateSegmentMap(basePath string) error {
 
+	logger.Info("Segments already exist, loading them from the disk to the current kv instance...")
+
 	// find all segment files in the base path
 	paths, err := filepath.Glob(filepath.Join(basePath, "segment_*.log"))
 	if err != nil {
+		logger.Error("failed to list segment files basePath", basePath, "error", err)
 		return fmt.Errorf("failed to list segment files in %s: %w", basePath, err)
 	}
 	if paths == nil {
+		logger.Error("no segments found in " + basePath)
 		return fmt.Errorf("no segments found in %s", basePath)
 	}
 
@@ -79,6 +84,7 @@ func (sm *SegmentManager) populateSegmentMap(basePath string) error {
 		sm.segmentMap[uint32(id)] = segment
 	}
 
+	logger.Info("loaded ${len(sm.segmentMap)} segments from the disk")
 	// increment the activeId to be one more than the max id found
 		sm.activeId += 1
 	return nil
@@ -90,6 +96,9 @@ func (sm *SegmentManager) populateSegmentMap(basePath string) error {
 func (sm *SegmentManager) CreateNewSegment(basePath string) (* Segment, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
+
+
+	logger.Info("Creating a new segment with id:", sm.activeId)
 
 	// create a new segment with id = sm.activeId
 	segment, err := NewSegment(sm.activeId, basePath)
@@ -110,10 +119,11 @@ func (sm *SegmentManager) Append(entry *Entry) (uint32, uint32, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-
+	logger.Info("segment manager: Appending entry with key:", string(entry.Key))
 	offset, err := sm.appendEntryToLatestSegment(entry)
 	
 	if err != nil {
+		logger.Error("segment manager: failed to append entry:", err)
 		return 0, 0, err
 	}
 
@@ -127,7 +137,10 @@ func (sm *SegmentManager) Read(segmentId uint32, offset uint32) (*Entry, error) 
 	sm.mu.RLock()
 	defer sm.mu.RUnlock()
 
+	logger.Info("segment manager: Reading entry from segment", segmentId, "at offset", offset)
+
 	if segmentId >= sm.activeId - 1 {
+		logger.Error("segment manager: segment", segmentId, "does not exist")
 		return nil, fmt.Errorf("segment %d does not exist", segmentId)
 	}
 
@@ -139,10 +152,12 @@ func (sm *SegmentManager) Update(entry *Entry) (uint32, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
+	logger.Info("segment manager: Updating entry with key:", string(entry.Key))
 
 	offset, err := sm.appendEntryToLatestSegment(entry)
 
 	if err != nil {
+		logger.Error("segment manager: failed to update entry:", err)
 		return 0, err
 	}
 
@@ -153,9 +168,12 @@ func (sm *SegmentManager) Delete(key []byte) (uint32, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
+	logger.Info("segment manager: Deleting entry with key:", string(key))
+
 	deletionEntry, deletionEntryCreationErr := CreateDeletionEntry(key)
 
 	if deletionEntryCreationErr != nil {
+		logger.Error("segment manager: failed to create deletion entry:", deletionEntryCreationErr)
 		return 0, deletionEntryCreationErr
 	}
 
