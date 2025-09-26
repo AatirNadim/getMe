@@ -32,7 +32,7 @@ func CreateDeletionEntry(key []byte) (*Entry, error) {
 }
 
 
-func isDeletionEntry(e *Entry) bool {
+func (e *Entry) IsDeletionEntry() bool {
 	return e.ValueSize == 0
 }
 
@@ -117,4 +117,14 @@ func DeserializeEntry(bytarr []byte) (*Entry, error) {
 	}
 
 	return e, nil
+}
+
+
+
+func (entry *Entry) getHashTableFromEntry() *HashTableEntry {
+	return &HashTableEntry{
+		segmentId: 0, // will be set later
+		offset:    0, // will be set later
+		timeStamp: entry.TimeStamp,
+	}
 }

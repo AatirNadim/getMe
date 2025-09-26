@@ -4,8 +4,9 @@ import "sync"
 
 
 type HashTableEntry struct {
-	segmentId	uint32
-	offset		uint32
+	timeStamp uint32
+	segmentId uint32
+	offset    uint32
 }
 
 
@@ -29,12 +30,13 @@ func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 	return entry, exists
 }
 
-func (ht *HashTable) Put(key string, segmentId uint32, offset uint32) error {
+func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp uint32) error {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
 	ht.table[key] = &HashTableEntry{
 		segmentId: segmentId,
 		offset:    offset,
+		timeStamp: timeStamp,
 	}
 	return nil
 }
@@ -75,4 +77,8 @@ func (ht *HashTable) Entries() map[string]HashTableEntry {
 		entries[k] = *v
 	}
 	return entries
+}
+
+func (ht *HashTable) UpdateTableBasedOnSegment(sg *Segment) error {
+	
 }

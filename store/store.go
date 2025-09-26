@@ -41,7 +41,7 @@ func (s *Store) Get(key string) (string, bool, error) {
 		return "", false, utils.ErrKeyNotFound
 	}
 
-	data, err := s.segmentManager.Read(entry.segmentId, entry.offset)
+	data, _, err := s.segmentManager.Read(entry.segmentId, entry.offset)
 	if err != nil {
 		return "", false, err
 	}

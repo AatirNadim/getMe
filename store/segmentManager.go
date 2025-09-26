@@ -132,8 +132,8 @@ func (sm *SegmentManager) Append(entry *Entry) (uint32, uint32, error) {
 }
 
 
-// reads an entry from a specific segment at a specific offset
-func (sm *SegmentManager) Read(segmentId uint32, offset uint32) (*Entry, error) {
+// reads an entry from a specific segment at a specific offset and returns it along with the offset for the next entry
+func (sm *SegmentManager) Read(segmentId uint32, offset uint32) (*Entry, uint32, error) {
 	sm.mu.RLock()
 	defer sm.mu.RUnlock()
 
@@ -141,7 +141,7 @@ func (sm *SegmentManager) Read(segmentId uint32, offset uint32) (*Entry, error) 
 
 	if segmentId >= sm.activeId - 1 {
 		logger.Error("segment manager: segment", segmentId, "does not exist")
-		return nil, fmt.Errorf("segment %d does not exist", segmentId)
+		return nil, offset, fmt.Errorf("segment %d does not exist", segmentId)
 	}
 
 	segment := sm.segmentMap[segmentId]
