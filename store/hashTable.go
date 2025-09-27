@@ -2,21 +2,15 @@ package store
 
 import "sync"
 
-
 type HashTableEntry struct {
 	timeStamp uint32
 	segmentId uint32
 	offset    uint32
 }
 
-type HashTableEntryWithKey struct {
-	Key   string
-	Entry *HashTableEntry
-}
-
 // a hash table does not to be concerned about how the raw data is stored in the disk, it only deals with the mapping from key to (segmentId, offset)
 type HashTable struct {
-	mu sync.RWMutex
+	mu    sync.RWMutex
 	table map[string]*HashTableEntry
 }
 
@@ -62,6 +56,23 @@ func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp 
 	return nil
 }
 
+func (ht *HashTable) Merge(other *HashTable) {
+	ht.mu.Lock()
+	defer ht.mu.Unlock()
+
+	for key, otherEntry := range other.table {
+		if existingEntry, ok := ht.table[key]; ok {
+			// If the other entry is newer, update the table
+			if otherEntry.timeStamp > existingEntry.timeStamp {
+				ht.table[key] = otherEntry
+			}
+		} else {
+			// If the key doesn't exist, just add it
+			ht.table[key] = otherEntry
+		}
+	}
+}
+
 func (ht *HashTable) Delete(key string) {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
@@ -101,5 +112,5 @@ func (ht *HashTable) Entries() map[string]HashTableEntry {
 }
 
 // func (ht *HashTable) UpdateTableBasedOnSegment(sg *Segment) error {
-	
+
 // }

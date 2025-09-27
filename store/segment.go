@@ -156,45 +156,46 @@ func (segment *Segment) CreateDeletionEntry(key []byte) (*Entry, error) {
 	}
 	return entry, nil
 }
-// reads all entries from the segment file and sends them to a channel.
-func (segment *Segment) ReadAllEntries(ch chan<- *HashTableEntryWithKey, wg *sync.WaitGroup) {
-	defer wg.Done()
+// reads all entries from the segment file and returns a hashtable with the key and its corresponding segment id, offset and timestamp, to be used for map-reduce operations
+func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 	segment.mu.RLock()
 	defer segment.mu.RUnlock()
 
+	ht := NewHashTable()
 	offset := uint32(0)
 
+	// run this loop till we reach the end of the file
 	for {
 		serializedEntry, nextOffset, err := segment.getSerializedEntryFromOffset(offset)
+
 		if err != nil {
 			if err == io.EOF {
 				break // Reached end of segment file
 			}
-			logger.Error("Failed to read entry in segment %d at offset %d: %v", segment.id, offset, err)
-			return // Stop processing this segment on error
+			return nil, err
 		}
 
 		entry, desErr := DeserializeEntry(serializedEntry)
 		if desErr != nil {
-			logger.Error("Failed to deserialize entry in segment %d at offset %d: %v", segment.id, offset, desErr)
+			// Log this, but continue if possible, as it might be a partial write
+			logger.Error("Failed to deserialize entry at offset %d: %v", offset, desErr)
 			offset = nextOffset
 			continue
 		}
 
 		entryKey := convertBytesToString(entry.Key)
-		htEntry := &HashTableEntry{
-			segmentId: segment.id,
-			offset:    offset,
-			timeStamp: entry.TimeStamp,
+
+		if entry.IsDeletionEntry() {
+			ht.Delete(entryKey)
+		} else {
+			ht.Put(entryKey, segment.id, offset, entry.TimeStamp)
 		}
 
-		ch <- &HashTableEntryWithKey{
-			Key:   entryKey,
-			Entry: htEntry,
-		}
-
+		// updating the offset to point to the next entry
 		offset = nextOffset
 	}
+
+	return ht, nil
 }
 
 // reads an entry from a specific offset in the segment file and returns the serialized bytes of the entry along with the offset for the next entry

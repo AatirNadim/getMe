@@ -16,7 +16,8 @@ type Store struct {
 
 
 func NewStore(basePath string) *Store {
-	segmentManager, err := NewSegmentManager(basePath)
+	hashTable := NewHashTable()
+	segmentManager, err := NewSegmentManager(basePath, hashTable)
 
 	if err != nil {
 		panic(err)
@@ -26,7 +27,7 @@ func NewStore(basePath string) *Store {
 
 	return &Store{
 		basePath:      basePath,
-		hashTable:     NewHashTable(),
+		hashTable:     hashTable,
 		segmentManager: segmentManager,
 	}
 }

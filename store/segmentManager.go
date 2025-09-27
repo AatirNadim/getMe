@@ -19,7 +19,7 @@ type SegmentManager struct {
 }
 
 
-func NewSegmentManager(basePath string) (*SegmentManager, error) {
+func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentManager, error) {
 
 
 	sm := &SegmentManager{
@@ -33,7 +33,7 @@ func NewSegmentManager(basePath string) (*SegmentManager, error) {
 	}
 
 	// Load existing segments, if they exist
-	if err := sm.populateSegmentMap(basePath); err != nil {
+	if err := sm.populateSegmentMap(basePath, centralHashTable); err != nil {
 		return nil, fmt.Errorf("failed to load segments: %w", err)
 	}
 
@@ -49,8 +49,7 @@ func NewSegmentManager(basePath string) (*SegmentManager, error) {
 
 
 
-// loads existing segments from the disk, from the base path
-func (sm *SegmentManager) populateSegmentMap(basePath string) error {
+func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *HashTable) error {
 
 	logger.Info("Segments already exist, loading them from the disk to the current kv instance...")
 
@@ -62,8 +61,11 @@ func (sm *SegmentManager) populateSegmentMap(basePath string) error {
 	}
 	if paths == nil {
 		logger.Error("no segments found in " + basePath)
-		return fmt.Errorf("no segments found in %s", basePath)
+		return nil // No segments found is not an error
 	}
+
+	var wg sync.WaitGroup
+	ch := make(chan *HashTable, len(paths))
 
 	// for all the paths, open the segment and add it to the segment map, based on their IDs
 	for _, path := range paths {
@@ -79,26 +81,20 @@ func (sm *SegmentManager) populateSegmentMap(basePath string) error {
 		}
 
 		sm.activeId = max(sm.activeId, id)
-	
+
 		// assign the segment mapped to its id
 		sm.segmentMap[uint32(id)] = segment
-	}
 
-	logger.Info("loaded ${len(sm.segmentMap)} segments from the disk")
-	// increment the activeId to be one more than the max id found
-		sm.activeId += 1
-	return nil
-
-}
-
-
-func (sm *SegmentManager) ReadAllSegments() (*HashTable, error) {
-	var wg sync.WaitGroup
-	ch := make(chan *HashTableEntryWithKey, 100) // Buffered channel
-
-	for _, segment := range sm.segmentMap {
 		wg.Add(1)
-		go segment.ReadAllEntries(ch, &wg)
+		go func(seg *Segment) {
+			defer wg.Done()
+			ht, err := seg.ReadAllEntries()
+			if err != nil {
+				logger.Error("Failed to read entries from segment %d: %v", seg.id, err)
+				return
+			}
+			ch <- ht
+		}(segment)
 	}
 
 	// a goroutine to close the channel when all segment reads are done
@@ -108,13 +104,49 @@ func (sm *SegmentManager) ReadAllSegments() (*HashTable, error) {
 	}()
 
 	// Reducer
-	ht := NewHashTable()
-	for htEntryWithKey := range ch {
-		ht.Put(htEntryWithKey.Key, htEntryWithKey.Entry.segmentId, htEntryWithKey.Entry.offset, htEntryWithKey.Entry.timeStamp)
+	for ht := range ch {
+		centralHashTable.Merge(ht)
 	}
 
-	return ht, nil
+	logger.Info("loaded segments from the disk")
+	// increment the activeId to be one more than the max id found
+	sm.activeId += 1
+	return nil
+
 }
+
+
+// func (sm *SegmentManager) ReadAllSegments() (*HashTable, error) {
+// 	var wg sync.WaitGroup
+// 	ch := make(chan *HashTable, len(sm.segmentMap))
+
+// 	for _, segment := range sm.segmentMap {
+// 		wg.Add(1)
+// 		go func(seg *Segment) {
+// 			defer wg.Done()
+// 			ht, err := seg.ReadAllEntries()
+// 			if err != nil {
+// 				logger.Error("Failed to read entries from segment %d: %v", seg.id, err)
+// 				return
+// 			}
+// 			ch <- ht
+// 		}(segment)
+// 	}
+
+// 	// a goroutine to close the channel when all segment reads are done
+// 	go func() {
+// 		wg.Wait()
+// 		close(ch)
+// 	}()
+
+// 	// Reducer
+// 	finalHt := NewHashTable()
+// 	for ht := range ch {
+// 		finalHt.Merge(ht)
+// 	}
+
+// 	return finalHt, nil
+// }
 
 // create a new segment, append it to the segment list and return it
 func (sm *SegmentManager) CreateNewSegment(basePath string) (* Segment, error) {
