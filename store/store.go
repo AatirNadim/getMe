@@ -69,14 +69,14 @@ func (s *Store) Put(key string, value string) error {
 
 	logger.Info("appending entry with key:", key, " to segment manager")
 
-	segmentId, offset, err := s.segmentManager.Append(entry)
+	nextSegmentId, offset, err := s.segmentManager.Append(entry)
 	if err != nil {
 		return err
 	}
 
-	logger.Info("updating hash table with key:", key, " segmentId:", segmentId, " offset:", offset)
+	logger.Info("updating hash table with key:", key, " segmentId:", nextSegmentId - 1, " offset:", offset)
 
-	s.hashTable.Put(key, segmentId, offset, timeStamp, entry.ValueSize)
+	s.hashTable.Put(key, nextSegmentId - 1, offset, timeStamp, entry.ValueSize)
 	return nil
 }
 

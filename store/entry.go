@@ -22,6 +22,7 @@ type Entry struct {
 
 
 func CreateEntry(key []byte, value []byte, timeStamp uint32) (*Entry, error) {
+	logger.Info("Creating entry with key: ", string(key), " and value: ", value)
 	return &Entry {
 		TimeStamp: timeStamp,
 		KeySize:   uint32(len(key)),

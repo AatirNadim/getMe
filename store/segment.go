@@ -53,6 +53,9 @@ func NewSegment(id uint32, basePath string) (*Segment, error) {
 func OpenSegment(id uint32, basePath string) (*Segment, error) {
 
 	// Construct the file path for the segment
+
+	logger.Info("Opening segment with id:", id, "at the base path:", basePath)
+
 	path := filepath.Join(basePath, fmt.Sprintf("segment_%d.log", id))
 
 	// Open the segment file in read-write and append mode, returns the pointer to the file
@@ -139,7 +142,7 @@ func (segment *Segment) Get(offset uint32) (*Entry, uint32, error) {
 	return entry, newOffset, nil
 }
 
-func isSpaceAvailableInCurrentSegment(segment *Segment, entry *Entry) bool {
+func (segment *Segment) isSpaceAvailableInCurrentSegment(entry *Entry) bool {
 
 	logger.Info("Current segment size: %d, max size: %d, entry count: %d, max count: %d, new entry size: %d\n", segment.size, segment.maxSize, segment.entryCount, segment.maxCount, entry.getEntrySize())
 	return segment.size+entry.getEntrySize() <= segment.maxSize && segment.entryCount < segment.maxCount

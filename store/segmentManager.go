@@ -15,7 +15,7 @@ type SegmentManager struct {
 	basePath string
 	segmentMap map[uint32]*Segment
 	// stores the index of the next segment to be created
-	activeId uint32
+	nextSegmentId uint32
 }
 
 
@@ -25,7 +25,7 @@ func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentMa
 	sm := &SegmentManager{
 		segmentMap: make(map[uint32]*Segment),
 		basePath:   basePath,
-		activeId: 0,
+		nextSegmentId: 0,
 	}
 
 	if err := os.MkdirAll(basePath, 0755); err != nil {
@@ -51,8 +51,6 @@ func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentMa
 
 func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *HashTable) error {
 
-	logger.Info("Segments already exist, loading them from the disk to the current kv instance...")
-
 	// find all segment files in the base path
 	paths, err := filepath.Glob(filepath.Join(basePath, "segment_*.log"))
 	if err != nil {
@@ -63,6 +61,8 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 		logger.Error("no segments found in " + basePath)
 		return nil // No segments found is not an error
 	}
+
+	logger.Info("Segments already exist, loading them from the disk to the current kv instance...")
 
 	var wg sync.WaitGroup
 	ch := make(chan *HashTable, len(paths))
@@ -80,7 +80,9 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 			return err
 		}
 
-		sm.activeId = max(sm.activeId, id)
+		logger.Info("opened segment with id:", id, " at path:", path, "segment details:", *segment)
+
+		sm.nextSegmentId = max(sm.nextSegmentId, id)
 
 		// assign the segment mapped to its id
 		sm.segmentMap[uint32(id)] = segment
@@ -109,12 +111,17 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 }
 
 
+	logger.Success("all the segments have been loaded into the central hash table")
+
+	logger.Info("current segment map : ", sm.segmentMap)
+	
+	logger.Info("current hash table : ", centralHashTable.Entries())
 	// if the latest entry is a deletion entry, simply remove it from the hash table
 	centralHashTable.DeleteDeletionEntries()
 
 	logger.Info("loaded segments from the disk")
-	// increment the activeId to be one more than the max id found
-	sm.activeId += 1
+	// increment the nextSegmentId to be one more than the max id found
+	sm.nextSegmentId += 1
 	return nil
 
 }
@@ -158,18 +165,18 @@ func (sm *SegmentManager) CreateNewSegment(basePath string) (* Segment, error) {
 	defer sm.mu.Unlock()
 
 
-	logger.Info("Creating a new segment with id:", sm.activeId)
+	logger.Info("Creating a new segment with id:", sm.nextSegmentId)
 
-	// create a new segment with id = sm.activeId
-	segment, err := NewSegment(sm.activeId, basePath)
+	// create a new segment with id = sm.nextSegmentId
+	segment, err := NewSegment(sm.nextSegmentId, basePath)
 	if err != nil {
 		return nil, err
 	}
 
-	// add the new segment to the segment map and increment the activeId
-	sm.segmentMap[sm.activeId] = segment
-	// increment the activeId for the next segment
-	sm.activeId += 1
+	// add the new segment to the segment map and increment the nextSegmentId
+	sm.segmentMap[sm.nextSegmentId] = segment
+	// increment the nextSegmentId for the next segment
+	sm.nextSegmentId += 1
 
 
 	return segment, nil
@@ -188,7 +195,7 @@ func (sm *SegmentManager) Append(entry *Entry) (uint32, uint32, error) {
 	}
 
 	// Return the segment ID and offset
-	return sm.activeId, offset, nil
+	return sm.nextSegmentId, offset, nil
 }
 
 
@@ -199,7 +206,7 @@ func (sm *SegmentManager) Read(segmentId uint32, offset uint32) (*Entry, uint32,
 
 	logger.Info("segment manager: Reading entry from segment", segmentId, "at offset", offset)
 
-	if segmentId >= sm.activeId - 1 {
+	if segmentId >= sm.nextSegmentId - 1 {
 		logger.Error("segment manager: segment", segmentId, "does not exist")
 		return nil, offset, fmt.Errorf("segment %d does not exist", segmentId)
 	}
@@ -264,7 +271,7 @@ func (sm *SegmentManager) Clear() {
 		delete(sm.segmentMap, id)
 	}
 
-	sm.activeId = 0
+	sm.nextSegmentId = 0
 }
 
 
@@ -273,9 +280,11 @@ func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, erro
 
 
 	// active id will always hold the id of the next segment to be created
-	currentSegment := sm.segmentMap[sm.activeId - 1]
+	currentSegment := sm.segmentMap[sm.nextSegmentId - 1]
 
-	if !isSpaceAvailableInCurrentSegment(currentSegment, entry) {
+	logger.Info("current segment details: ", *currentSegment)
+
+	if !currentSegment.isSpaceAvailableInCurrentSegment(entry) {
 		newSegment, newSegmentCreationError := sm.CreateNewSegment(sm.basePath)
 
 		if newSegmentCreationError != nil {

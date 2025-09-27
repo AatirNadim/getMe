@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"getMeMod/store"
+	"getMeMod/store/logger"
 	"os"
 	"path/filepath"
 
@@ -24,6 +25,7 @@ backed by an append-only log on your local disk.`,
 		}
 		storePath := filepath.Join(home, ".getMeStore")
 		storeInstance = store.NewStore(storePath)
+		logger.Success("Store has been initialized at path:", storePath)
 		return nil
 	},
 }
