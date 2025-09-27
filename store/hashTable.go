@@ -79,6 +79,6 @@ func (ht *HashTable) Entries() map[string]HashTableEntry {
 	return entries
 }
 
-func (ht *HashTable) UpdateTableBasedOnSegment(sg *Segment) error {
+// func (ht *HashTable) UpdateTableBasedOnSegment(sg *Segment) error {
 	
-}
+// }

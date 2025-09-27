@@ -21,11 +21,11 @@ type Segment struct {
 	id         uint32
 	path       string
 	file       *os.File
-	entryCount int
-	size       int
+	entryCount uint32
+	size       uint32
 	isActive   bool
-	maxCount   int
-	maxSize    int
+	maxCount   uint32
+	maxSize    uint32
 }
 
 // takes in the id of the new segment to be created, and the base path where it should be created
@@ -142,7 +142,7 @@ func (segment *Segment) Get(offset uint32) (*Entry, uint32, error) {
 func isSpaceAvailableInCurrentSegment(segment *Segment, entry *Entry) bool {
 
 	logger.Info("Current segment size: %d, max size: %d, entry count: %d, max count: %d, new entry size: %d\n", segment.size, segment.maxSize, segment.entryCount, segment.maxCount, entry.getEntrySize())
-	return segment.size+int(entry.getEntrySize()) <= segment.maxSize && segment.entryCount < segment.maxCount
+	return segment.size+entry.getEntrySize() <= segment.maxSize && segment.entryCount < segment.maxCount
 }
 
 // creates a deletion entry for the given key
@@ -156,7 +156,7 @@ func (segment *Segment) CreateDeletionEntry(key []byte) (*Entry, error) {
 	}
 	return entry, nil
 }
-
+// reads all entries from the segment file and returns a hashtable with the key and its corresponding segment id, offset and timestamp, to be used for map-reduce operations
 func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 	segment.mu.RLock()
 	defer segment.mu.RUnlock()
@@ -164,7 +164,8 @@ func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 	ht := NewHashTable()
 	offset := uint32(0)
 
-	for {
+	// run this loop till we reach the end of the file
+	for offset < segment.size {
 		serializedEntry, nextOffset, err := segment.getSerializedEntryFromOffset(offset)
 
 		if err != nil {
@@ -210,10 +211,10 @@ func (sg *Segment) getSerializedEntryFromOffset(offset uint32) ([]byte, uint32, 
 	header := make([]byte, 12)
 	_, err := sg.file.ReadAt(header, int64(offset))
 	if err != nil {
-		if err == io.EOF {
-			break // Reached the end of the file
-		}
-		return nil, fmt.Errorf("error reading entry header at offset %d: %w", offset, err)
+		// if err == io.EOF {
+		// 	return nil, offset, err // Reached the end of the file
+		// }
+		return nil, offset, fmt.Errorf("error reading entry header at offset %d: %w", offset, err)
 	}
 
 	keySize := binary.LittleEndian.Uint32(header[4:8])
@@ -223,10 +224,10 @@ func (sg *Segment) getSerializedEntryFromOffset(offset uint32) ([]byte, uint32, 
 	serializedEntry := make([]byte, entrySize)
 	_, err = sg.file.ReadAt(serializedEntry, int64(offset))
 	if err != nil {
-		if err == io.EOF {
-			break // Reached the end of the file
-		}
-		return nil, fmt.Errorf("error reading full entry at offset %d: %w", offset, err)
+		// if err == io.EOF {
+		// 	break // Reached the end of the file
+		// }
+		return nil, offset, fmt.Errorf("error reading full entry at offset %d: %w", offset, err)
 	}
 	offset = offset + uint32(entrySize)
 	return serializedEntry, offset, nil
