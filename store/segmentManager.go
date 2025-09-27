@@ -92,6 +92,30 @@ func (sm *SegmentManager) populateSegmentMap(basePath string) error {
 }
 
 
+func (sm *SegmentManager) ReadAllSegments() (*HashTable, error) {
+	var wg sync.WaitGroup
+	ch := make(chan *HashTableEntryWithKey, 100) // Buffered channel
+
+	for _, segment := range sm.segmentMap {
+		wg.Add(1)
+		go segment.ReadAllEntries(ch, &wg)
+	}
+
+	// a goroutine to close the channel when all segment reads are done
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	// Reducer
+	ht := NewHashTable()
+	for htEntryWithKey := range ch {
+		ht.Put(htEntryWithKey.Key, htEntryWithKey.Entry.segmentId, htEntryWithKey.Entry.offset, htEntryWithKey.Entry.timeStamp)
+	}
+
+	return ht, nil
+}
+
 // create a new segment, append it to the segment list and return it
 func (sm *SegmentManager) CreateNewSegment(basePath string) (* Segment, error) {
 	sm.mu.Lock()
@@ -212,6 +236,7 @@ func (sm *SegmentManager) Clear() {
 func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, error) {
 
 
+	// active id will always hold the id of the next segment to be created
 	currentSegment := sm.segmentMap[sm.activeId - 1]
 
 	if !isSpaceAvailableInCurrentSegment(currentSegment, entry) {

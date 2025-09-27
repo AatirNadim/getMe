@@ -35,6 +35,7 @@ func (s *Store) Get(key string) (string, bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
+	logger.Info("Getting the file and the offset for key:", key)
 	entry, exists := s.hashTable.Get(key)
 	if !exists {
 		logger.Error("key not found: ", key)
@@ -58,12 +59,11 @@ func (s *Store) Put(key string, value string) error {
 	keyBytes := s.convertStringToBytes(key)
 	valueBytes := s.convertStringToBytes(value)
 
-	entry := &Entry{
-		TimeStamp: uint32(time.Now().Unix()),
-		KeySize:   uint32(len(keyBytes)),
-		ValueSize: uint32(len(valueBytes)),
-		Key:       keyBytes,
-		Value:     valueBytes,
+	timeStamp := uint32(time.Now().Unix())
+
+	entry, err := CreateEntry(keyBytes, valueBytes, timeStamp)
+	if err != nil {
+		return err
 	}
 
 	logger.Info("appending entry with key:", key, " to segment manager")
@@ -75,7 +75,7 @@ func (s *Store) Put(key string, value string) error {
 
 	logger.Info("updating hash table with key:", key, " segmentId:", segmentId, " offset:", offset)
 
-	s.hashTable.Put(key, segmentId, offset)
+	s.hashTable.Put(key, segmentId, offset, timeStamp)
 	return nil
 }
 

@@ -100,7 +100,7 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 		return 0, writeError
 	}
 
-	segment.size += len(data)
+	segment.size += uint32(len(data))
 	segment.entryCount += 1
 
 	// return the starting position of the newly added entry in the segment file
@@ -156,46 +156,45 @@ func (segment *Segment) CreateDeletionEntry(key []byte) (*Entry, error) {
 	}
 	return entry, nil
 }
-// reads all entries from the segment file and returns a hashtable with the key and its corresponding segment id, offset and timestamp, to be used for map-reduce operations
-func (segment *Segment) ReadAllEntries() (*HashTable, error) {
+// reads all entries from the segment file and sends them to a channel.
+func (segment *Segment) ReadAllEntries(ch chan<- *HashTableEntryWithKey, wg *sync.WaitGroup) {
+	defer wg.Done()
 	segment.mu.RLock()
 	defer segment.mu.RUnlock()
 
-	ht := NewHashTable()
 	offset := uint32(0)
 
-	// run this loop till we reach the end of the file
-	for offset < segment.size {
+	for {
 		serializedEntry, nextOffset, err := segment.getSerializedEntryFromOffset(offset)
-
 		if err != nil {
-			return nil, err
+			if err == io.EOF {
+				break // Reached end of segment file
+			}
+			logger.Error("Failed to read entry in segment %d at offset %d: %v", segment.id, offset, err)
+			return // Stop processing this segment on error
 		}
 
 		entry, desErr := DeserializeEntry(serializedEntry)
 		if desErr != nil {
-			// Log this, but continue if possible, as it might be a partial write
-			logger.Error("Failed to deserialize entry at offset %d: %v", offset, desErr)
+			logger.Error("Failed to deserialize entry in segment %d at offset %d: %v", segment.id, offset, desErr)
+			offset = nextOffset
 			continue
 		}
 
-		// entries[uint32(offset)] = 
-
-		
 		entryKey := convertBytesToString(entry.Key)
-
-		if entry.IsDeletionEntry() {
-			ht.Delete(entryKey)
-		} else {
-			ht.Put(entryKey, segment.id, offset, entry.TimeStamp)
+		htEntry := &HashTableEntry{
+			segmentId: segment.id,
+			offset:    offset,
+			timeStamp: entry.TimeStamp,
 		}
 
-		// updating the offset to point to the next entry
-		offset = nextOffset
-		
-	}
+		ch <- &HashTableEntryWithKey{
+			Key:   entryKey,
+			Entry: htEntry,
+		}
 
-	return ht, nil
+		offset = nextOffset
+	}
 }
 
 // reads an entry from a specific offset in the segment file and returns the serialized bytes of the entry along with the offset for the next entry
@@ -204,16 +203,16 @@ func (sg *Segment) getSerializedEntryFromOffset(offset uint32) ([]byte, uint32, 
 	defer sg.mu.RUnlock()
 
 	if offset >= uint32(sg.size) {
-		return nil, offset, utils.ErrInvalidEntry
+		return nil, offset, io.EOF
 	}
 
 	// maxSize:  DefaultMaxSegmentSize,
 	header := make([]byte, 12)
 	_, err := sg.file.ReadAt(header, int64(offset))
 	if err != nil {
-		// if err == io.EOF {
-		// 	return nil, offset, err // Reached the end of the file
-		// }
+		if err == io.EOF {
+			return nil, offset, io.EOF // Reached the end of the file
+		}
 		return nil, offset, fmt.Errorf("error reading entry header at offset %d: %w", offset, err)
 	}
 
@@ -224,9 +223,9 @@ func (sg *Segment) getSerializedEntryFromOffset(offset uint32) ([]byte, uint32, 
 	serializedEntry := make([]byte, entrySize)
 	_, err = sg.file.ReadAt(serializedEntry, int64(offset))
 	if err != nil {
-		// if err == io.EOF {
-		// 	break // Reached the end of the file
-		// }
+		if err == io.EOF {
+			return nil, offset, io.EOF // Reached the end of the file
+		}
 		return nil, offset, fmt.Errorf("error reading full entry at offset %d: %w", offset, err)
 	}
 	offset = offset + uint32(entrySize)

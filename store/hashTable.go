@@ -9,7 +9,10 @@ type HashTableEntry struct {
 	offset    uint32
 }
 
-
+type HashTableEntryWithKey struct {
+	Key   string
+	Entry *HashTableEntry
+}
 
 // a hash table does not to be concerned about how the raw data is stored in the disk, it only deals with the mapping from key to (segmentId, offset)
 type HashTable struct {
@@ -23,6 +26,17 @@ func NewHashTable() *HashTable {
 	}
 }
 
+// func (ht *HashTable) IsEntryPresentInHashTable(key string, timeStamp uint32) bool {
+// 	ht.mu.RLock()
+// 	defer ht.mu.RUnlock()
+// 	existingEntry, exists := ht.Get(key)
+// 	if !exists {
+// 		return false
+// 	}
+// 	// if the existing entry's timestamp is greater than or equal to the new entry's timestamp, it means the new entry is older or same, so we do not consider it present
+// 	return existingEntry.timeStamp >= timeStamp
+// }
+
 func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 	ht.mu.RLock()
 	defer ht.mu.RUnlock()
@@ -33,6 +47,13 @@ func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp uint32) error {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
+
+	if existingEntry, ok := ht.table[key]; ok {
+		if timeStamp < existingEntry.timeStamp {
+			return nil // incoming entry is older, do nothing
+		}
+	}
+
 	ht.table[key] = &HashTableEntry{
 		segmentId: segmentId,
 		offset:    offset,

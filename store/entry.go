@@ -21,6 +21,17 @@ type Entry struct {
 }
 
 
+func CreateEntry(key []byte, value []byte, timeStamp uint32) (*Entry, error) {
+	return &Entry {
+		TimeStamp: timeStamp,
+		KeySize:   uint32(len(key)),
+		ValueSize: uint32(len(value)),
+		Key:       key,
+		Value:     value,
+	}, nil
+}
+
+
 func CreateDeletionEntry(key []byte) (*Entry, error) {
 	return &Entry {
 		TimeStamp: uint32(time.Now().Unix()),
@@ -42,7 +53,7 @@ func (e *Entry) getEntryKVPairSize() uint32 {
 
 
 func (e *Entry) getEntrySize() uint32 {
-	return e.getEntryKVPairSize() + 12; // 12 bytes for the headers
+	return e.KeySize + e.ValueSize + 12; // 12 bytes for the headers
 }
 
 
