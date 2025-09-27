@@ -76,7 +76,7 @@ func (s *Store) Put(key string, value string) error {
 
 	logger.Info("updating hash table with key:", key, " segmentId:", segmentId, " offset:", offset)
 
-	s.hashTable.Put(key, segmentId, offset, timeStamp)
+	s.hashTable.Put(key, segmentId, offset, timeStamp, entry.ValueSize)
 	return nil
 }
 

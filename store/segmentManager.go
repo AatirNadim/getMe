@@ -106,7 +106,11 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 	// Reducer
 	for ht := range ch {
 		centralHashTable.Merge(ht)
-	}
+}
+
+
+	// if the latest entry is a deletion entry, simply remove it from the hash table
+	centralHashTable.DeleteDeletionEntries()
 
 	logger.Info("loaded segments from the disk")
 	// increment the activeId to be one more than the max id found

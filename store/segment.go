@@ -188,7 +188,7 @@ func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 		if entry.IsDeletionEntry() {
 			ht.Delete(entryKey)
 		} else {
-			ht.Put(entryKey, segment.id, offset, entry.TimeStamp)
+			ht.Put(entryKey, segment.id, offset, entry.TimeStamp, entry.ValueSize)
 		}
 
 		// updating the offset to point to the next entry

@@ -6,6 +6,7 @@ type HashTableEntry struct {
 	timeStamp uint32
 	segmentId uint32
 	offset    uint32
+	valueSize uint32
 }
 
 // a hash table does not to be concerned about how the raw data is stored in the disk, it only deals with the mapping from key to (segmentId, offset)
@@ -38,7 +39,7 @@ func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 	return entry, exists
 }
 
-func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp uint32) error {
+func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp uint32, valueSize uint32) error {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
 
@@ -52,6 +53,7 @@ func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp 
 		segmentId: segmentId,
 		offset:    offset,
 		timeStamp: timeStamp,
+		valueSize: valueSize,
 	}
 	return nil
 }
@@ -109,6 +111,16 @@ func (ht *HashTable) Entries() map[string]HashTableEntry {
 		entries[k] = *v
 	}
 	return entries
+}
+
+func (ht *HashTable) DeleteDeletionEntries() {
+	ht.mu.Lock()
+	defer ht.mu.Unlock()
+	for key, entry := range ht.table {
+		if entry.valueSize == 0 {
+			delete(ht.table, key)
+		}
+	}
 }
 
 // func (ht *HashTable) UpdateTableBasedOnSegment(sg *Segment) error {
