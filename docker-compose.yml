@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  get_me_store:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final
+    container_name: get_me_store
+    volumes:
+      - getMeStoreData:/data/getMeStore
+    restart: unless-stopped
+volumes:
+  getMeStoreData:

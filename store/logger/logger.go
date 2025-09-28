@@ -10,6 +10,8 @@ import (
 const (
 	reset = "\033[0m"
 	bold  = "\033[1m"
+	
+	offwhite = "\033[37m"
 
 	red    = "\033[31m"
 	yellow = "\033[33m"
@@ -29,7 +31,7 @@ func printMessage(title string, color string, message []any) {
 // Public functions
 
 func Info(msg ...any) {
-	printMessage("INFO", blue, msg)
+	printMessage("INFO", offwhite, msg)
 }
 
 func Warn(msg ...any) {

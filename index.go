@@ -5,7 +5,6 @@ import (
 	"getMeMod/store"
 	"getMeMod/store/logger"
 	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -19,11 +18,7 @@ var rootCmd = &cobra.Command{
 backed by an append-only log on your local disk.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// This function runs before any subcommand, ensuring the store is initialized.
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return fmt.Errorf("could not get user home directory: %w", err)
-		}
-		storePath := filepath.Join(home, ".getMeStore")
+		storePath := "/data/getMeStore"
 		storeInstance = store.NewStore(storePath)
 		logger.Success("Store has been initialized at path:", storePath)
 		return nil
