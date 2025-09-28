@@ -3,7 +3,7 @@ services:
   get_me_store:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ContainerFile
       target: final
     container_name: get_me_store
     volumes:
