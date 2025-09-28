@@ -1,15 +1,13 @@
-package store
+package core
 
 import (
 	"encoding/binary"
-	"time"
-	"getMeMod/store/utils"
 	"getMeMod/store/logger"
+	"getMeMod/store/utils"
+	"time"
 )
 
-
 // we are dealing with the segment ids instead of the actual segment locations
-
 
 // the size of an entry instance will be variable, depending on the key and value sizes
 type Entry struct {
@@ -20,10 +18,9 @@ type Entry struct {
 	Value     []byte
 }
 
-
 func CreateEntry(key []byte, value []byte, timeStamp uint32) (*Entry, error) {
 	logger.Info("Creating entry with key: ", string(key), " and value: ", value)
-	return &Entry {
+	return &Entry{
 		TimeStamp: timeStamp,
 		KeySize:   uint32(len(key)),
 		ValueSize: uint32(len(value)),
@@ -32,9 +29,8 @@ func CreateEntry(key []byte, value []byte, timeStamp uint32) (*Entry, error) {
 	}, nil
 }
 
-
 func CreateDeletionEntry(key []byte) (*Entry, error) {
-	return &Entry {
+	return &Entry{
 		TimeStamp: uint32(time.Now().Unix()),
 		KeySize:   uint32(len(key)),
 		ValueSize: 0,
@@ -43,29 +39,24 @@ func CreateDeletionEntry(key []byte) (*Entry, error) {
 	}, nil
 }
 
-
-func (e *Entry) IsDeletionEntry() bool {
+func (e *Entry) isDeletionEntry() bool {
 	return e.ValueSize == 0
 }
 
 func (e *Entry) getEntryKVPairSize() uint32 {
-	return e.KeySize + e.ValueSize;
+	return e.KeySize + e.ValueSize
 }
-
 
 func (e *Entry) getEntrySize() uint32 {
-	return e.KeySize + e.ValueSize + 12; // 12 bytes for the headers
+	return e.KeySize + e.ValueSize + 12 // 12 bytes for the headers
 }
 
-
-
-func (e *Entry) Serialize() ([]byte, error) {
+func (e *Entry) serialize() ([]byte, error) {
 	logger.Info("Serializing entry with key: ", string(e.Key), " and value size: ", e.ValueSize)
 
 	bytarr := make([]byte, e.getEntrySize())
 
 	offset := 0
-
 
 	binary.LittleEndian.PutUint32(bytarr[offset:], e.TimeStamp)
 
@@ -75,7 +66,6 @@ func (e *Entry) Serialize() ([]byte, error) {
 
 	offset += 4
 
-
 	binary.LittleEndian.PutUint32(bytarr[offset:], e.ValueSize)
 
 	offset += 4
@@ -84,7 +74,7 @@ func (e *Entry) Serialize() ([]byte, error) {
 
 	offset += int(e.KeySize)
 
-	if(e.ValueSize > 0) {
+	if e.ValueSize > 0 {
 		copy(bytarr[offset:], e.Value)
 	}
 
@@ -92,8 +82,7 @@ func (e *Entry) Serialize() ([]byte, error) {
 
 }
 
-
-func DeserializeEntry(bytarr []byte) (*Entry, error) {
+func deserializeEntry(bytarr []byte) (*Entry, error) {
 
 	logger.Info("Deserializing entry")
 
@@ -121,7 +110,7 @@ func DeserializeEntry(bytarr []byte) (*Entry, error) {
 
 	offset += int(e.KeySize)
 
-	if(e.ValueSize > 0) {
+	if e.ValueSize > 0 {
 		e.Value = make([]byte, e.ValueSize)
 		copy(e.Value, bytarr[offset:offset+int(e.ValueSize)])
 	} else {
@@ -130,5 +119,3 @@ func DeserializeEntry(bytarr []byte) (*Entry, error) {
 
 	return e, nil
 }
-
-

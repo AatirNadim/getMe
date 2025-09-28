@@ -1,6 +1,7 @@
 package store
 
 import (
+	"getMeMod/store/core"
 	"getMeMod/store/logger"
 	"getMeMod/store/utils"
 	"sync"
@@ -8,16 +9,15 @@ import (
 )
 
 type Store struct {
-	mu sync.RWMutex
-	basePath    string
-	hashTable   *HashTable
-	segmentManager *SegmentManager
+	mu             sync.RWMutex
+	basePath       string
+	hashTable      *core.HashTable
+	segmentManager *core.SegmentManager
 }
 
-
 func NewStore(basePath string) *Store {
-	hashTable := NewHashTable()
-	segmentManager, err := NewSegmentManager(basePath, hashTable)
+	hashTable := core.NewHashTable()
+	segmentManager, err := core.NewSegmentManager(basePath, hashTable)
 
 	if err != nil {
 		panic(err)
@@ -26,8 +26,8 @@ func NewStore(basePath string) *Store {
 	logger.Info("creating a new store instance on the base path:", basePath)
 
 	return &Store{
-		basePath:      basePath,
-		hashTable:     hashTable,
+		basePath:       basePath,
+		hashTable:      hashTable,
 		segmentManager: segmentManager,
 	}
 }
@@ -43,7 +43,7 @@ func (s *Store) Get(key string) (string, bool, error) {
 		return "", false, utils.ErrKeyNotFound
 	}
 
-	data, _, err := s.segmentManager.Read(entry.segmentId, entry.offset)
+	data, _, err := s.segmentManager.Read(entry.SegmentId, entry.Offset)
 	if err != nil {
 		return "", false, err
 	}
@@ -62,7 +62,7 @@ func (s *Store) Put(key string, value string) error {
 
 	timeStamp := uint32(time.Now().Unix())
 
-	entry, err := CreateEntry(keyBytes, valueBytes, timeStamp)
+	entry, err := core.CreateEntry(keyBytes, valueBytes, timeStamp)
 	if err != nil {
 		return err
 	}
@@ -74,9 +74,9 @@ func (s *Store) Put(key string, value string) error {
 		return err
 	}
 
-	logger.Info("updating hash table with key:", key, " segmentId:", nextSegmentId - 1, " offset:", offset)
+	logger.Info("updating hash table with key:", key, " segmentId:", nextSegmentId-1, " offset:", offset)
 
-	s.hashTable.Put(key, nextSegmentId - 1, offset, timeStamp, entry.ValueSize)
+	s.hashTable.Put(key, nextSegmentId-1, offset, timeStamp, entry.ValueSize)
 	return nil
 }
 
@@ -84,9 +84,23 @@ func (s *Store) Delete(key string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	logger.Info("Deleting key:", key)
+	if !s.hashTable.IsEntryPresentInHashTable(key) {
+		logger.Error("key not found: ", key)
+		return utils.ErrKeyNotFound
+	}
 
-	_, err := s.segmentManager.Delete(s.convertStringToBytes(key))
+	logger.Info("creating deletion entry for key:", key)
+
+	deletionEntry, deletionEntryCreationErr := core.CreateDeletionEntry(s.convertStringToBytes(key))
+
+	if deletionEntryCreationErr != nil {
+		logger.Error("store: failed to create deletion entry:", deletionEntryCreationErr)
+		return deletionEntryCreationErr
+	}
+
+
+	logger.Info("appending deletion entry for key:", key, " to segment manager")
+	_, err := s.segmentManager.Delete(deletionEntry)
 	if err != nil {
 		return err
 	}
@@ -114,7 +128,6 @@ func (s *Store) Keys() []string {
 	defer s.mu.RUnlock()
 	return s.hashTable.Keys()
 }
-
 
 // private methods
 

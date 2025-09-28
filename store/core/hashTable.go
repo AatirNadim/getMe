@@ -1,12 +1,12 @@
-package store
+package core
 
 import "sync"
 
 type HashTableEntry struct {
-	timeStamp uint32
-	segmentId uint32
-	offset    uint32
-	valueSize uint32
+	TimeStamp uint32
+	SegmentId uint32
+	Offset    uint32
+	ValueSize uint32
 }
 
 // a hash table does not to be concerned about how the raw data is stored in the disk, it only deals with the mapping from key to (segmentId, offset)
@@ -21,13 +21,13 @@ func NewHashTable() *HashTable {
 	}
 }
 
-// func (ht *HashTable) IsEntryPresentInHashTable(key string, timeStamp uint32) bool {
-// 	ht.mu.RLock()
-// 	defer ht.mu.RUnlock()
-// 	existingEntry, exists := ht.Get(key)
-// 	if !exists {
-// 		return false
-// 	}
+func (ht *HashTable) IsEntryPresentInHashTable(key string) bool {
+	ht.mu.RLock()
+	defer ht.mu.RUnlock()
+	_, exists := ht.Get(key)
+	return exists
+}
+
 // 	// if the existing entry's timestamp is greater than or equal to the new entry's timestamp, it means the new entry is older or same, so we do not consider it present
 // 	return existingEntry.timeStamp >= timeStamp
 // }
@@ -43,17 +43,18 @@ func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp 
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
 
+	// this is not going to fail even if the key does not exist in the hashtable
 	if existingEntry, ok := ht.table[key]; ok {
-		if timeStamp < existingEntry.timeStamp {
+		if timeStamp < existingEntry.TimeStamp {
 			return nil // incoming entry is older, do nothing
 		}
 	}
 
 	ht.table[key] = &HashTableEntry{
-		segmentId: segmentId,
-		offset:    offset,
-		timeStamp: timeStamp,
-		valueSize: valueSize,
+		SegmentId: segmentId,
+		Offset:    offset,
+		TimeStamp: timeStamp,
+		ValueSize: valueSize,
 	}
 	return nil
 }
@@ -65,7 +66,7 @@ func (ht *HashTable) Merge(other *HashTable) {
 	for key, otherEntry := range other.table {
 		if existingEntry, ok := ht.table[key]; ok {
 			// If the other entry is newer, update the table
-			if otherEntry.timeStamp > existingEntry.timeStamp {
+			if otherEntry.TimeStamp > existingEntry.TimeStamp {
 				ht.table[key] = otherEntry
 			}
 		} else {
@@ -117,7 +118,7 @@ func (ht *HashTable) DeleteDeletionEntries() {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
 	for key, entry := range ht.table {
-		if entry.valueSize == 0 {
+		if entry.ValueSize == 0 {
 			delete(ht.table, key)
 		}
 	}

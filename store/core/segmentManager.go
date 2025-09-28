@@ -1,4 +1,4 @@
-package store
+package core
 
 import (
 	"fmt"
@@ -8,23 +8,19 @@ import (
 	"sync"
 )
 
-
-
 type SegmentManager struct {
-	mu sync.RWMutex
-	basePath string
+	mu         sync.RWMutex
+	basePath   string
 	segmentMap map[uint32]*Segment
 	// stores the index of the next segment to be created
 	nextSegmentId uint32
 }
 
-
 func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentManager, error) {
 
-
 	sm := &SegmentManager{
-		segmentMap: make(map[uint32]*Segment),
-		basePath:   basePath,
+		segmentMap:    make(map[uint32]*Segment),
+		basePath:      basePath,
 		nextSegmentId: 0,
 	}
 
@@ -46,8 +42,6 @@ func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentMa
 
 	return sm, nil
 }
-
-
 
 func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *HashTable) error {
 
@@ -108,13 +102,12 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 	// Reducer
 	for ht := range ch {
 		centralHashTable.Merge(ht)
-}
-
+	}
 
 	logger.Success("all the segments have been loaded into the central hash table")
 
 	logger.Info("current segment map : ", sm.segmentMap)
-	
+
 	logger.Info("current hash table : ", centralHashTable.Entries())
 	// if the latest entry is a deletion entry, simply remove it from the hash table
 	centralHashTable.DeleteDeletionEntries()
@@ -125,7 +118,6 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 	return nil
 
 }
-
 
 // func (sm *SegmentManager) ReadAllSegments() (*HashTable, error) {
 // 	var wg sync.WaitGroup
@@ -160,10 +152,9 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 // }
 
 // create a new segment, append it to the segment list and return it
-func (sm *SegmentManager) CreateNewSegment(basePath string) (* Segment, error) {
+func (sm *SegmentManager) CreateNewSegment(basePath string) (*Segment, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
-
 
 	logger.Info("Creating a new segment with id:", sm.nextSegmentId)
 
@@ -178,7 +169,6 @@ func (sm *SegmentManager) CreateNewSegment(basePath string) (* Segment, error) {
 	// increment the nextSegmentId for the next segment
 	sm.nextSegmentId += 1
 
-
 	return segment, nil
 }
 
@@ -188,7 +178,7 @@ func (sm *SegmentManager) Append(entry *Entry) (uint32, uint32, error) {
 
 	logger.Info("segment manager: Appending entry with key:", string(entry.Key))
 	offset, err := sm.appendEntryToLatestSegment(entry)
-	
+
 	if err != nil {
 		logger.Error("segment manager: failed to append entry:", err)
 		return 0, 0, err
@@ -198,7 +188,6 @@ func (sm *SegmentManager) Append(entry *Entry) (uint32, uint32, error) {
 	return sm.nextSegmentId, offset, nil
 }
 
-
 // reads an entry from a specific segment at a specific offset and returns it along with the offset for the next entry
 func (sm *SegmentManager) Read(segmentId uint32, offset uint32) (*Entry, uint32, error) {
 	sm.mu.RLock()
@@ -206,7 +195,7 @@ func (sm *SegmentManager) Read(segmentId uint32, offset uint32) (*Entry, uint32,
 
 	logger.Info("segment manager: Reading entry from segment", segmentId, "at offset", offset)
 
-	if segmentId > sm.nextSegmentId - 1 {
+	if segmentId > sm.nextSegmentId-1 {
 		logger.Error("segment manager: segment", segmentId, "does not exist")
 		return nil, offset, fmt.Errorf("segment %d does not exist", segmentId)
 	}
@@ -231,26 +220,14 @@ func (sm *SegmentManager) Update(entry *Entry) (uint32, error) {
 	return offset, nil
 }
 
-func (sm *SegmentManager) Delete(key []byte) (uint32, error) {
+func (sm *SegmentManager) Delete(entry *Entry) (uint32, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-	logger.Info("segment manager: Deleting entry with key:", string(key))
+	logger.Info("segment manager: Deleting entry")
 
-	deletionEntry, deletionEntryCreationErr := CreateDeletionEntry(key)
+	offset, err := sm.appendEntryToLatestSegment(entry)
 
-	if deletionEntryCreationErr != nil {
-		logger.Error("segment manager: failed to create deletion entry:", deletionEntryCreationErr)
-		return 0, deletionEntryCreationErr
-	}
-
-	offset, err := sm.appendEntryToLatestSegment(deletionEntry)
-
-	// deletionEntry, deletionEntryCreationErr := activeSegment.CreateDeletionEntry(key)
-
-	// if deletionEntryCreationErr != nil {
-	// 	return 0, deletionEntryCreationErr
-	// }
 
 	if err != nil {
 		return 0, err
@@ -259,7 +236,6 @@ func (sm *SegmentManager) Delete(key []byte) (uint32, error) {
 	return offset, nil
 
 }
-
 
 func (sm *SegmentManager) Clear() {
 	sm.mu.Lock()
@@ -274,13 +250,10 @@ func (sm *SegmentManager) Clear() {
 	sm.nextSegmentId = 0
 }
 
-
-
 func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, error) {
 
-
 	// active id will always hold the id of the next segment to be created
-	currentSegment := sm.segmentMap[sm.nextSegmentId - 1]
+	currentSegment := sm.segmentMap[sm.nextSegmentId-1]
 
 	logger.Info("current segment details: ", *currentSegment)
 
@@ -296,7 +269,7 @@ func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, erro
 	}
 
 	offset, err := currentSegment.Append(entry)
-	
+
 	if err != nil {
 		return 0, err
 	}

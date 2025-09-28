@@ -1,4 +1,4 @@
-package store
+package core
 
 import (
 	"encoding/binary"
@@ -78,7 +78,7 @@ func OpenSegment(id uint32, basePath string) (*Segment, error) {
 		isActive: true,
 		maxCount: MaxEntriesPerSegment,
 		maxSize:  DefaultMaxSegmentSize,
-		size: 	 uint32(fileInfo.Size()),
+		size:     uint32(fileInfo.Size()),
 	}
 
 	return segment, nil
@@ -95,7 +95,7 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 		return 0, utils.ErrSegmentFull
 	}
 
-	data, err := entry.Serialize()
+	data, err := entry.serialize()
 
 	logger.Info("Serialized data: ", data)
 
@@ -114,7 +114,6 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 	// updating the segment size here
 	segment.size += uint32(len(data))
 	segment.entryCount += 1
-
 
 	logger.Info("current segment size: ", len(data), segment.size, ", current entry count: ", segment.entryCount)
 
@@ -145,7 +144,7 @@ func (segment *Segment) Get(offset uint32) (*Entry, uint32, error) {
 		return nil, offset, err
 	}
 
-	entry, err := DeserializeEntry(serializedEntry)
+	entry, err := deserializeEntry(serializedEntry)
 	if err != nil {
 		return nil, offset, err
 	}
@@ -171,6 +170,7 @@ func (segment *Segment) CreateDeletionEntry(key []byte) (*Entry, error) {
 	}
 	return entry, nil
 }
+
 // reads all entries from the segment file and returns a hashtable with the key and its corresponding segment id, offset and timestamp, to be used for map-reduce operations
 func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 	segment.mu.RLock()
@@ -190,7 +190,7 @@ func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 			return nil, err
 		}
 
-		entry, desErr := DeserializeEntry(serializedEntry)
+		entry, desErr := deserializeEntry(serializedEntry)
 		if desErr != nil {
 			// Log this, but continue if possible, as it might be a partial write
 			logger.Error("Failed to deserialize entry at offset %d: %v", offset, desErr)
@@ -200,7 +200,7 @@ func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 
 		entryKey := convertBytesToString(entry.Key)
 
-		if entry.IsDeletionEntry() {
+		if entry.isDeletionEntry() {
 			ht.Delete(entryKey)
 		} else {
 			ht.Put(entryKey, segment.id, offset, entry.TimeStamp, entry.ValueSize)
