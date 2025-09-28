@@ -58,7 +58,7 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 		return fmt.Errorf("failed to list segment files in %s: %w", basePath, err)
 	}
 	if paths == nil {
-		logger.Error("no segments found in " + basePath)
+		logger.Warn("no segments found in " + basePath)
 		return nil // No segments found is not an error
 	}
 
@@ -206,7 +206,7 @@ func (sm *SegmentManager) Read(segmentId uint32, offset uint32) (*Entry, uint32,
 
 	logger.Info("segment manager: Reading entry from segment", segmentId, "at offset", offset)
 
-	if segmentId >= sm.nextSegmentId - 1 {
+	if segmentId > sm.nextSegmentId - 1 {
 		logger.Error("segment manager: segment", segmentId, "does not exist")
 		return nil, offset, fmt.Errorf("segment %d does not exist", segmentId)
 	}

@@ -65,6 +65,12 @@ func OpenSegment(id uint32, basePath string) (*Segment, error) {
 		return nil, utils.ErrFileNotFoundOrNotAccessible
 	}
 
+	fileInfo, statErr := file.Stat()
+
+	if statErr != nil {
+		return nil, fmt.Errorf("failed to get file info for segment %s: %w", path, statErr)
+	}
+
 	segment := &Segment{
 		id:       id,
 		path:     path,
@@ -72,9 +78,8 @@ func OpenSegment(id uint32, basePath string) (*Segment, error) {
 		isActive: true,
 		maxCount: MaxEntriesPerSegment,
 		maxSize:  DefaultMaxSegmentSize,
+		size: 	 uint32(fileInfo.Size()),
 	}
-
-	
 
 	return segment, nil
 }
@@ -91,6 +96,9 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 	}
 
 	data, err := entry.Serialize()
+
+	logger.Info("Serialized data: ", data)
+
 	if err != nil {
 		return 0, err
 	}
@@ -103,8 +111,12 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 		return 0, writeError
 	}
 
+	// updating the segment size here
 	segment.size += uint32(len(data))
 	segment.entryCount += 1
+
+
+	logger.Info("current segment size: ", len(data), segment.size, ", current entry count: ", segment.entryCount)
 
 	// return the starting position of the newly added entry in the segment file
 	return segmentOffset, nil
