@@ -21,12 +21,12 @@ func NewHashTable() *HashTable {
 	}
 }
 
-func (ht *HashTable) IsEntryPresentInHashTable(key string) bool {
-	ht.mu.RLock()
-	defer ht.mu.RUnlock()
-	_, exists := ht.Get(key)
-	return exists
-}
+// func (ht *HashTable) IsEntryPresentInHashTable(key string) bool {
+// 	ht.mu.RLock()
+// 	defer ht.mu.RUnlock()
+// 	_, exists := ht.Get(key)
+// 	return exists
+// }
 
 func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 	ht.mu.RLock()

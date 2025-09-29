@@ -84,7 +84,7 @@ func (s *Store) Delete(key string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if !s.hashTable.IsEntryPresentInHashTable(key) {
+	if _, exists := s.hashTable.Get(key); !exists {
 		logger.Error("key not found: ", key)
 		return utils.ErrKeyNotFound
 	}
