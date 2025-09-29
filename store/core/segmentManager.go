@@ -35,7 +35,7 @@ func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentMa
 
 	// Create active segment if none exists
 	if len(sm.segmentMap) == 0 {
-		if _, err := sm.CreateNewSegment(basePath); err != nil {
+		if _, err := sm.createNewSegmentTxn(basePath); err != nil {
 			return nil, fmt.Errorf("failed to create active segment: %w", err)
 		}
 	}
@@ -119,43 +119,9 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 
 }
 
-// func (sm *SegmentManager) ReadAllSegments() (*HashTable, error) {
-// 	var wg sync.WaitGroup
-// 	ch := make(chan *HashTable, len(sm.segmentMap))
 
-// 	for _, segment := range sm.segmentMap {
-// 		wg.Add(1)
-// 		go func(seg *Segment) {
-// 			defer wg.Done()
-// 			ht, err := seg.ReadAllEntries()
-// 			if err != nil {
-// 				logger.Error("Failed to read entries from segment %d: %v", seg.id, err)
-// 				return
-// 			}
-// 			ch <- ht
-// 		}(segment)
-// 	}
-
-// 	// a goroutine to close the channel when all segment reads are done
-// 	go func() {
-// 		wg.Wait()
-// 		close(ch)
-// 	}()
-
-// 	// Reducer
-// 	finalHt := NewHashTable()
-// 	for ht := range ch {
-// 		finalHt.Merge(ht)
-// 	}
-
-// 	return finalHt, nil
-// }
-
-// create a new segment, append it to the segment list and return it
-func (sm *SegmentManager) CreateNewSegment(basePath string) (*Segment, error) {
-	sm.mu.Lock()
-	defer sm.mu.Unlock()
-
+// create a new segment, add it to the segment map and return it (this operation is not atomic)
+func (sm *SegmentManager) createNewSegment(basePath string) (*Segment, error) {
 	logger.Info("Creating a new segment with id:", sm.nextSegmentId)
 
 	// create a new segment with id = sm.nextSegmentId
@@ -170,6 +136,13 @@ func (sm *SegmentManager) CreateNewSegment(basePath string) (*Segment, error) {
 	sm.nextSegmentId += 1
 
 	return segment, nil
+}
+
+// create a new segment, append it to the segment list and return it (this operation is atomic)
+func (sm *SegmentManager) createNewSegmentTxn(basePath string) (*Segment, error) {
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+	return sm.createNewSegment(basePath)
 }
 
 func (sm *SegmentManager) Append(entry *Entry) (uint32, uint32, error) {
@@ -228,7 +201,6 @@ func (sm *SegmentManager) Delete(entry *Entry) (uint32, error) {
 
 	offset, err := sm.appendEntryToLatestSegment(entry)
 
-
 	if err != nil {
 		return 0, err
 	}
@@ -258,7 +230,8 @@ func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, erro
 	logger.Info("current segment details: ", *currentSegment)
 
 	if !currentSegment.isSpaceAvailableInCurrentSegment(entry) {
-		newSegment, newSegmentCreationError := sm.CreateNewSegment(sm.basePath)
+		logger.Info("appendEntryToLatestSegment: No space available in current segment, creating a new segment...")
+		newSegment, newSegmentCreationError := sm.createNewSegment(sm.basePath)
 
 		if newSegmentCreationError != nil {
 			return 0, newSegmentCreationError

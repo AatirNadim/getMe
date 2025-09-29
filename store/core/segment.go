@@ -11,7 +11,8 @@ import (
 	"sync"
 )
 
-const DefaultMaxSegmentSize = 1024 * 1024 * 20 // 20 MB
+// const DefaultMaxSegmentSize = 1024 * 1024 * 20 // 20 MB
+const DefaultMaxSegmentSize = 50 // 50 bytes for testing
 
 const MaxEntriesPerSegment = 10000
 
@@ -115,7 +116,7 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 	segment.size += uint32(len(data))
 	segment.entryCount += 1
 
-	logger.Info("current segment size: ", len(data), segment.size, ", current entry count: ", segment.entryCount)
+	logger.Info("segment.go : current segment size: ", len(data), segment.size, ", current entry count: ", segment.entryCount)
 
 	// return the starting position of the newly added entry in the segment file
 	return segmentOffset, nil
@@ -153,22 +154,13 @@ func (segment *Segment) Get(offset uint32) (*Entry, uint32, error) {
 	return entry, newOffset, nil
 }
 
+// this function checks whether there is any space available in the current segment to add a new entry
+// this is useful when we want to append an entry with size greater than the max segment size
+// in the alternative, new segment creation will be cascaded
 func (segment *Segment) isSpaceAvailableInCurrentSegment(entry *Entry) bool {
 
-	logger.Info("Current segment size: %d, max size: %d, entry count: %d, max count: %d, new entry size: %d\n", segment.size, segment.maxSize, segment.entryCount, segment.maxCount, entry.getEntrySize())
-	return segment.size+entry.getEntrySize() <= segment.maxSize && segment.entryCount < segment.maxCount
-}
-
-// creates a deletion entry for the given key
-func (segment *Segment) CreateDeletionEntry(key []byte) (*Entry, error) {
-
-	// create a deletion entry for the given key
-	logger.Info("segment file: Creating deletion entry for key:", string(key))
-	entry, err := CreateDeletionEntry(key)
-	if err != nil {
-		return nil, err
-	}
-	return entry, nil
+	logger.Info("is space available: Current segment size: %d, max size: %d, entry count: %d, max count: %d, new entry size: %d\n", segment.size, segment.maxSize, segment.entryCount, segment.maxCount, entry.getEntrySize())
+	return segment.size <= segment.maxSize && segment.entryCount < segment.maxCount
 }
 
 // reads all entries from the segment file and returns a hashtable with the key and its corresponding segment id, offset and timestamp, to be used for map-reduce operations

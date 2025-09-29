@@ -60,7 +60,7 @@ func (s *Store) Put(key string, value string) error {
 	keyBytes := s.convertStringToBytes(key)
 	valueBytes := s.convertStringToBytes(value)
 
-	timeStamp := uint32(time.Now().Unix())
+	timeStamp := time.Now().UnixNano()
 
 	entry, err := core.CreateEntry(keyBytes, valueBytes, timeStamp)
 	if err != nil {
@@ -91,13 +91,14 @@ func (s *Store) Delete(key string) error {
 
 	logger.Info("creating deletion entry for key:", key)
 
-	deletionEntry, deletionEntryCreationErr := core.CreateDeletionEntry(s.convertStringToBytes(key))
+	timeStamp := time.Now().UnixNano()
+
+	deletionEntry, deletionEntryCreationErr := core.CreateDeletionEntry(s.convertStringToBytes(key), timeStamp)
 
 	if deletionEntryCreationErr != nil {
 		logger.Error("store: failed to create deletion entry:", deletionEntryCreationErr)
 		return deletionEntryCreationErr
 	}
-
 
 	logger.Info("appending deletion entry for key:", key, " to segment manager")
 	_, err := s.segmentManager.Delete(deletionEntry)

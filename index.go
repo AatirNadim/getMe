@@ -5,6 +5,7 @@ import (
 	"getMeMod/store"
 	"getMeMod/store/logger"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -17,8 +18,12 @@ var rootCmd = &cobra.Command{
 	Long: `getMe is a CLI application that provides a persistent key-value store
 backed by an append-only log on your local disk.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		// This function runs before any subcommand, ensuring the store is initialized.
-		storePath := "/data/getMeStore"
+		// Determine default store path in user's home directory: ~/.getMeStore
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("could not determine user home directory: %w", err)
+		}
+		storePath := filepath.Join(home, ".getMeStore")
 		storeInstance = store.NewStore(storePath)
 		logger.Success("Store has been initialized at path:", storePath)
 		return nil

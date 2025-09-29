@@ -4,21 +4,20 @@ import (
 	"encoding/binary"
 	"getMeMod/store/logger"
 	"getMeMod/store/utils"
-	"time"
 )
 
 // we are dealing with the segment ids instead of the actual segment locations
 
 // the size of an entry instance will be variable, depending on the key and value sizes
 type Entry struct {
-	TimeStamp uint32
+	TimeStamp int64
 	KeySize   uint32
 	ValueSize uint32
 	Key       []byte
 	Value     []byte
 }
 
-func CreateEntry(key []byte, value []byte, timeStamp uint32) (*Entry, error) {
+func CreateEntry(key []byte, value []byte, timeStamp int64) (*Entry, error) {
 	logger.Info("Creating entry with key: ", string(key), " and value: ", value)
 	return &Entry{
 		TimeStamp: timeStamp,
@@ -29,9 +28,9 @@ func CreateEntry(key []byte, value []byte, timeStamp uint32) (*Entry, error) {
 	}, nil
 }
 
-func CreateDeletionEntry(key []byte) (*Entry, error) {
+func CreateDeletionEntry(key []byte, timeStamp int64) (*Entry, error) {
 	return &Entry{
-		TimeStamp: uint32(time.Now().Unix()),
+		TimeStamp: timeStamp,
 		KeySize:   uint32(len(key)),
 		ValueSize: 0,
 		Key:       key,
@@ -48,7 +47,7 @@ func (e *Entry) getEntryKVPairSize() uint32 {
 }
 
 func (e *Entry) getEntrySize() uint32 {
-	return e.KeySize + e.ValueSize + 12 // 12 bytes for the headers
+	return e.KeySize + e.ValueSize + 8 + 4 + 4 // timestamp + keysize + valuesize
 }
 
 func (e *Entry) serialize() ([]byte, error) {
@@ -58,9 +57,9 @@ func (e *Entry) serialize() ([]byte, error) {
 
 	offset := 0
 
-	binary.LittleEndian.PutUint32(bytarr[offset:], e.TimeStamp)
+	binary.LittleEndian.PutUint64(bytarr[offset:], uint64(e.TimeStamp))
 
-	offset += 4
+	offset += 8
 
 	binary.LittleEndian.PutUint32(bytarr[offset:], e.KeySize)
 
@@ -89,9 +88,9 @@ func deserializeEntry(bytarr []byte) (*Entry, error) {
 	offset := 0
 
 	e := &Entry{}
-	e.TimeStamp = binary.LittleEndian.Uint32(bytarr[offset:])
+	e.TimeStamp = int64(binary.LittleEndian.Uint64(bytarr[offset:]))
 
-	offset += 4
+	offset += 8
 
 	e.KeySize = binary.LittleEndian.Uint32(bytarr[offset:])
 
@@ -99,7 +98,7 @@ func deserializeEntry(bytarr []byte) (*Entry, error) {
 
 	e.ValueSize = binary.LittleEndian.Uint32(bytarr[offset:])
 
-	if int(e.KeySize)+int(e.ValueSize) != len(bytarr)-12 {
+	if int(e.KeySize)+int(e.ValueSize) != len(bytarr)-16 {
 		return nil, utils.ErrInvalidEntry
 	}
 

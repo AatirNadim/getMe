@@ -7,7 +7,7 @@ services:
       target: final
     container_name: get_me_store
     volumes:
-      - getMeStoreData:/data/getMeStore
+      - getMeStoreData:/root/.getMeStore
     restart: unless-stopped
 volumes:
   getMeStoreData:

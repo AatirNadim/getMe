@@ -3,7 +3,7 @@ package core
 import "sync"
 
 type HashTableEntry struct {
-	TimeStamp uint32
+	TimeStamp int64
 	SegmentId uint32
 	Offset    uint32
 	ValueSize uint32
@@ -39,12 +39,15 @@ func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 	return entry, exists
 }
 
-func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp uint32, valueSize uint32) error {
+func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp int64, valueSize uint32) error {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
 
 	// this is not going to fail even if the key does not exist in the hashtable
 	if existingEntry, ok := ht.table[key]; ok {
+		if timeStamp == existingEntry.TimeStamp && offset < existingEntry.Offset {
+			return nil // incoming entry timestamp is same but offset is less, which means its an older entry, do nothing
+		}
 		if timeStamp < existingEntry.TimeStamp {
 			return nil // incoming entry is older, do nothing
 		}
