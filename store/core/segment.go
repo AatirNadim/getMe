@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/binary"
 	"fmt"
 	"getMeMod/store/logger"
 	"getMeMod/store/utils"
@@ -132,13 +131,6 @@ func (segment *Segment) Get(offset uint32) (*Entry, uint32, error) {
 		return nil, offset, utils.ErrInvalidEntry
 	}
 
-	// read the entry header first to determine sizes
-	header := make([]byte, 12)
-	_, err := segment.file.ReadAt(header, int64(offset))
-	if err != nil {
-		return nil, offset, err
-	}
-
 	serializedEntry, newOffset, err := segment.getSerializedEntryFromOffset(offset)
 
 	if err != nil {
@@ -215,7 +207,7 @@ func (sg *Segment) getSerializedEntryFromOffset(offset uint32) ([]byte, uint32, 
 	}
 
 	// maxSize:  DefaultMaxSegmentSize,
-	header := make([]byte, 12)
+	header := make([]byte, getEntryHeaderSize())
 	_, err := sg.file.ReadAt(header, int64(offset))
 	if err != nil {
 		if err == io.EOF {
@@ -224,9 +216,11 @@ func (sg *Segment) getSerializedEntryFromOffset(offset uint32) ([]byte, uint32, 
 		return nil, offset, fmt.Errorf("error reading entry header at offset %d: %w", offset, err)
 	}
 
-	keySize := binary.LittleEndian.Uint32(header[4:8])
-	valueSize := binary.LittleEndian.Uint32(header[8:12])
-	entrySize := 12 + keySize + valueSize
+	entrySize, err := getEntrySizeFromHeader(header)
+
+	if err != nil {
+		return nil, offset, fmt.Errorf("error getting entry size from header at offset %d: %w", offset, err)
+	}
 
 	serializedEntry := make([]byte, entrySize)
 	_, err = sg.file.ReadAt(serializedEntry, int64(offset))

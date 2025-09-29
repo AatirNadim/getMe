@@ -28,10 +28,6 @@ func (ht *HashTable) IsEntryPresentInHashTable(key string) bool {
 	return exists
 }
 
-// 	// if the existing entry's timestamp is greater than or equal to the new entry's timestamp, it means the new entry is older or same, so we do not consider it present
-// 	return existingEntry.timeStamp >= timeStamp
-// }
-
 func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 	ht.mu.RLock()
 	defer ht.mu.RUnlock()
@@ -39,6 +35,7 @@ func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 	return entry, exists
 }
 
+// if the existing entry's timestamp is greater than or equal to the new entry's timestamp, it means the new entry is older or same, so we do not consider it present
 func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp int64, valueSize uint32) error {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
@@ -70,6 +67,10 @@ func (ht *HashTable) Merge(other *HashTable) {
 		if existingEntry, ok := ht.table[key]; ok {
 			// If the other entry is newer, update the table
 			if otherEntry.TimeStamp > existingEntry.TimeStamp {
+				ht.table[key] = otherEntry
+			}
+			// If timestamps are equal, keep the one with the higher offset
+			if otherEntry.TimeStamp == existingEntry.TimeStamp && otherEntry.Offset > existingEntry.Offset {
 				ht.table[key] = otherEntry
 			}
 		} else {

@@ -46,8 +46,12 @@ func (e *Entry) getEntryKVPairSize() uint32 {
 	return e.KeySize + e.ValueSize
 }
 
+func getEntryHeaderSize() uint32 {
+	return 8 + 4 + 4 // timestamp + keysize + valuesize
+}
+
 func (e *Entry) getEntrySize() uint32 {
-	return e.KeySize + e.ValueSize + 8 + 4 + 4 // timestamp + keysize + valuesize
+	return e.KeySize + e.ValueSize + getEntryHeaderSize()
 }
 
 func (e *Entry) serialize() ([]byte, error) {
@@ -117,4 +121,16 @@ func deserializeEntry(bytarr []byte) (*Entry, error) {
 	}
 
 	return e, nil
+}
+
+
+func getEntrySizeFromHeader(header []byte) (uint32, error) {
+	if len(header) < int(getEntryHeaderSize()) {
+		return 0, utils.ErrInvalidEntry
+	}
+
+	keySize := binary.LittleEndian.Uint32(header[8:12])
+	valueSize := binary.LittleEndian.Uint32(header[12:16])
+
+	return getEntryHeaderSize() + keySize + valueSize, nil
 }
