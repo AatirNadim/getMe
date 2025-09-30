@@ -2,8 +2,8 @@ package core
 
 import (
 	"fmt"
-	"getMeMod/store/logger"
-	"getMeMod/store/utils"
+	"getMeMod/server/store/utils"
+	"getMeMod/utils/logger"
 	"io"
 	"os"
 	"path/filepath"

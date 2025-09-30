@@ -2,7 +2,7 @@ package core
 
 import (
 	"fmt"
-	"getMeMod/store/logger"
+	"getMeMod/utils/logger"
 	"os"
 	"path/filepath"
 	"sync"

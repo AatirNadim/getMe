@@ -1,8 +1,8 @@
-package server
+package src
 
 import (
 	"fmt"
-	"getMeMod/store/logger"
+	"getMeMod/utils/logger"
 	"net"
 	"os"
 )

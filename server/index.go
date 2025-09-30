@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"getMeMod/store/utils/constants"
+	"getMeMod/server/src"
+	"getMeMod/server/store/utils/constants"
 	"os"
 	"path/filepath"
 )
@@ -16,7 +17,7 @@ func main() {
 		return
 	}
 	storePath := filepath.Join(homeDir, constants.StoreDirName)
-	if err := server.StartServer(socketPath, storePath); err != nil {
+	if err := src.StartServer(socketPath, storePath); err != nil {
 		fmt.Println("Error starting server:", err)
 	}
 }

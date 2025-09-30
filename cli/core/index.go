@@ -1,8 +1,9 @@
-package cli
+package core
 
 import (
 	"fmt"
 	"getMeMod/store"
+	"getMeMod/store/logger"
 	"getMeMod/store/utils/constants"
 	"net/http"
 	"os"
@@ -28,15 +29,18 @@ var getCmd = &cobra.Command{
 	Short: "Get a value by its key",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		key := args[0]
-		value, found, err := storeInstance.Get(key)
-		if err != nil {
-			return fmt.Errorf("error getting value for key '%s': %w", key, err)
-		}
-		if !found {
-			return fmt.Errorf("key '%s' not found", key)
-		}
-		fmt.Println(value)
+		// key := args[0]
+		// value, found, err := storeInstance.Get(key)
+		// if err != nil {
+		// 	return fmt.Errorf("error getting value for key '%s': %w", key, err)
+		// }
+		// if !found {
+		// 	return fmt.Errorf("key '%s' not found", key)
+		// }
+		// fmt.Println(value)
+
+		logger.Info("Get command is not implemented yet")
+
 		return nil
 	},
 }
@@ -46,12 +50,14 @@ var putCmd = &cobra.Command{
 	Short: "Put a key-value pair into the store",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		key := args[0]
-		value := args[1]
-		if err := storeInstance.Put(key, value); err != nil {
-			return fmt.Errorf("error putting value for key '%s': %w", key, err)
-		}
-		fmt.Printf("Successfully set value for key '%s'\n", key)
+		// key := args[0]
+		// value := args[1]
+		// if err := storeInstance.Put(key, value); err != nil {
+		// 	return fmt.Errorf("error putting value for key '%s': %w", key, err)
+		// }
+		// fmt.Printf("Successfully set value for key '%s'\n", key)
+
+		logger.Info("Put command is not implemented yet")
 		return nil
 	},
 }
@@ -61,11 +67,14 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete a key-value pair from the store",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		key := args[0]
-		if err := storeInstance.Delete(key); err != nil {
-			return fmt.Errorf("error deleting key '%s': %w", key, err)
-		}
-		fmt.Printf("Successfully deleted key '%s'\n", key)
+		// key := args[0]
+		// if err := storeInstance.Delete(key); err != nil {
+		// 	return fmt.Errorf("error deleting key '%s': %w", key, err)
+		// }
+		// fmt.Printf("Successfully deleted key '%s'\n", key)
+
+		logger.Info("Delete command is not implemented yet")
+
 		return nil
 	},
 }

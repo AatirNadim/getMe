@@ -1,9 +1,9 @@
 package store
 
 import (
-	"getMeMod/store/core"
-	"getMeMod/store/logger"
-	"getMeMod/store/utils"
+	"getMeMod/server/store/core"
+	"getMeMod/utils/logger"
+	"getMeMod/server/store/utils"
 	"sync"
 	"time"
 )
