@@ -2,9 +2,9 @@ package core
 
 import (
 	"fmt"
-	"getMeMod/store"
-	"getMeMod/store/logger"
-	"getMeMod/store/utils/constants"
+	"getMeMod/server/store"
+	"getMeMod/utils/logger"
+	"getMeMod/server/store/utils/constants"
 	"net/http"
 	"os"
 

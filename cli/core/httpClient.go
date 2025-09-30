@@ -2,7 +2,7 @@ package core
 
 import (
 	"context"
-	"getMeMod/store/logger"
+	"getMeMod/utils/logger"
 	"net"
 	"net/http"
 )
