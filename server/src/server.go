@@ -36,6 +36,8 @@ func StartServer(socketPath string, storePath string) error {
 			http.Error(w, fmt.Sprintf("key '%s' not found", key), http.StatusNotFound)
 			return
 		}
+
+		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "%s", value)
 	})
 
@@ -55,6 +57,8 @@ func StartServer(socketPath string, storePath string) error {
 			return
 		}
 
+
+		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "Successfully set value for key '%s'\n", key)
 	})
 
@@ -73,6 +77,7 @@ func StartServer(socketPath string, storePath string) error {
 			return
 		}
 
+		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "Successfully deleted key '%s'\n", key)
 	})
 

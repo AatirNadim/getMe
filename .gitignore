@@ -40,5 +40,6 @@ bin/
 .DS_Store
 Thumbs.db
 
-/getMeMod
+# Generated executable
+getMe*
 /testing**

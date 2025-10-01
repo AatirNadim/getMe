@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func createHttpClient(socketPath string) (*http.Client, error) {
+func CreateHttpClient(socketPath string) (*http.Client, error) {
 
 	logger.Info("Creating HTTP client with socket path:", socketPath)
 	httpClient := &http.Client{
