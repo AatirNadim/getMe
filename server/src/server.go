@@ -1,12 +1,19 @@
 package src
 
 import (
+	"encoding/json"
 	"fmt"
 	"getMeMod/server/store"
 	"getMeMod/utils/logger"
+	"io"
 	"net/http"
 )
 
+
+type PutRequestBody struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
 
 func StartServer(socketPath string, storePath string) error {
 	l, err := createSocket(socketPath)
@@ -46,8 +53,28 @@ func StartServer(socketPath string, storePath string) error {
 		// 	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		// 	return
 		// }
-		key := r.URL.Query().Get("key")
-		value := r.URL.Query().Get("value")
+
+
+
+		logger.Debug("Handling PUT request, parsing form data")
+		body, err := io.ReadAll(r.Body)
+
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		var requestPayload PutRequestBody
+		
+		if err := json.Unmarshal(body, &requestPayload); err != nil {
+			http.Error(w, fmt.Sprintf("failed to parse JSON body: %v", err), http.StatusBadRequest)
+			return
+		}
+
+		key := requestPayload.Key
+		value := requestPayload.Value
+
+		
 		if key == "" || value == "" {
 			http.Error(w, "missing key or value parameter", http.StatusBadRequest)
 			return

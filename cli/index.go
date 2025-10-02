@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"getMeMod/cli/core"
 	"getMeMod/server/store/utils/constants"
@@ -12,6 +14,12 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+
+type PutRequestBody struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
 
 
 var rootCmd = &cobra.Command{
@@ -112,15 +120,24 @@ var putCmd = &cobra.Command{
 		}
 
 
-		req, err := http.NewRequest("POST", "http://unix/put", nil)
+		logger.Debug("Preparing JSON payload for PUT request with key:", key, " and value:", value)
+		jsonPayload, err := json.Marshal(PutRequestBody{
+			Key:   key,
+			Value: value,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to marshal JSON payload: %w", err)
+		}
+
+
+		logger.Debug("preparing io reader payload with:", jsonPayload)
+		readerPayload := bytes.NewReader(jsonPayload)
+
+
+		req, err := http.NewRequest("POST", "http://unix/put", readerPayload)
 		if err != nil {
 			return fmt.Errorf("failed to create request: %w", err)
 		}
-
-		q := req.URL.Query()
-		q.Add("key", key)
-		q.Add("value", value)
-		req.URL.RawQuery = q.Encode()
 
 		logger.Info("Sending PUT request for key:", key, " and value:", value, " encoded as request query parameters")
 
