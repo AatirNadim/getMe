@@ -53,8 +53,8 @@ class GetMeClient:
         if resp.status_code != 200:
             raise Exception(f"Failed to get value for key '{key}': {resp.text}")
         
-        print( resp.json())
-        return resp.json()
+        print(resp.content.decode('utf-8'))
+        return resp.content.decode('utf-8')
 
     def delete(self, key):
         """

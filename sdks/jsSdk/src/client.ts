@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from "axios";
 class GetMeClient {
   private axiosClient: AxiosInstance;
 
-  constructor(private socketPath: string) {
+  constructor() {
     this.axiosClient = axios.create({
       baseURL: "http://unix",
       socketPath : process.env.GETME_SOCKET_PATH || '/tmp/getMeStore/getMe.sock',
@@ -19,7 +19,10 @@ class GetMeClient {
       const response = await this.axiosClient.get(`/get`, {
         params: { key },
       });
-      return response.data.value;
+
+      console.log("Fetched value:", response.data);
+
+      return response.data;
     } catch (error) {
       console.error("Error fetching value:", error);
       throw error;
