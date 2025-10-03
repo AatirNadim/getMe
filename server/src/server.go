@@ -60,6 +60,7 @@ func StartServer(socketPath string, storePath string) error {
 		body, err := io.ReadAll(r.Body)
 
 		if err != nil {
+			logger.Error("Error reading request body:", err)
 			http.Error(w, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
 			return
 		}
@@ -67,19 +68,24 @@ func StartServer(socketPath string, storePath string) error {
 		var requestPayload PutRequestBody
 		
 		if err := json.Unmarshal(body, &requestPayload); err != nil {
+			logger.Error("Error parsing JSON body:", err)
 			http.Error(w, fmt.Sprintf("failed to parse JSON body: %v", err), http.StatusBadRequest)
 			return
 		}
+
+		logger.Debug("Parsed request payload:", requestPayload)
 
 		key := requestPayload.Key
 		value := requestPayload.Value
 
 		
 		if key == "" || value == "" {
+			logger.Error("Missing key or value in request")
 			http.Error(w, "missing key or value parameter", http.StatusBadRequest)
 			return
 		}
 		if err := storeInstance.Put(key, value); err != nil {
+			logger.Error("Error putting value in store:", err)
 			http.Error(w, fmt.Sprintf("error putting value for key '%s': %v", key, err), http.StatusInternalServerError)
 			return
 		}

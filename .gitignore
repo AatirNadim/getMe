@@ -41,8 +41,11 @@ bin/
 Thumbs.db
 
 # Generated executable
-getMe*
 /testing**
 
 
 node_modules/
+
+*venv
+
+dist/
