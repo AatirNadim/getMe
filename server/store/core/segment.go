@@ -3,17 +3,13 @@ package core
 import (
 	"fmt"
 	"getMeMod/server/store/utils"
+	"getMeMod/server/store/utils/constants"
 	"getMeMod/utils/logger"
 	"io"
 	"os"
 	"path/filepath"
 	"sync"
 )
-
-// const DefaultMaxSegmentSize = 1024 * 1024 * 20 // 20 MB
-const DefaultMaxSegmentSize = 50 // 50 bytes for testing
-
-const MaxEntriesPerSegment = 10000
 
 // represents a log segment file, stored on the disk
 type Segment struct {
@@ -43,8 +39,8 @@ func NewSegment(id uint32, basePath string) (*Segment, error) {
 		path:     path,
 		file:     file,
 		isActive: true,
-		maxCount: MaxEntriesPerSegment,
-		maxSize:  DefaultMaxSegmentSize,
+		maxCount: constants.MaxEntriesPerSegment,
+		maxSize:  constants.DefaultMaxSegmentSize,
 	}
 
 	return segment, nil
@@ -76,8 +72,8 @@ func OpenSegment(id uint32, basePath string) (*Segment, error) {
 		path:     path,
 		file:     file,
 		isActive: true,
-		maxCount: MaxEntriesPerSegment,
-		maxSize:  DefaultMaxSegmentSize,
+		maxCount: constants.MaxEntriesPerSegment,
+		maxSize:  constants.DefaultMaxSegmentSize,
 		size:     uint32(fileInfo.Size()),
 	}
 
@@ -184,17 +180,31 @@ func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 
 		entryKey := convertBytesToString(entry.Key)
 
-		if entry.isDeletionEntry() {
-			ht.Delete(entryKey)
-		} else {
-			ht.Put(entryKey, segment.id, offset, entry.TimeStamp, entry.ValueSize)
-		}
+		// at the time of creation of new hashtable, deletion entries remove the key if present
+		// if entry.isDeletionEntry() {
+		// 	ht.Delete(entryKey)
+		// } else {
+
+
+		// for now we will keep the deletion entries in the hash table as well to keep track of the latest entries
+		ht.Put(entryKey, segment.id, offset, entry.TimeStamp, entry.ValueSize)
+		// }
 
 		// updating the offset to point to the next entry
 		offset = nextOffset
 	}
 
 	return ht, nil
+}
+
+func (segment *Segment) readAllEntriesAsync(wg *sync.WaitGroup, resultChan chan<- *HashTable) {
+	defer wg.Done()
+	ht, err := segment.ReadAllEntries()
+	if err != nil {
+		logger.Error("Failed to read entries from segment %d: %v", segment.id, err)
+		return
+	}
+	resultChan <- ht
 }
 
 // reads an entry from a specific offset in the segment file and returns the serialized bytes of the entry along with the offset for the next entry

@@ -59,6 +59,12 @@ func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp 
 	return nil
 }
 
+func (ht *HashTable) PutEntry(key string, entry HashTableEntry) {
+	ht.mu.Lock()
+	defer ht.mu.Unlock()
+	ht.table[key] = &entry
+}
+
 func (ht *HashTable) Merge(other *HashTable) {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
@@ -128,6 +134,3 @@ func (ht *HashTable) DeleteDeletionEntries() {
 	}
 }
 
-// func (ht *HashTable) UpdateTableBasedOnSegment(sg *Segment) error {
-
-// }

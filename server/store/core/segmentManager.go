@@ -14,6 +14,7 @@ type SegmentManager struct {
 	segmentMap map[uint32]*Segment
 	// stores the index of the next segment to be created
 	nextSegmentId uint32
+	atomicCounter  *AtomicCounter
 }
 
 func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentManager, error) {
@@ -22,6 +23,7 @@ func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentMa
 		segmentMap:    make(map[uint32]*Segment),
 		basePath:      basePath,
 		nextSegmentId: 0,
+		// atomicCounter: NewAtomicCounter(0),
 	}
 
 	if err := os.MkdirAll(basePath, 0755); err != nil {
@@ -40,6 +42,11 @@ func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentMa
 		}
 	}
 
+	
+	sm.atomicCounter = NewAtomicCounter(sm.nextSegmentId)
+
+	logger.Info("Segment manager atomic counter initialized")
+	
 	return sm, nil
 }
 
@@ -82,15 +89,18 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 		sm.segmentMap[uint32(id)] = segment
 
 		wg.Add(1)
-		go func(seg *Segment) {
-			defer wg.Done()
-			ht, err := seg.ReadAllEntries()
-			if err != nil {
-				logger.Error("Failed to read entries from segment %d: %v", seg.id, err)
-				return
-			}
-			ch <- ht
-		}(segment)
+		// go func(seg *Segment) {
+		// 	defer wg.Done()
+		// 	ht, err := seg.ReadAllEntries()
+		// 	if err != nil {
+		// 		logger.Error("Failed to read entries from segment %d: %v", seg.id, err)
+		// 		return
+		// 	}
+		// 	ch <- ht
+		// }(segment)
+
+		segment.readAllEntriesAsync(&wg, ch)
+		
 	}
 
 	// a goroutine to close the channel when all segment reads are done
@@ -103,6 +113,10 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 	for ht := range ch {
 		centralHashTable.Merge(ht)
 	}
+
+	// remove all the deletion entries from the central hash table
+	// since they are not actual entries
+	centralHashTable.DeleteDeletionEntries()
 
 	logger.Success("all the segments have been loaded into the central hash table")
 
@@ -133,8 +147,10 @@ func (sm *SegmentManager) createNewSegment(basePath string) (*Segment, error) {
 	// add the new segment to the segment map and increment the nextSegmentId
 	sm.segmentMap[sm.nextSegmentId] = segment
 	// increment the nextSegmentId for the next segment
-	sm.nextSegmentId += 1
+	// sm.nextSegmentId += 1
 
+	// use the atomic counter to get the next segment id
+	sm.nextSegmentId = sm.atomicCounter.Next()
 	return segment, nil
 }
 
@@ -247,4 +263,112 @@ func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, erro
 		return 0, err
 	}
 	return offset, nil
+}
+
+
+func (sg* SegmentManager) updateActiveSegmentId(size uint32) (uint32, error) {
+	sg.mu.Lock()
+	defer sg.mu.Unlock()
+	
+	currAvailableSegmentId := sg.atomicCounter.Reserve(size)
+
+	sg.nextSegmentId = sg.atomicCounter.Get()
+
+	return currAvailableSegmentId, nil
+}
+
+
+
+// perform compaction and returns the compacted hash table to be merged with the central hash table
+func (sg *SegmentManager) performCompaction(segments []*Segment, compactedSegmentManager *CompactedSegmentManager) (*HashTable, error) {
+
+
+	logger.Debug("Starting compaction for segments, creating a channel")
+	resultChan := make(chan *HashTable, len(segments))
+
+	var wg sync.WaitGroup
+
+	// read all the entries in these segmnents and create a new hash table, which contains latest and unique entries in the scope of these segments
+	for _, segment := range segments {
+		wg.Add(1)
+		segment.readAllEntriesAsync(&wg, resultChan)
+
+	}
+
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	updatedHashTable := NewHashTable()
+
+	for ht := range resultChan {
+		updatedHashTable.Merge(ht)
+	}
+
+	logger.Info("updated hash table created")
+
+	currAvailableSegmentId, err := sg.updateActiveSegmentId(uint32(len(segments)))
+
+	if err != nil {
+		return nil, fmt.Errorf("performCompaction: failed to update active segment id: %w", err)
+	}
+
+	logger.Info("active segment id updated to:", currAvailableSegmentId)
+
+	
+	
+
+	compactedSegmentManager.currAvailableSegmentId = currAvailableSegmentId
+	compactedSegmentManager.maxAvailableSegmentId = currAvailableSegmentId + uint32(len(segments)) - 1
+	// we can send the entire segment map, since compaction only deals with inactive segments and it is not being modified
+	compactedSegmentManager.originalSegmentMap = sg.segmentMap
+
+
+	compactedHashTable, err := compactedSegmentManager.populateCompactedSegments(updatedHashTable)
+
+
+	if err != nil {
+		return nil, fmt.Errorf("performCompaction: failed to populate compacted segments: %w", err)
+	}
+
+
+
+
+	// bring the segments from the compacted segment manager to the main segment manager
+	for id, segment := range compactedSegmentManager.compactedSegmentMap {
+
+		newPath := filepath.Join(sg.basePath, fmt.Sprintf("segment_%d.log", id))
+		err := os.Rename(segment.path, newPath)
+		if err != nil {
+			return nil, fmt.Errorf("performCompaction: failed to move compacted segment file %s to %s: %w", segment.path, newPath, err)
+		}
+		segment.path = newPath
+		
+		sg.segmentMap[id] = segment
+	}
+
+	// delete the original segments that were compacted
+	for _, segment := range segments {
+		logger.Info("performCompaction: deleting original segment with id:", segment.id)
+		segment.file.Close()
+		err := os.Remove(segment.path)
+		if err != nil {
+			return nil, fmt.Errorf("performCompaction: failed to delete original segment file %s: %w", segment.path, err)
+		}
+		delete(sg.segmentMap, segment.id)
+	}
+
+	logger.Info("performCompaction: deleted original segments")
+	
+	// merge the compacted hash table into the central hash table 
+
+	
+
+	
+	
+	logger.Debug("Compaction completed. Updated hash table: ", updatedHashTable.Entries())
+
+	return compactedHashTable, nil
+	
 }

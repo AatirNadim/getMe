@@ -13,6 +13,8 @@ type Store struct {
 	basePath       string
 	hashTable      *core.HashTable
 	segmentManager *core.SegmentManager
+	atomicCounter  *core.AtomicCounter
+	compactedSegmentManager *core.CompactedSegmentManager
 }
 
 func NewStore(basePath string) *Store {
@@ -37,13 +39,13 @@ func (s *Store) Get(key string) (string, bool, error) {
 	defer s.mu.RUnlock()
 
 	logger.Info("Getting the file and the offset for key:", key)
-	entry, exists := s.hashTable.Get(key)
+	hashTableEntry, exists := s.hashTable.Get(key)
 	if !exists {
 		logger.Error("key not found: ", key)
 		return "", false, utils.ErrKeyNotFound
 	}
 
-	data, _, err := s.segmentManager.Read(entry.SegmentId, entry.Offset)
+	data, _, err := s.segmentManager.Read(hashTableEntry.SegmentId, hashTableEntry.Offset)
 	if err != nil {
 		return "", false, err
 	}
