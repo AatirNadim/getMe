@@ -17,7 +17,7 @@ type CompactedSegmentManager struct {
 
 	// to keep track of the original segments that are to be compacted, we can fetch the active segment ids from this
 	activeSegment *Segment
-	compactedHashTable *HashTable
+	// compactedHashTable *HashTable
 	originalSegmentMap map[uint32]*Segment
 	compactedSegmentMap map[uint32]*Segment
 }

@@ -19,6 +19,10 @@ func NewAtomicCounter(initialValue uint32) *AtomicCounter {
 }
 
 
+func (ac *AtomicCounter) Set(value uint32) {
+	atomic.StoreUint32(&ac.value, value)
+}
+
 // Increments the counter by 1 and returns the value
 func (ac *AtomicCounter) Next() uint32 {
   return atomic.AddUint32(&ac.value, 1)

@@ -14,8 +14,9 @@ type SegmentManager struct {
 	basePath   string
 	segmentMap map[uint32]*Segment
 	// stores the index of the next segment to be created
-	nextSegmentId uint32
-	atomicCounter  *AtomicCounter
+	// nextSegmentId uint32
+	// atomicCounter  *AtomicCounter
+	nextSegmentCounter *AtomicCounter
 }
 
 func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentManager, error) {
@@ -23,8 +24,8 @@ func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentMa
 	sm := &SegmentManager{
 		segmentMap:    make(map[uint32]*Segment),
 		basePath:      basePath,
-		nextSegmentId: 0,
-		// atomicCounter: NewAtomicCounter(0),
+		// nextSegmentId: 0,
+		nextSegmentCounter: NewAtomicCounter(0),
 	}
 
 	if err := os.MkdirAll(basePath, 0755); err != nil {
@@ -44,7 +45,7 @@ func NewSegmentManager(basePath string, centralHashTable *HashTable) (*SegmentMa
 	}
 
 	
-	sm.atomicCounter = NewAtomicCounter(sm.nextSegmentId)
+	// sm.atomicCounter = NewAtomicCounter(sm.nextSegmentId)
 
 	logger.Info("Segment manager atomic counter initialized")
 	
@@ -69,6 +70,8 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 	var wg sync.WaitGroup
 	ch := make(chan *HashTable, len(paths))
 
+	maxSegmentId := uint32(0)
+
 	// for all the paths, open the segment and add it to the segment map, based on their IDs
 	for _, path := range paths {
 		var id uint32
@@ -84,7 +87,7 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 
 		logger.Info("opened segment with id:", id, " at path:", path, "segment details:", *segment)
 
-		sm.nextSegmentId = max(sm.nextSegmentId, id)
+		maxSegmentId = max(maxSegmentId, id)
 
 		// assign the segment mapped to its id
 		sm.segmentMap[uint32(id)] = segment
@@ -129,7 +132,7 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 
 	logger.Info("loaded segments from the disk")
 	// increment the nextSegmentId to be one more than the max id found
-	sm.nextSegmentId += 1
+	sm.nextSegmentCounter.Set(maxSegmentId + 1)
 	return nil
 
 }
@@ -143,21 +146,22 @@ func (sg *SegmentManager) TotalSegments() uint32 {
 
 // create a new segment, add it to the segment map and return it (this operation is not atomic)
 func (sm *SegmentManager) createNewSegment(basePath string) (*Segment, error) {
-	logger.Info("Creating a new segment with id:", sm.nextSegmentId)
+	logger.Info("Creating a new segment with id:", sm.nextSegmentCounter.Get())
 
+	nextSegmentCounterVal := sm.nextSegmentCounter.Get()
 	// create a new segment with id = sm.nextSegmentId
-	segment, err := NewSegment(sm.nextSegmentId, basePath)
+	segment, err := NewSegment(nextSegmentCounterVal, basePath)
 	if err != nil {
 		return nil, err
 	}
 
 	// add the new segment to the segment map and increment the nextSegmentId
-	sm.segmentMap[sm.nextSegmentId] = segment
+	sm.segmentMap[nextSegmentCounterVal] = segment
 	// increment the nextSegmentId for the next segment
 	// sm.nextSegmentId += 1
 
 	// use the atomic counter to get the next segment id
-	sm.nextSegmentId = sm.atomicCounter.Next()
+	sm.nextSegmentCounter.Next()
 	return segment, nil
 }
 
@@ -181,7 +185,7 @@ func (sm *SegmentManager) Append(entry *Entry) (uint32, uint32, bool, error) {
 	}
 
 	// Return the segment ID and offset
-	return sm.nextSegmentId, offset, newSegmentCreated, nil
+	return sm.nextSegmentCounter.Get() - 1, offset, newSegmentCreated, nil
 }
 
 // reads an entry from a specific segment at a specific offset and returns it along with the offset for the next entry
@@ -191,7 +195,7 @@ func (sm *SegmentManager) Read(segmentId uint32, offset uint32) (*Entry, uint32,
 
 	logger.Info("segment manager: Reading entry from segment", segmentId, "at offset", offset)
 
-	if segmentId > sm.nextSegmentId-1 {
+	if segmentId > sm.nextSegmentCounter.Get()-1 {
 		logger.Error("segment manager: segment", segmentId, "does not exist")
 		return nil, offset, fmt.Errorf("segment %d does not exist", segmentId)
 	}
@@ -242,17 +246,17 @@ func (sm *SegmentManager) Clear() {
 		delete(sm.segmentMap, id)
 	}
 
-	sm.nextSegmentId = 0
+	sm.nextSegmentCounter.Set(0)
 }
 
 func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, bool, error) {
 
 	// active id will always hold the id of the next segment to be created
-	currentSegment := sm.segmentMap[sm.nextSegmentId-1]
+	currentSegment := sm.segmentMap[sm.nextSegmentCounter.Get()-1]
 
 	newSegmentCreated := false
 
-	logger.Info("current segment details: ", *currentSegment)
+	// logger.Info("current segment details: ", *currentSegment)
 
 	if !currentSegment.isSpaceAvailableInCurrentSegment(entry) {
 		logger.Info("appendEntryToLatestSegment: No space available in current segment, creating a new segment...")
@@ -279,9 +283,9 @@ func (sg *SegmentManager) updateActiveSegmentId(size uint32) (uint32, error) {
 	sg.mu.Lock()
 	defer sg.mu.Unlock()
 	
-	currAvailableSegmentId := sg.atomicCounter.Reserve(size)
+	currAvailableSegmentId := sg.nextSegmentCounter.Reserve(size)
 
-	sg.nextSegmentId = sg.atomicCounter.Get()
+	// sg.nextSegmentId = sg.atomicCounter.Get()
 
 	return currAvailableSegmentId, nil
 }
