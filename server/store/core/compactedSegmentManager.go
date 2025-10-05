@@ -23,13 +23,10 @@ type CompactedSegmentManager struct {
 }
 
 
-func NewCompactedSegmentManager(basePath string, currAvailableSegmentId, maxAvailableSegmentId uint32, compactedHashTable *HashTable) (*CompactedSegmentManager, error) {
+func NewCompactedSegmentManager(basePath string) (*CompactedSegmentManager, error) {
 
 	csm := &CompactedSegmentManager{
 		basePath:      basePath,
-		currAvailableSegmentId: currAvailableSegmentId,
-		maxAvailableSegmentId: maxAvailableSegmentId,
-		compactedHashTable: compactedHashTable,
 	}
 
 
@@ -106,8 +103,8 @@ func (csm *CompactedSegmentManager) appendEntryToActiveCompactedSegment(entry *E
 }
 
 func (csm *CompactedSegmentManager) createdNewSegment() error {
-	csm.mu.Lock()
-	defer csm.mu.Unlock()
+	// csm.mu.Lock()
+	// defer csm.mu.Unlock()
 	path := filepath.Join(csm.basePath, fmt.Sprintf("segment_%d.log", csm.currAvailableSegmentId))
 
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)

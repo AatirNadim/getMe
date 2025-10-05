@@ -3,7 +3,8 @@ package constants
 
 const (
 	SocketPath = "/tmp/getMeStore/getMe.sock"
-	StoreDirName   = ".getMeStore"
+	StoreDirName   = ".getMeStore/data"
+	CompactedStoreDirName = ".getMeStore/compacted_data"
 	DefaultMaxSegmentSize = 50
 	MaxEntriesPerSegment = 10000
 	ThresholdForCompaction = 10 // if there are more than 10 segments, we trigger compaction

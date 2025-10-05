@@ -20,25 +20,28 @@ type Store struct {
 	isCompacting            atomic.Bool
 }
 
-func NewStore(basePath string) *Store {
+func NewStore(mainBasePath, compactedBasePath string) *Store {
 	hashTable := core.NewHashTable()
-	segmentManager, err := core.NewSegmentManager(basePath, hashTable)
-
+	segmentManager, err := core.NewSegmentManager(mainBasePath, hashTable)
 	if err != nil {
 		panic(err)
 	}
 
-	logger.Info("creating a new store instance on the base path:", basePath)
-
-	store := &Store{
-		basePath:       basePath,
-		hashTable:      hashTable,
-		segmentManager: segmentManager,
+	compactedSegmentManager, err := core.NewCompactedSegmentManager(compactedBasePath)
+	if err != nil {
+		panic(err)
 	}
 
+	logger.Info("creating a new store instance on the base path:", mainBasePath)
+
+	store := &Store{
+		basePath:                mainBasePath,
+		hashTable:               hashTable,
+		segmentManager:          segmentManager,
+		compactedSegmentManager: compactedSegmentManager,
+	}
 
 	store.isCompacting.Store(false)
-
 
 	return store
 }
@@ -161,7 +164,7 @@ func (s *Store) performCompaction() {
 	if !s.isCompacting.CompareAndSwap(false, true) {
 		logger.Info("Compaction is already in progress, skipping this trigger.")
 		return
-  }
+	}
 	defer s.isCompacting.Store(false)
 	logger.Info("a new segment was created, initiating compaction process")
 	totalSegments := s.segmentManager.TotalSegments()

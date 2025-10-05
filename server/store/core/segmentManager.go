@@ -370,7 +370,10 @@ func (sg *SegmentManager) PerformCompaction(centralHashTable *HashTable, compact
 	}
 
 
+	sg.mu.Lock()
+	defer sg.mu.Unlock()
 	// bring the segments from the compacted segment manager to the main segment manager
+	// this needs to be an atomic operation
 	for id, segment := range compactedSegmentManager.compactedSegmentMap {
 
 		newPath := filepath.Join(sg.basePath, fmt.Sprintf("segment_%d.log", id))
@@ -388,6 +391,7 @@ func (sg *SegmentManager) PerformCompaction(centralHashTable *HashTable, compact
 	// merge the compacted hash table into the central hash table 
 	centralHashTable.Merge(compactedHashTable)
 
+	centralHashTable.DeleteDeletionEntries()
 
 	// delete the original segments that were compacted
 	for _, segment := range segments {
