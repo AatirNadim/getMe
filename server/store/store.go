@@ -2,19 +2,22 @@ package store
 
 import (
 	"getMeMod/server/store/core"
-	"getMeMod/utils/logger"
 	"getMeMod/server/store/utils"
+	"getMeMod/server/store/utils/constants"
+	"getMeMod/utils/logger"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 type Store struct {
-	mu             sync.RWMutex
-	basePath       string
-	hashTable      *core.HashTable
-	segmentManager *core.SegmentManager
-	atomicCounter  *core.AtomicCounter
+	mu                      sync.RWMutex
+	basePath                string
+	hashTable               *core.HashTable
+	segmentManager          *core.SegmentManager
+	atomicCounter           *core.AtomicCounter
 	compactedSegmentManager *core.CompactedSegmentManager
+	isCompacting            atomic.Bool
 }
 
 func NewStore(basePath string) *Store {
@@ -27,11 +30,17 @@ func NewStore(basePath string) *Store {
 
 	logger.Info("creating a new store instance on the base path:", basePath)
 
-	return &Store{
+	store := &Store{
 		basePath:       basePath,
 		hashTable:      hashTable,
 		segmentManager: segmentManager,
 	}
+
+
+	store.isCompacting.Store(false)
+
+
+	return store
 }
 
 func (s *Store) Get(key string) (string, bool, error) {
@@ -71,7 +80,7 @@ func (s *Store) Put(key string, value string) error {
 
 	logger.Info("appending entry with key:", key, " to segment manager")
 
-	nextSegmentId, offset, err := s.segmentManager.Append(entry)
+	nextSegmentId, offset, newSegmentCreated, err := s.segmentManager.Append(entry)
 	if err != nil {
 		return err
 	}
@@ -79,6 +88,11 @@ func (s *Store) Put(key string, value string) error {
 	logger.Info("updating hash table with key:", key, " segmentId:", nextSegmentId-1, " offset:", offset)
 
 	s.hashTable.Put(key, nextSegmentId-1, offset, timeStamp, entry.ValueSize)
+
+	if newSegmentCreated {
+		go s.performCompaction()
+	}
+
 	return nil
 }
 
@@ -103,7 +117,7 @@ func (s *Store) Delete(key string) error {
 	}
 
 	logger.Info("appending deletion entry for key:", key, " to segment manager")
-	_, err := s.segmentManager.Delete(deletionEntry)
+	_, _, err := s.segmentManager.Delete(deletionEntry)
 	if err != nil {
 		return err
 	}
@@ -140,4 +154,21 @@ func (s *Store) convertStringToBytes(str string) []byte {
 
 func (s *Store) convertBytesToString(b []byte) string {
 	return string(b)
+}
+
+func (s *Store) performCompaction() {
+
+	if !s.isCompacting.CompareAndSwap(false, true) {
+		logger.Info("Compaction is already in progress, skipping this trigger.")
+		return
+  }
+	defer s.isCompacting.Store(false)
+	logger.Info("a new segment was created, initiating compaction process")
+	totalSegments := s.segmentManager.TotalSegments()
+
+	if totalSegments > constants.ThresholdForCompaction {
+		logger.Info("total segments:", totalSegments, "exceeds threshold:", constants.ThresholdForCompaction, "starting compaction")
+
+		s.segmentManager.PerformCompaction(s.hashTable, s.compactedSegmentManager)
+	}
 }

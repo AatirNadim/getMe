@@ -46,11 +46,11 @@ func NewCompactedSegmentManager(basePath string, currAvailableSegmentId, maxAvai
 	}
 
 
-	// TODO: check whether this is required
-	// Load existing compacted segments, if they exist
-	if _, err := csm.populateCompactedSegments(csm.compactedHashTable); err != nil {
-		return nil, fmt.Errorf("failed to load compacted segments: %w", err)
-	}
+	// // TODO: check whether this is required
+	// // Load existing compacted segments, if they exist
+	// if _, err := csm.populateCompactedSegments(csm.compactedHashTable); err != nil {
+	// 	return nil, fmt.Errorf("failed to load compacted segments: %w", err)
+	// }
 
 	return csm, nil
 }
