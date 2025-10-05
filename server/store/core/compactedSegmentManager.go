@@ -32,6 +32,15 @@ func NewCompactedSegmentManager(basePath string, currAvailableSegmentId, maxAvai
 		compactedHashTable: compactedHashTable,
 	}
 
+
+	// remove existing directory if it exists
+	err := os.RemoveAll(basePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove dir: %w", err)
+	}
+
+
+	// create base directory
 	if err := os.MkdirAll(basePath, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create base directory: %w", err)
 	}
@@ -59,6 +68,10 @@ func (csm *CompactedSegmentManager) populateCompactedSegments(compactedHashTable
 		}
 		
 		offset, err := csm.appendEntryToActiveCompactedSegment(entry)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to append entry to active compacted segment: %w", err)
+		}
 
 		updatedhashTableEntry := hashTableEntry;
 		updatedhashTableEntry.SegmentId = csm.currAvailableSegmentId

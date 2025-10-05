@@ -265,8 +265,7 @@ func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, erro
 	return offset, nil
 }
 
-
-func (sg* SegmentManager) updateActiveSegmentId(size uint32) (uint32, error) {
+func (sg *SegmentManager) updateActiveSegmentId(size uint32) (uint32, error) {
 	sg.mu.Lock()
 	defer sg.mu.Unlock()
 	
@@ -277,10 +276,9 @@ func (sg* SegmentManager) updateActiveSegmentId(size uint32) (uint32, error) {
 	return currAvailableSegmentId, nil
 }
 
-
-
+// this will run as a separate goroutine
 // perform compaction and returns the compacted hash table to be merged with the central hash table
-func (sg *SegmentManager) performCompaction(segments []*Segment, compactedSegmentManager *CompactedSegmentManager) (*HashTable, error) {
+func (sg *SegmentManager) performCompaction(centralHashTable *HashTable, segments []*Segment, compactedSegmentManager *CompactedSegmentManager) error {
 
 
 	logger.Debug("Starting compaction for segments, creating a channel")
@@ -308,10 +306,11 @@ func (sg *SegmentManager) performCompaction(segments []*Segment, compactedSegmen
 
 	logger.Info("updated hash table created")
 
+	// reserve segment ids for the compacted segments
 	currAvailableSegmentId, err := sg.updateActiveSegmentId(uint32(len(segments)))
 
 	if err != nil {
-		return nil, fmt.Errorf("performCompaction: failed to update active segment id: %w", err)
+		return fmt.Errorf("performCompaction: failed to update active segment id: %w", err)
 	}
 
 	logger.Info("active segment id updated to:", currAvailableSegmentId)
@@ -329,10 +328,8 @@ func (sg *SegmentManager) performCompaction(segments []*Segment, compactedSegmen
 
 
 	if err != nil {
-		return nil, fmt.Errorf("performCompaction: failed to populate compacted segments: %w", err)
+		return fmt.Errorf("performCompaction: failed to populate compacted segments: %w", err)
 	}
-
-
 
 
 	// bring the segments from the compacted segment manager to the main segment manager
@@ -341,7 +338,7 @@ func (sg *SegmentManager) performCompaction(segments []*Segment, compactedSegmen
 		newPath := filepath.Join(sg.basePath, fmt.Sprintf("segment_%d.log", id))
 		err := os.Rename(segment.path, newPath)
 		if err != nil {
-			return nil, fmt.Errorf("performCompaction: failed to move compacted segment file %s to %s: %w", segment.path, newPath, err)
+			return fmt.Errorf("performCompaction: failed to move compacted segment file %s to %s: %w", segment.path, newPath, err)
 		}
 		segment.path = newPath
 		
@@ -354,7 +351,7 @@ func (sg *SegmentManager) performCompaction(segments []*Segment, compactedSegmen
 		segment.file.Close()
 		err := os.Remove(segment.path)
 		if err != nil {
-			return nil, fmt.Errorf("performCompaction: failed to delete original segment file %s: %w", segment.path, err)
+			return fmt.Errorf("performCompaction: failed to delete original segment file %s: %w", segment.path, err)
 		}
 		delete(sg.segmentMap, segment.id)
 	}
@@ -362,13 +359,9 @@ func (sg *SegmentManager) performCompaction(segments []*Segment, compactedSegmen
 	logger.Info("performCompaction: deleted original segments")
 	
 	// merge the compacted hash table into the central hash table 
-
-	
-
-	
+	centralHashTable.Merge(compactedHashTable)
 	
 	logger.Debug("Compaction completed. Updated hash table: ", updatedHashTable.Entries())
+	return nil
 
-	return compactedHashTable, nil
-	
 }
