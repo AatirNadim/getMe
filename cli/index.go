@@ -90,7 +90,6 @@ var getCmd = &cobra.Command{
 		}
 
 		fmt.Println(string(body))
-		httpClient.Get("")
 
 		return nil
 	},
@@ -162,7 +161,6 @@ var putCmd = &cobra.Command{
 
 		fmt.Println(string(body))
 
-		logger.Info("Put command is not implemented yet")
 		return nil
 	},
 }
@@ -213,8 +211,6 @@ var deleteCmd = &cobra.Command{
 		}
 		
 		fmt.Println(string(body))
-
-		logger.Info("Delete command is not implemented yet")
 
 		return nil
 	},

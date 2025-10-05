@@ -16,7 +16,8 @@ func main() {
 		return
 	}
 	storePath := filepath.Join(homeDir, constants.StoreDirName)
-	if err := src.StartServer(constants.SocketPath, storePath); err != nil {
+	compactedStorePath := filepath.Join(homeDir, constants.CompactedStoreDirName)
+	if err := src.StartServer(constants.SocketPath, storePath, compactedStorePath); err != nil {
 		fmt.Println("Error starting server:", err)
 	}
 }

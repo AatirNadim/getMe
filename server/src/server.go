@@ -15,14 +15,14 @@ type PutRequestBody struct {
 	Value string `json:"value"`
 }
 
-func StartServer(socketPath string, storePath string) error {
+func StartServer(socketPath, storePath, compactedStorePath string) error {
 	l, err := createSocket(socketPath)
 	if err != nil {
 		return err
 	}
 	defer l.Close()
 
-	storeInstance := store.NewStore(storePath)
+	storeInstance := store.NewStore(storePath, compactedStorePath)
 	logger.Info("Store has been initialized at path:", storePath)
 
 

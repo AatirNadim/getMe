@@ -166,8 +166,11 @@ func (s *Store) performCompaction() {
 		return
 	}
 	defer s.isCompacting.Store(false)
-	logger.Info("a new segment was created, initiating compaction process")
+	logger.Info("initiating compaction process")
 	totalSegments := s.segmentManager.TotalSegments()
+
+	logger.Info("Total segments in the segment manager:", totalSegments)
+
 
 	if totalSegments > constants.ThresholdForCompaction {
 		logger.Info("total segments:", totalSegments, "exceeds threshold:", constants.ThresholdForCompaction, "starting compaction")

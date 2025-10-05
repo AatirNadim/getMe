@@ -141,6 +141,8 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 func (sg *SegmentManager) TotalSegments() uint32 {
 	sg.mu.RLock()
 	defer sg.mu.RUnlock()
+	logger.Debug("totalSegments")
+
 	return uint32(len(sg.segmentMap))
 }
 
@@ -252,7 +254,11 @@ func (sm *SegmentManager) Clear() {
 func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, bool, error) {
 
 	// active id will always hold the id of the next segment to be created
+
+	logger.Info("appendEntryToLatestSegment: appending entry, current nextsegment counter --> ", sm.nextSegmentCounter.Get())
 	currentSegment := sm.segmentMap[sm.nextSegmentCounter.Get()-1]
+
+	logger.Debug("current active segment details: ", *currentSegment)
 
 	newSegmentCreated := false
 
@@ -297,11 +303,13 @@ func (sg *SegmentManager) getSegmentsForCompaction() []*Segment {
 
 	var segments []*Segment
 
-	for _, segment := range sg.segmentMap {
+	activeSegmentId := sg.nextSegmentCounter.Get() - 1
+
+	for segmentId, segment := range sg.segmentMap {
 		if len(segments) >= constants.TotalSegmentsToCompactAtOnce {
 			break
 		}
-		if !segment.isActive {
+		if segmentId != activeSegmentId {
 			segments = append(segments, segment)
 		}
 	}
@@ -316,12 +324,21 @@ func (sg *SegmentManager) PerformCompaction(centralHashTable *HashTable, compact
 	
 	segments := sg.getSegmentsForCompaction()
 
+	logFile, err := os.OpenFile("compaction_log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		logger.Error("Failed to open log file:", err)
+		return
+	}
+	defer logFile.Close()
+
 	if len(segments) == 0 {
 		logger.Info("No segments available for compaction")
 		return
 	}
 
 	logger.Debug("Starting compaction for segments, creating a channel")
+
+	fmt.Fprintf(logFile, "Starting compaction for segments, creating a channel\n")
 	resultChan := make(chan *HashTable, len(segments))
 
 	var wg sync.WaitGroup
@@ -354,6 +371,7 @@ func (sg *SegmentManager) PerformCompaction(centralHashTable *HashTable, compact
 		return
 	}
 
+	fmt.Fprintf(logFile, "active segment id updated to: %d\n", currAvailableSegmentId)
 	logger.Info("active segment id updated to:", currAvailableSegmentId)
 
 	
@@ -393,6 +411,8 @@ func (sg *SegmentManager) PerformCompaction(centralHashTable *HashTable, compact
 
 
 	// merge the compacted hash table into the central hash table 
+
+	fmt.Fprintf(logFile, "Merging compacted hash table into central hash table\n")
 	centralHashTable.Merge(compactedHashTable)
 
 	centralHashTable.DeleteDeletionEntries()
@@ -400,6 +420,7 @@ func (sg *SegmentManager) PerformCompaction(centralHashTable *HashTable, compact
 	// delete the original segments that were compacted
 	for _, segment := range segments {
 		logger.Info("performCompaction: deleting original segment with id:", segment.id)
+		fmt.Fprintf(logFile, "performCompaction: deleting original segment with id: %d\n", segment.id)
 		segment.file.Close()
 		err := os.Remove(segment.path)
 		if err != nil {
@@ -413,5 +434,6 @@ func (sg *SegmentManager) PerformCompaction(centralHashTable *HashTable, compact
 	
 	
 	logger.Debug("Compaction completed. Updated hash table: ", updatedHashTable.Entries())
+	fmt.Fprintf(logFile, "Compaction completed. Updated hash table: %v\n", updatedHashTable.Entries())
 
 }
