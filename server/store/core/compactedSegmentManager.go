@@ -19,7 +19,7 @@ type CompactionResult struct {
 type CompactedSegmentManager struct {
 	mu         sync.RWMutex
 	basePath   string
-	currAvailableSegmentId uint32
+	nextAvailableSegmentId uint32
 	maxAvailableSegmentId uint32
 	// to keep track of the original segments that are to be compacted, we can fetch the active segment ids from this
 	activeSegment *Segment
@@ -79,7 +79,7 @@ func (csm *CompactedSegmentManager) populateCompactedSegments(compactedHashTable
 		}
 
 		updatedhashTableEntry := hashTableEntry;
-		updatedhashTableEntry.SegmentId = csm.currAvailableSegmentId
+		updatedhashTableEntry.SegmentId = csm.nextAvailableSegmentId - 1 // the segment id of the active compacted segment
 		updatedhashTableEntry.Offset = offset
 		
 		compactedHashTable.PutEntry(key, updatedhashTableEntry)
@@ -113,7 +113,7 @@ func (csm *CompactedSegmentManager) appendEntryToActiveCompactedSegment(entry *E
 func (csm *CompactedSegmentManager) createNewSegment() error {
 	// csm.mu.Lock()
 	// defer csm.mu.Unlock()
-	path := filepath.Join(csm.basePath, fmt.Sprintf("segment_%d.log", csm.currAvailableSegmentId))
+	path := filepath.Join(csm.basePath, fmt.Sprintf("segment_%d.log", csm.nextAvailableSegmentId))
 
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
 
@@ -121,11 +121,25 @@ func (csm *CompactedSegmentManager) createNewSegment() error {
 		return err
 	}
 
-	logger.Info("Created new compacted segment with id:", csm.currAvailableSegmentId, " at path:", path)
+	// logfile, err := os.OpenFile("compactedSegmentManager_log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
+
+	// if err != nil {
+	// 	return err
+	// }
+
+
+	// defer logfile.Close()
+
+	logger.Info("Created new compacted segment with id:", csm.nextAvailableSegmentId, " at path:", path)
+	// fmt.Fprintf(logfile, "Created new compacted segment with id: %d at path: %s\n", csm.nextAvailableSegmentId, path)
+
+
+	
+	
 
 	csm.activeSegment = &Segment{
 		// for the id, use the currently available segment id
-		id:       csm.currAvailableSegmentId,
+		id:       csm.nextAvailableSegmentId,
 		path:     path,
 		file:     file,
 		isActive: true,
@@ -133,8 +147,22 @@ func (csm *CompactedSegmentManager) createNewSegment() error {
 		maxSize:  constants.DefaultMaxSegmentSize,
 	}
 	
-	csm.compactedSegmentMap[csm.currAvailableSegmentId] = csm.activeSegment
+	csm.compactedSegmentMap[csm.nextAvailableSegmentId] = csm.activeSegment
 
-	csm.currAvailableSegmentId += 1
+	csm.nextAvailableSegmentId += 1
+
 	return nil
+}
+
+
+func (csm *CompactedSegmentManager) clearManager() {
+	csm.mu.Lock()
+	defer csm.mu.Unlock()
+
+	
+	csm.compactedSegmentMap = make(map[uint32]*Segment)
+	csm.nextAvailableSegmentId = 0
+	csm.maxAvailableSegmentId = 0
+	csm.originalSegmentMap = make(map[uint32]*Segment)
+	csm.activeSegment = nil
 }

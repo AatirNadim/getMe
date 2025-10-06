@@ -32,7 +32,7 @@ func (ac *AtomicCounter) Next() uint32 {
 // Reserve reserves n values and returns the first value in the reservation
 // the atomic counter now holds the first value beyond the reserved range
 func (ac *AtomicCounter) Reserve(n uint32) uint32 {
-  return atomic.AddUint32(&ac.value, n + 1) - n
+  return atomic.AddUint32(&ac.value, n) - n
 }
 
 // Get returns the current value of the counter without incrementing it

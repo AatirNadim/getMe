@@ -147,7 +147,10 @@ func (sg *SegmentManager) TotalSegments() uint32 {
 }
 
 // with the given segment id, create a new segment, add it to the segment map and return it (this operation is not atomic)
-func (sm *SegmentManager) createNewSegment(segmentId uint32, basePath string) (*Segment, error) {
+func (sm *SegmentManager) createNewSegment(basePath string) (*Segment, error) {
+
+	segmentId := sm.nextSegmentCounter.Get()
+
 	logger.Info("Creating a new segment with id:", segmentId)
 
 	// create a new segment with id = sm.nextSegmentId
@@ -161,6 +164,8 @@ func (sm *SegmentManager) createNewSegment(segmentId uint32, basePath string) (*
 	// increment the nextSegmentId for the next segment
 	// sm.nextSegmentId += 1
 
+	sm.nextSegmentCounter.Next()
+
 	// use the atomic counter to get the next segment id
 	return segment, nil
 }
@@ -169,7 +174,7 @@ func (sm *SegmentManager) createNewSegment(segmentId uint32, basePath string) (*
 func (sm *SegmentManager) createNewSegmentTxn(basePath string) (*Segment, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
-	return sm.createNewSegment(sm.nextSegmentCounter.Get(), basePath)
+	return sm.createNewSegment(basePath)
 }
 
 func (sm *SegmentManager) Append(entry *Entry) (uint32, uint32, error) {
@@ -288,7 +293,7 @@ func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, erro
 		}
 
 
-		newSegment, newSegmentCreationError := sm.createNewSegment(sm.nextSegmentCounter.Get(), sm.basePath)
+		newSegment, newSegmentCreationError := sm.createNewSegment(sm.basePath)
 
 		if newSegmentCreationError != nil {
 			return 0, newSegmentCreationError
@@ -296,8 +301,7 @@ func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, erro
 
 		// Update the current segment to the new segment
 		currentSegment = newSegment
-		// update the nextsegment counter to the next id to be used for segment creation
-		sm.nextSegmentCounter.Next()
+		// update the nextsegment counter to the next id to be used for segment creation		
 
 	}
 
@@ -362,19 +366,30 @@ func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSe
 		return
 	}
 	defer sm.isCompacting.Store(false)
+
+
+	// routineFile, err := os.OpenFile("compaction_routine_log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+
+	// if err != nil {
+	// 	logger.Error("Failed to open routine log file:", err)
+	// 	return
+	// }
+	// defer routineFile.Close()
+
 	logger.Info("initiating compaction process")
+	// fmt.Fprintf(routineFile, "initiating compaction process, timestamp: %v\n", time.Now())
 	
 
 	// logger.Info("Total segments in the segment manager:", totalSegments)
 
 	// segments := sg.getSegmentsForCompaction()
 
-	logFile, err := os.OpenFile("compaction_log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		logger.Error("Failed to open log file:", err)
-		return
-	}
-	defer logFile.Close()
+	// logFile, err := os.OpenFile("compaction_log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// if err != nil {
+	// 	logger.Error("Failed to open log file:", err)
+	// 	return
+	// }
+	// defer logFile.Close()
 
 	if len(segments) == 0 {
 		logger.Info("No segments available for compaction")
@@ -383,7 +398,7 @@ func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSe
 
 	logger.Debug("Starting compaction for segments, creating a channel")
 
-	fmt.Fprintf(logFile, "Starting compaction for segments, creating a channel\n")
+	// fmt.Fprintf(logFile, "Starting compaction for segments, creating a channel\n")
 	resultChan := make(chan *HashTable, len(segments))
 
 	var wg sync.WaitGroup
@@ -414,10 +429,10 @@ func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSe
 	// 	return
 	// }
 
-	fmt.Fprintf(logFile, "active segment id updated to: %d\n", currAvailableSegmentId)
+	// fmt.Fprintf(logFile, "active segment id updated to: %d\n", currAvailableSegmentId)
 	logger.Info("active segment id updated to:", currAvailableSegmentId)
 
-	sm.compactedSegmentManager.currAvailableSegmentId = currAvailableSegmentId
+	sm.compactedSegmentManager.nextAvailableSegmentId = currAvailableSegmentId
 	sm.compactedSegmentManager.maxAvailableSegmentId = currAvailableSegmentId + uint32(len(segments)) - 1
 	// we can send the entire segment map, since compaction only deals with inactive segments and it is not being modified
 
@@ -432,6 +447,14 @@ func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSe
 
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
+
+	// fmt.Fprintf(logFile, "\n==================\n")
+
+	// for id, segment := range sm.compactedSegmentManager.compactedSegmentMap {
+	// 	fmt.Fprintf(logFile, "\n\nCompacted segment created with id: %d at path: %s\n\n", id, segment.path)
+
+	// }
+	// fmt.Fprintf(logFile, "\n==================\n")
 	// bring the segments from the compacted segment manager to the main segment manager
 	// this needs to be an atomic operation
 	for id, segment := range sm.compactedSegmentManager.compactedSegmentMap {
@@ -446,6 +469,9 @@ func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSe
 
 		sm.segmentMap[id] = segment
 	}
+
+	logger.Debug("clearing the compacted segment map")
+	sm.compactedSegmentManager.clearManager()
 
 
 	sm.compactionResultChannel <- &CompactionResult{
@@ -481,8 +507,9 @@ func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSe
 
 	logger.Info("performCompaction: deleted original segments")
 
-	logger.Debug("Compaction completed. Updated hash table: ", updatedHashTable.Entries())
-	fmt.Fprintf(logFile, "Compaction completed. Updated hash table: %v\n", updatedHashTable.Entries())
+	logger.Debug("Compaction completed. Updated hash table: ", compactedHashTable.Entries())
+	// fmt.Fprintf(logFile, "Compaction completed. Updated hash table: %v\n", compactedHashTable.Entries())
+	// fmt.Fprintf(routineFile, "compaction process completed, timestamp: %v\n", time.Now())
 
 }
 

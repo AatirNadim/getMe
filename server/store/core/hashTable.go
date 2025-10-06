@@ -74,10 +74,13 @@ func (ht *HashTable) Merge(other *HashTable) {
 			// If the other entry is newer, update the table
 			if otherEntry.TimeStamp > existingEntry.TimeStamp {
 				ht.table[key] = otherEntry
-			}
-			// If timestamps are equal, keep the one with the higher offset
-			if otherEntry.TimeStamp == existingEntry.TimeStamp && otherEntry.Offset > existingEntry.Offset {
-				ht.table[key] = otherEntry
+			} else if otherEntry.TimeStamp == existingEntry.TimeStamp {
+				// the timestamp is the same but the new entry has higher segment id
+				if otherEntry.SegmentId > existingEntry.SegmentId {
+					ht.table[key] = otherEntry
+				} else if otherEntry.SegmentId == existingEntry.SegmentId && otherEntry.Offset > existingEntry.Offset { // timestamp and segment are same but the new entry has a higher offset
+					ht.table[key] = otherEntry
+				}
 			}
 		} else {
 			// If the key doesn't exist, just add it

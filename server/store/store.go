@@ -172,7 +172,10 @@ func (s *Store) convertBytesToString(b []byte) string {
 
 func (s *Store) applyCompactionResult(compactionResult *core.CompactionResult) {
 
+	logger.Debug("Applying compaction result with", compactionResult.CompactedHashTable, "entries and", len(compactionResult.OldSegmentIds), "old segments to delete")
+
 	s.hashTable.Merge(compactionResult.CompactedHashTable)
+	s.hashTable.DeleteDeletionEntries() // remove deletion entries from the hash table
 	s.segmentManager.DeleteOldSegments(compactionResult.OldSegmentIds)
 }
 
