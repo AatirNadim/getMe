@@ -10,15 +10,19 @@ import (
 )
 
 
+type CompactionResult struct {
+	CompactedHashTable  *HashTable
+	OldSegmentIds       []uint32
+}
+
+
 type CompactedSegmentManager struct {
 	mu         sync.RWMutex
 	basePath   string
 	currAvailableSegmentId uint32
 	maxAvailableSegmentId uint32
-
 	// to keep track of the original segments that are to be compacted, we can fetch the active segment ids from this
 	activeSegment *Segment
-	// compactedHashTable *HashTable
 	originalSegmentMap map[uint32]*Segment
 	compactedSegmentMap map[uint32]*Segment
 }

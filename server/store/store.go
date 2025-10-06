@@ -3,10 +3,8 @@ package store
 import (
 	"getMeMod/server/store/core"
 	"getMeMod/server/store/utils"
-	"getMeMod/server/store/utils/constants"
 	"getMeMod/utils/logger"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -15,33 +13,33 @@ type Store struct {
 	basePath                string
 	hashTable               *core.HashTable
 	segmentManager          *core.SegmentManager
-	atomicCounter           *core.AtomicCounter
-	compactedSegmentManager *core.CompactedSegmentManager
-	isCompacting            atomic.Bool
+	compactionResultChannel  chan *core.CompactionResult
+	doneChannel              chan struct{}
 }
 
 func NewStore(mainBasePath, compactedBasePath string) *Store {
+
+	// unbuffered channel to ensure that compaction results are processed in order
+	compactionResultChannel := make(chan *core.CompactionResult, 0)
+
 	hashTable := core.NewHashTable()
-	segmentManager, err := core.NewSegmentManager(mainBasePath, hashTable)
+	segmentManager, err := core.NewSegmentManager(mainBasePath, compactedBasePath, hashTable, compactionResultChannel)
 	if err != nil {
 		panic(err)
 	}
 
-	compactedSegmentManager, err := core.NewCompactedSegmentManager(compactedBasePath)
-	if err != nil {
-		panic(err)
-	}
-
-	logger.Info("creating a new store instance on the base path:", mainBasePath)
+	logger.Info("creating a new store instance on the base path:", mainBasePath) 
 
 	store := &Store{
 		basePath:                mainBasePath,
 		hashTable:               hashTable,
 		segmentManager:          segmentManager,
-		compactedSegmentManager: compactedSegmentManager,
+		compactionResultChannel: compactionResultChannel,
+		doneChannel:             make(chan struct{}),
 	}
 
-	store.isCompacting.Store(false)
+
+	go store.listenForCompactionResults()
 
 	return store
 }
@@ -83,7 +81,7 @@ func (s *Store) Put(key string, value string) error {
 
 	logger.Info("appending entry with key:", key, " to segment manager")
 
-	segmentId, offset, newSegmentCreated, err := s.segmentManager.Append(entry)
+	segmentId, offset, err := s.segmentManager.Append(entry)
 	if err != nil {
 		return err
 	}
@@ -92,9 +90,9 @@ func (s *Store) Put(key string, value string) error {
 
 	s.hashTable.Put(key, segmentId, offset, timeStamp, entry.ValueSize)
 
-	if newSegmentCreated {
-		go s.performCompaction()
-	}
+	// if newSegmentCreated {
+	// 	go s.performCompaction()
+	// }
 
 	return nil
 }
@@ -120,7 +118,7 @@ func (s *Store) Delete(key string) error {
 	}
 
 	logger.Info("appending deletion entry for key:", key, " to segment manager")
-	_, _, err := s.segmentManager.Delete(deletionEntry)
+	_, err := s.segmentManager.Delete(deletionEntry)
 	if err != nil {
 		return err
 	}
@@ -149,6 +147,18 @@ func (s *Store) Keys() []string {
 	return s.hashTable.Keys()
 }
 
+
+func (s *Store) Close() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	close(s.compactionResultChannel)
+
+	close(s.doneChannel)
+
+	return nil
+}
+
 // private methods
 
 func (s *Store) convertStringToBytes(str string) []byte {
@@ -157,24 +167,37 @@ func (s *Store) convertStringToBytes(str string) []byte {
 
 func (s *Store) convertBytesToString(b []byte) string {
 	return string(b)
+
 }
 
-func (s *Store) performCompaction() {
+func (s *Store) applyCompactionResult(compactionResult *core.CompactionResult) {
 
-	if !s.isCompacting.CompareAndSwap(false, true) {
-		logger.Info("Compaction is already in progress, skipping this trigger.")
-		return
-	}
-	defer s.isCompacting.Store(false)
-	logger.Info("initiating compaction process")
-	totalSegments := s.segmentManager.TotalSegments()
-
-	logger.Info("Total segments in the segment manager:", totalSegments)
+	s.hashTable.Merge(compactionResult.CompactedHashTable)
+	s.segmentManager.DeleteOldSegments(compactionResult.OldSegmentIds)
+}
 
 
-	if totalSegments > constants.ThresholdForCompaction {
-		logger.Info("total segments:", totalSegments, "exceeds threshold:", constants.ThresholdForCompaction, "starting compaction")
-
-		s.segmentManager.PerformCompaction(s.hashTable, s.compactedSegmentManager)
+func (s *Store) listenForCompactionResults() {
+	for {
+		select {
+		case compactionResult := <-s.compactionResultChannel:
+			logger.Info("Received compaction result with", compactionResult.CompactedHashTable.Size(), "entries and", len(compactionResult.OldSegmentIds), "old segments to delete")
+			s.applyCompactionResult(compactionResult)
+		case <-s.doneChannel:
+			logger.Info("Shutting down compaction result listener")
+			return
+		}
 	}
 }
+
+// func (s *Store) performCompaction() {
+
+	
+
+
+// 	if totalSegments > constants.ThresholdForCompaction {
+// 		logger.Info("total segments:", totalSegments, "exceeds threshold:", constants.ThresholdForCompaction, "starting compaction")
+
+// 		s.segmentManager.PerformCompaction(s.hashTable, s.compactedSegmentManager)
+// 	}
+// }
