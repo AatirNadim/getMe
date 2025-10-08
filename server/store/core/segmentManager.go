@@ -241,9 +241,12 @@ func (sm *SegmentManager) Delete(entry *Entry) (uint32, error) {
 
 }
 
-func (sm *SegmentManager) Clear() {
+func (sm *SegmentManager) Clear() error {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
+
+
+	logger.Info("Clearing all segments from the segment manager")
 
 	for id, segment := range sm.segmentMap {
 		segment.file.Close()
@@ -252,6 +255,11 @@ func (sm *SegmentManager) Clear() {
 	}
 
 	sm.nextSegmentCounter.Set(0)
+
+	if _, err := sm.createNewSegment(sm.basePath); err != nil {
+		return fmt.Errorf("failed to create active segment: %w", err)
+	}
+	return nil
 }
 
 func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, error) {

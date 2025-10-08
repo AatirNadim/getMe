@@ -1,6 +1,7 @@
 package store
 
 import (
+	"fmt"
 	"getMeMod/server/store/core"
 	"getMeMod/server/store/utils"
 	"getMeMod/utils/logger"
@@ -134,11 +135,14 @@ func (s *Store) Size() int {
 	return s.hashTable.Size()
 }
 
-func (s *Store) Clear() {
+func (s *Store) Clear() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.hashTable.Clear()
-	s.segmentManager.Clear()
+	if err := s.segmentManager.Clear(); err != nil {
+		return fmt.Errorf("failed to clear segment manager: %w", err)
+	}
+	return nil
 }
 
 func (s *Store) Keys() []string {

@@ -1,12 +1,13 @@
 import axios, { AxiosInstance } from "axios";
+import { baseUrl, defaultSocketPath } from "./constants";
 
 class GetMeClient {
   private axiosClient: AxiosInstance;
 
   constructor() {
     this.axiosClient = axios.create({
-      baseURL: "http://unix",
-      socketPath : process.env.GETME_SOCKET_PATH || '/tmp/getMeStore/getMe.sock',
+      baseURL: baseUrl,
+      socketPath : process.env.GETME_SOCKET_PATH || defaultSocketPath,
       headers: {
         "Content-Type": "application/json",
       },
@@ -48,6 +49,15 @@ class GetMeClient {
       throw error;
     }
   };
+
+  clearStore = async () => {
+    try {
+      await this.axiosClient.delete(`/clearStore`);
+    } catch (error) {
+      console.error("Error clearing store:", error);
+      throw error;
+    }
+  }
 }
 
 export { GetMeClient };

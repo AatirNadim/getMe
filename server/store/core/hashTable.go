@@ -1,6 +1,9 @@
 package core
 
-import "sync"
+import (
+	"getMeMod/utils/logger"
+	"sync"
+)
 
 type HashTableEntry struct {
 	TimeStamp int64
@@ -104,6 +107,7 @@ func (ht *HashTable) Size() int {
 func (ht *HashTable) Clear() {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
+	logger.Info("Clearing all entries from the hash table")
 	ht.table = make(map[string]*HashTableEntry)
 }
 

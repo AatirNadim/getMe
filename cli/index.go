@@ -216,10 +216,56 @@ var deleteCmd = &cobra.Command{
 	},
 }
 
+
+var clearCmd = &cobra.Command{
+	Use:   "clear",
+	Short: "Clear all key-value pairs from the store",
+	Args:  cobra.NoArgs,
+	RunE: func(cmd *cobra.Command, args []string) error {
+
+		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
+
+		if !ok {
+			return fmt.Errorf("http client not found in context")
+		}
+
+		req, err := http.NewRequest("DELETE", "http://unix/clearStore", nil)
+		if err != nil {
+			return fmt.Errorf("failed to create request: %w", err)
+		}
+
+		logger.Info("Sending CLEAR request to clear all key-value pairs from the store")
+
+		resp, err := httpClient.Do(req)
+
+		logger.Debug("Received response from server for CLEAR request:", resp)
+
+		if err != nil {
+			logger.Error("Error occurred while making CLEAR request:", err)
+			return fmt.Errorf("failed to clear store: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("server returned non-OK status: %s", resp.Status)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read response body: %w", err)
+		}
+
+		fmt.Println(string(body))
+
+		return nil
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(getCmd)
 	rootCmd.AddCommand(putCmd)
 	rootCmd.AddCommand(deleteCmd)
+	rootCmd.AddCommand(clearCmd)
 }
 
 func main() {

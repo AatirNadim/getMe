@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import json
 from urllib.parse import quote_plus
 
+from constants import Constants
+
 class GetMeClient:
     """
     A client for interacting with the getMe daemon over a Unix Domain Socket.
@@ -22,7 +24,7 @@ class GetMeClient:
         :raises Exception: If the server returns a non-200 status code.
         """
 
-        url = f"http+unix://{self.sock_path}/put"
+        url = f"{Constants.BaseUrl}{self.sock_path}/put"
         
         
         payload = {
@@ -47,7 +49,7 @@ class GetMeClient:
         :return: The value associated with the key as a string.
         :raises Exception: If the server returns a non-200 status code.
         """
-        resp = self.unix_session.get(f"http+unix://{self.sock_path}/get",
+        resp = self.unix_session.get(f"{Constants.BaseUrl}{self.sock_path}/get",
                                      params={"key": key})
         
         if resp.status_code != 200:
@@ -63,7 +65,18 @@ class GetMeClient:
         :param key: The key to delete.
         :raises Exception: If the server returns a non-200 status code.
         """
-        url = f"http+unix://{self.sock_path}/delete"
+        url = f"{Constants.BaseUrl}{self.sock_path}/delete"
         response = self.unix_session.delete(url, params={"key": key})
         if response.status_code != 200:
             raise Exception(f"Failed to delete key-value pair: {response.text}")
+        
+    def clearStore(self):
+        """
+        Clears the entire store.
+
+        :raises Exception: If the server returns a non-200 status code.
+        """
+        url = f"{Constants.BaseUrl}{self.sock_path}/clearStore"
+        response = self.unix_session.delete(url)
+        if response.status_code != 200:
+            raise Exception(f"Failed to clear store: {response.text}")

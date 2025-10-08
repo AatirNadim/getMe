@@ -9,7 +9,6 @@ import (
 	"net/http"
 )
 
-
 type PutRequestBody struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -24,7 +23,6 @@ func StartServer(socketPath, storePath, compactedStorePath string) error {
 
 	storeInstance := store.NewStore(storePath, compactedStorePath)
 	logger.Info("Store has been initialized at path:", storePath)
-
 
 	mux := http.NewServeMux()
 
@@ -54,8 +52,6 @@ func StartServer(socketPath, storePath, compactedStorePath string) error {
 		// 	return
 		// }
 
-
-
 		logger.Debug("Handling PUT request, parsing form data")
 		body, err := io.ReadAll(r.Body)
 
@@ -66,7 +62,7 @@ func StartServer(socketPath, storePath, compactedStorePath string) error {
 		}
 
 		var requestPayload PutRequestBody
-		
+
 		if err := json.Unmarshal(body, &requestPayload); err != nil {
 			logger.Error("Error parsing JSON body:", err)
 			http.Error(w, fmt.Sprintf("failed to parse JSON body: %v", err), http.StatusBadRequest)
@@ -78,7 +74,6 @@ func StartServer(socketPath, storePath, compactedStorePath string) error {
 		key := requestPayload.Key
 		value := requestPayload.Value
 
-		
 		if key == "" || value == "" {
 			logger.Error("Missing key or value in request")
 			http.Error(w, "missing key or value parameter", http.StatusBadRequest)
@@ -89,7 +84,6 @@ func StartServer(socketPath, storePath, compactedStorePath string) error {
 			http.Error(w, fmt.Sprintf("error putting value for key '%s': %v", key, err), http.StatusInternalServerError)
 			return
 		}
-
 
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "Successfully set value for key '%s'\n", key)
@@ -112,6 +106,18 @@ func StartServer(socketPath, storePath, compactedStorePath string) error {
 
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "Successfully deleted key '%s'\n", key)
+	})
+
+	mux.HandleFunc("DELETE /clearStore", func(w http.ResponseWriter, r *http.Request) {
+
+		if err := storeInstance.Clear(); err != nil {
+			http.Error(w, fmt.Sprintf("error clearing store: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Successfully cleared the store\n")
+
 	})
 
 	server := &http.Server{

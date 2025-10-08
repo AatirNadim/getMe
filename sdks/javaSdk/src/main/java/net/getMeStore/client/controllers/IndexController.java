@@ -29,4 +29,9 @@ public class IndexController {
         return this.getMeService.delete(key);
     }
 
+    @DeleteMapping("/clearStore")
+    public Mono<String> clearStore() {
+        return this.getMeService.clearStore();
+    }
+
 }

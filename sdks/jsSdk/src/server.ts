@@ -77,4 +77,13 @@ app.delete('/delete', async (req, res) => {
 })
 
 
+app.delete('/clearStore', async (req, res) => {
+  console.log('Received request to clear store');
+
+  await client.clearStore();
+
+  res.send({ success: true });
+})
+
+
 export { app as server }

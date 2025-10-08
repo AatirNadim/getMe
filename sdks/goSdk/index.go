@@ -43,7 +43,7 @@ func (client *GetMeClient) Init() error {
 }
 
 func (client *GetMeClient) Get(key string) (string, error) {
-	req, err := http.NewRequest("GET", "http://unix/get", nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/get", constants.BaseUrl), nil)
 	if err != nil {
 		return "", err
 	}
@@ -84,7 +84,7 @@ func (client *GetMeClient) Put(key, value string) error {
 	fmt.Println("preparing io reader payload with:", jsonPayload)
 	readerPayload := bytes.NewReader(jsonPayload)
 
-	req, err := http.NewRequest("POST", "http://unix/put", readerPayload)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/put", constants.BaseUrl), readerPayload)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (client *GetMeClient) Put(key, value string) error {
 }
 
 func (client *GetMeClient) Delete(key string) error {
-	req, err := http.NewRequest("DELETE", "http://unix/delete", nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/delete", constants.BaseUrl), nil)
 	if err != nil {
 		return err
 	}
@@ -125,6 +125,25 @@ func (client *GetMeClient) Delete(key string) error {
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to delete key: %s, status code: %d", key, resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (client *GetMeClient) ClearStore() error {
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/clearStore", constants.BaseUrl), nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to clear store, status code: %d", resp.StatusCode)
 	}
 
 	return nil
