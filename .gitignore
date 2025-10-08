@@ -40,5 +40,12 @@ bin/
 .DS_Store
 Thumbs.db
 
-/getMeMod
+# Generated executable
 /testing**
+
+
+node_modules/
+
+*venv
+
+dist/
