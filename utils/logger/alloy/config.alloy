@@ -9,7 +9,6 @@ loki.source.file "local_files" {
 }
 
 loki.process "parse_and_label" {
-  // Parse logfmt format (level=INFO msg="message")
   stage.logfmt {
     mapping = {
       "log_level" = "level",
@@ -17,14 +16,12 @@ loki.process "parse_and_label" {
     }
   }
   
-  // Add the level as a label for filtering in Grafana
   stage.labels {
     values = {
       "level" = "log_level",
     }
   }
   
-  // Optionally add timestamp parsing if needed
   stage.timestamp {
     source = "timestamp"
     format = "RFC3339"
