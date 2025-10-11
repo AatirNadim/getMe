@@ -6,14 +6,18 @@ from urllib.parse import quote_plus
 
 from constants import Constants
 
+
 class GetMeClient:
     """
     A client for interacting with the getMe daemon over a Unix Domain Socket.
     """
+
     def __init__(self):
         load_dotenv()
         self.unix_session = requests_unixsocket.Session()
-        self.sock_path = quote_plus(os.getenv("GETME_SOCK_PATH", "/tmp/getMeStore/getMe.sock"))
+        self.sock_path = quote_plus(
+            os.getenv("GETME_SOCK_PATH", "/tmp/getMeStore/getMe.sock")
+        )
 
     def put(self, key, value):
         """
@@ -25,17 +29,13 @@ class GetMeClient:
         """
 
         url = f"{Constants.BaseUrl}{self.sock_path}/put"
-        
-        
-        payload = {
-            "key": key,
-            "value": value
-        }
-        headers = {
-            'Content-Type': 'application/json'
-        }
 
-        response = self.unix_session.post(url, data=json.dumps(payload), headers=headers)
+        payload = {"key": key, "value": value}
+        headers = {"Content-Type": "application/json"}
+
+        response = self.unix_session.post(
+            url, data=json.dumps(payload), headers=headers
+        )
         if response.status_code != 200:
             raise Exception(f"Failed to put key-value pair: {response.text}")
 
@@ -49,14 +49,15 @@ class GetMeClient:
         :return: The value associated with the key as a string.
         :raises Exception: If the server returns a non-200 status code.
         """
-        resp = self.unix_session.get(f"{Constants.BaseUrl}{self.sock_path}/get",
-                                     params={"key": key})
-        
+        resp = self.unix_session.get(
+            f"{Constants.BaseUrl}{self.sock_path}/get", params={"key": key}
+        )
+
         if resp.status_code != 200:
             raise Exception(f"Failed to get value for key '{key}': {resp.text}")
-        
-        print(resp.content.decode('utf-8'))
-        return resp.content.decode('utf-8')
+
+        print(resp.content.decode("utf-8"))
+        return resp.content.decode("utf-8")
 
     def delete(self, key):
         """
@@ -69,7 +70,7 @@ class GetMeClient:
         response = self.unix_session.delete(url, params={"key": key})
         if response.status_code != 200:
             raise Exception(f"Failed to delete key-value pair: {response.text}")
-        
+
     def clearStore(self):
         """
         Clears the entire store.

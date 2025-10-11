@@ -6,12 +6,11 @@ import (
 	"getMeMod/server/store/utils"
 	"getMeMod/server/store/utils/constants"
 	"getMeMod/utils/logger"
-	"sync"
 	"time"
 )
 
 type Store struct {
-	mu                      sync.RWMutex
+	// mu                      sync.RWMutex
 	basePath                string
 	hashTable               *core.HashTable
 	segmentManager          *core.SegmentManager
@@ -46,8 +45,8 @@ func NewStore(mainBasePath, compactedBasePath string) *Store {
 }
 
 func (s *Store) Get(key string) (string, bool, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	// s.mu.RLock()
+	// defer s.mu.RUnlock()
 
 	logger.Info("Getting the file and the offset for key:", key)
 	hashTableEntry, exists := s.hashTable.Get(key)
@@ -65,8 +64,8 @@ func (s *Store) Get(key string) (string, bool, error) {
 }
 
 func (s *Store) Put(key string, value string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	// s.mu.Lock()
+	// defer s.mu.Unlock()
 
 	logger.Info("Putting key:", key, "with value: ", value)
 
@@ -99,8 +98,8 @@ func (s *Store) Put(key string, value string) error {
 }
 
 func (s *Store) Delete(key string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	// s.mu.Lock()
+	// defer s.mu.Unlock()
 
 	if _, exists := s.hashTable.Get(key); !exists {
 		logger.Error("key not found: ", key)
@@ -130,14 +129,14 @@ func (s *Store) Delete(key string) error {
 }
 
 func (s *Store) Size() int {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	// s.mu.RLock()
+	// defer s.mu.RUnlock()
 	return s.hashTable.Size()
 }
 
 func (s *Store) Clear() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	// s.mu.Lock()
+	// defer s.mu.Unlock()
 	s.hashTable.Clear()
 	if err := s.segmentManager.Clear(); err != nil {
 		return fmt.Errorf("failed to clear segment manager: %w", err)
@@ -146,8 +145,8 @@ func (s *Store) Clear() error {
 }
 
 func (s *Store) Keys() []string {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	// s.mu.RLock()
+	// defer s.mu.RUnlock()
 	return s.hashTable.Keys()
 }
 
@@ -237,13 +236,12 @@ func (s *Store) BatchPut(batch map[string]string) error {
 }
 
 func (s *Store) Close() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	close(s.compactionResultChannel)
+	// s.mu.Lock()
+	// defer s.mu.Unlock()
 
 	close(s.doneChannel)
-
+	
+	close(s.compactionResultChannel)
 	return nil
 }
 

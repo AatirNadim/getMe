@@ -13,7 +13,7 @@ import (
 
 // represents a log segment file, stored on the disk
 type Segment struct {
-	mu         sync.RWMutex
+	// mu         sync.RWMutex
 	id         uint32
 	path       string
 	file       *os.File
@@ -82,9 +82,9 @@ func OpenSegment(id uint32, basePath string) (*Segment, error) {
 
 // appends the entry to the segment file, returns the offset at which the entry was added
 func (segment *Segment) Append(entry *Entry) (uint32, error) {
-	segment.mu.Lock()
+	// segment.mu.Lock()
 
-	defer segment.mu.Unlock()
+	// defer segment.mu.Unlock()
 
 	// no space left in the current segment to add new entries
 	if segment.size > segment.maxSize || segment.entryCount >= segment.maxCount {
@@ -118,9 +118,8 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 }
 
 func (segment *Segment) AppendBuffer(buffer []byte) error {
-	segment.mu.Lock()
-	defer segment.mu.Unlock()
-
+	// segment.mu.Lock()
+	// defer segment.mu.Unlock()
 
 	// for now, we can append the buffer directly to the current segment, irrespetive of its size
 
@@ -142,8 +141,8 @@ func (segment *Segment) AppendBuffer(buffer []byte) error {
 
 // takes in the starting position of the entry in the segment file and returns the entry and the offset for the next entry
 func (segment *Segment) Get(offset uint32) (*Entry, uint32, error) {
-	segment.mu.RLock()
-	defer segment.mu.RUnlock()
+	// segment.mu.RLock()
+	// defer segment.mu.RUnlock()
 
 	// check if the position is valid
 	if offset >= uint32(segment.size) {
@@ -176,8 +175,8 @@ func (segment *Segment) isSpaceAvailableInCurrentSegment(entry *Entry) bool {
 
 // reads all entries from the segment file and returns a hashtable with the key and its corresponding segment id, offset and timestamp, to be used for map-reduce operations
 func (segment *Segment) ReadAllEntries() (*HashTable, error) {
-	segment.mu.RLock()
-	defer segment.mu.RUnlock()
+	// segment.mu.RLock()
+	// defer segment.mu.RUnlock()
 
 	ht := NewHashTable()
 	offset := uint32(0)
@@ -231,8 +230,8 @@ func (segment *Segment) readAllEntriesAsync(wg *sync.WaitGroup, resultChan chan<
 
 // reads an entry from a specific offset in the segment file and returns the serialized bytes of the entry along with the offset for the next entry
 func (sg *Segment) getSerializedEntryFromOffset(offset uint32) ([]byte, uint32, error) {
-	sg.mu.RLock()
-	defer sg.mu.RUnlock()
+	// sg.mu.RLock()
+	// defer sg.mu.RUnlock()
 
 	if offset >= uint32(sg.size) {
 		return nil, offset, io.EOF

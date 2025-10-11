@@ -10,6 +10,12 @@ import (
 	"sync/atomic"
 )
 
+
+// FlushResult holds the result of a buffer flush to a segment.
+type FlushResult struct {
+	SegmentID int
+	Offset    int64
+}
 type SegmentManager struct {
 	mu         sync.RWMutex
 	basePath   string

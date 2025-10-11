@@ -6,7 +6,6 @@ import (
 	"getMeMod/utils/logger"
 	"os"
 	"path/filepath"
-	"sync"
 )
 
 
@@ -17,7 +16,7 @@ type CompactionResult struct {
 
 
 type CompactedSegmentManager struct {
-	mu         sync.RWMutex
+	// mu         sync.RWMutex
 	basePath   string
 	nextAvailableSegmentId uint32
 	maxAvailableSegmentId uint32
@@ -91,8 +90,8 @@ func (csm *CompactedSegmentManager) populateCompactedSegments(compactedHashTable
 
 // this is supposed to return the segment id and the offset of the appended entry
 func (csm *CompactedSegmentManager) appendEntryToActiveCompactedSegment(entry *Entry) (uint32, error) {
-	csm.mu.Lock()
-	defer csm.mu.Unlock()
+	// csm.mu.Lock()
+	// defer csm.mu.Unlock()
 
 	if csm.activeSegment == nil || !csm.activeSegment.isSpaceAvailableInCurrentSegment(entry) {
 		if err := csm.createNewSegment(); err != nil {
@@ -156,8 +155,8 @@ func (csm *CompactedSegmentManager) createNewSegment() error {
 
 
 func (csm *CompactedSegmentManager) clearManager() {
-	csm.mu.Lock()
-	defer csm.mu.Unlock()
+	// csm.mu.Lock()
+	// defer csm.mu.Unlock()
 
 	
 	csm.compactedSegmentMap = make(map[uint32]*Segment)
