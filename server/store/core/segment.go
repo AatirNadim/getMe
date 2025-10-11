@@ -91,7 +91,7 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 		return 0, utils.ErrSegmentFull
 	}
 
-	data, err := entry.serialize()
+	data, err := entry.Serialize()
 
 	logger.Info("Serialized data: ", data)
 
@@ -115,6 +115,26 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 
 	// return the starting position of the newly added entry in the segment file
 	return segmentOffset, nil
+}
+
+func (segment *Segment) AppendBuffer(buffer []byte) error {
+	segment.mu.Lock()
+	defer segment.mu.Unlock()
+
+	if uint32(len(buffer)) > (segment.maxSize - segment.size) {
+		return utils.ErrSegmentFull
+	}
+
+	_, writeError := segment.file.Write(buffer)
+	if writeError != nil {
+		return writeError
+	}
+
+	segment.size += uint32(len(buffer))
+	// Note: entryCount is not updated here as we are writing a raw buffer.
+	// The caller (BatchSet) is responsible for managing entry semantics.
+
+	return nil
 }
 
 // takes in the starting position of the entry in the segment file and returns the entry and the offset for the next entry
@@ -185,7 +205,6 @@ func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 		// 	ht.Delete(entryKey)
 		// } else {
 
-
 		// for now we will keep the deletion entries in the hash table as well to keep track of the latest entries
 		ht.Put(entryKey, segment.id, offset, entry.TimeStamp, entry.ValueSize)
 		// }
@@ -225,7 +244,6 @@ func (sg *Segment) getSerializedEntryFromOffset(offset uint32) ([]byte, uint32, 
 		}
 		return nil, offset, fmt.Errorf("error reading entry header at offset %d: %w", offset, err)
 	}
-
 	entrySize, err := getEntrySizeFromHeader(header)
 
 	if err != nil {

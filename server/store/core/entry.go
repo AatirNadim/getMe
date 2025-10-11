@@ -54,7 +54,7 @@ func (e *Entry) getEntrySize() uint32 {
 	return e.KeySize + e.ValueSize + getEntryHeaderSize()
 }
 
-func (e *Entry) serialize() ([]byte, error) {
+func (e *Entry) Serialize() ([]byte, error) {
 	logger.Info("Serializing entry with key: ", string(e.Key), " and value size: ", e.ValueSize)
 
 	bytarr := make([]byte, e.getEntrySize())
@@ -122,7 +122,6 @@ func deserializeEntry(bytarr []byte) (*Entry, error) {
 
 	return e, nil
 }
-
 
 func getEntrySizeFromHeader(header []byte) (uint32, error) {
 	if len(header) < int(getEntryHeaderSize()) {

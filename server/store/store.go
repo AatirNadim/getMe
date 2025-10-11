@@ -14,8 +14,8 @@ type Store struct {
 	basePath                string
 	hashTable               *core.HashTable
 	segmentManager          *core.SegmentManager
-	compactionResultChannel  chan *core.CompactionResult
-	doneChannel              chan struct{}
+	compactionResultChannel chan *core.CompactionResult
+	doneChannel             chan struct{}
 }
 
 func NewStore(mainBasePath, compactedBasePath string) *Store {
@@ -29,7 +29,7 @@ func NewStore(mainBasePath, compactedBasePath string) *Store {
 		panic(err)
 	}
 
-	logger.Info("creating a new store instance on the base path:", mainBasePath) 
+	logger.Info("creating a new store instance on the base path:", mainBasePath)
 
 	store := &Store{
 		basePath:                mainBasePath,
@@ -38,7 +38,6 @@ func NewStore(mainBasePath, compactedBasePath string) *Store {
 		compactionResultChannel: compactionResultChannel,
 		doneChannel:             make(chan struct{}),
 	}
-
 
 	go store.listenForCompactionResults()
 
@@ -151,6 +150,72 @@ func (s *Store) Keys() []string {
 	return s.hashTable.Keys()
 }
 
+func (s *Store) BatchSet(batch map[string]string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if len(batch) == 0 {
+		return nil
+	}
+
+	logger.Info("Starting BatchSet operation for", len(batch), "items")
+
+	// In-memory buffer to hold serialized entries
+	writeBuffer := make([]byte, 0, 64*1024) // Start with 64KB capacity
+	// Map to hold entries for the current chunk
+	chunkEntries := make(map[string]*core.Entry)
+
+	for key, value := range batch {
+		keyBytes := s.convertStringToBytes(key)
+		valueBytes := s.convertStringToBytes(value)
+		timeStamp := time.Now().UnixNano()
+
+		entry, err := core.CreateEntry(keyBytes, valueBytes, timeStamp)
+		if err != nil {
+			// This should ideally not happen.
+			logger.Error("BatchSet: Failed to create entry for key", key, ":", err)
+			continue
+		}
+
+		serializedEntry, err := entry.Serialize()
+		if err != nil {
+			logger.Error("BatchSet: Failed to serialize entry for key", key, ":", err)
+			continue
+		}
+
+		// If adding the new entry exceeds the buffer, flush the current buffer first.
+		if len(writeBuffer)+len(serializedEntry) > 64*1024 && len(writeBuffer) > 0 {
+			logger.Info("BatchSet: Write buffer full, flushing", len(chunkEntries), "entries.")
+			newIndexPointers, err := s.segmentManager.FlushBuffer(writeBuffer, chunkEntries)
+			if err != nil {
+				// This is a critical error. The data is partially written to disk but the index is not updated.
+				// This could lead to data inconsistency. Future improvements could involve a recovery mechanism.
+				return fmt.Errorf("failed to flush write buffer during batch set: %w", err)
+			}
+			s.hashTable.BatchUpdate(newIndexPointers)
+
+			// Reset buffers for the next chunk
+			writeBuffer = make([]byte, 0, 64*1024)
+			chunkEntries = make(map[string]*core.Entry)
+		}
+
+		writeBuffer = append(writeBuffer, serializedEntry...)
+		chunkEntries[key] = entry
+	}
+
+	// Flush any remaining entries in the buffer
+	if len(writeBuffer) > 0 {
+		logger.Info("BatchSet: Flushing remaining", len(chunkEntries), "entries.")
+		newIndexPointers, err := s.segmentManager.FlushBuffer(writeBuffer, chunkEntries)
+		if err != nil {
+			return fmt.Errorf("failed to flush final write buffer during batch set: %w", err)
+		}
+		s.hashTable.BatchUpdate(newIndexPointers)
+	}
+
+	logger.Info("BatchSet operation completed successfully.")
+	return nil
+}
 
 func (s *Store) Close() error {
 	s.mu.Lock()
@@ -183,7 +248,6 @@ func (s *Store) applyCompactionResult(compactionResult *core.CompactionResult) {
 	s.segmentManager.DeleteOldSegments(compactionResult.OldSegmentIds)
 }
 
-
 func (s *Store) listenForCompactionResults() {
 	for {
 		select {
@@ -198,9 +262,6 @@ func (s *Store) listenForCompactionResults() {
 }
 
 // func (s *Store) performCompaction() {
-
-	
-
 
 // 	if totalSegments > constants.ThresholdForCompaction {
 // 		logger.Info("total segments:", totalSegments, "exceeds threshold:", constants.ThresholdForCompaction, "starting compaction")
