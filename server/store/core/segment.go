@@ -121,9 +121,12 @@ func (segment *Segment) AppendBuffer(buffer []byte) error {
 	segment.mu.Lock()
 	defer segment.mu.Unlock()
 
-	if uint32(len(buffer)) > (segment.maxSize - segment.size) {
-		return utils.ErrSegmentFull
-	}
+
+	// for now, we can append the buffer directly to the current segment, irrespetive of its size
+
+	// if uint32(len(buffer)) > (segment.maxSize - segment.size) {
+	// 	return utils.ErrSegmentFull
+	// }
 
 	_, writeError := segment.file.Write(buffer)
 	if writeError != nil {
@@ -132,7 +135,7 @@ func (segment *Segment) AppendBuffer(buffer []byte) error {
 
 	segment.size += uint32(len(buffer))
 	// Note: entryCount is not updated here as we are writing a raw buffer.
-	// The caller (BatchSet) is responsible for managing entry semantics.
+	// The caller (BatchPut) is responsible for managing entry semantics.
 
 	return nil
 }

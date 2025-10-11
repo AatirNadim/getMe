@@ -225,17 +225,22 @@ func (sm *SegmentManager) Update(entry *Entry) (uint32, error) {
 }
 
 // FlushBuffer writes a buffer of serialized entries to the active segment.
-// It handles segment rollovers if the buffer doesn't fit.
-// It returns a map of keys to their new HashTableEntry pointers.
-func (sm *SegmentManager) FlushBuffer(buffer []byte, entries map[string]*Entry) (map[string]*HashTableEntry, error) {
-	sm.mu.Lock()
-	defer sm.mu.Unlock()
+// It returns a map of keys to their new disk locations (SegmentID and Offset).
+// this is not an locked operation, i.e. no mutex is held during the operation
+func (sm *SegmentManager) FlushBuffer(buffer []byte, entries []*Entry) ([]*FlushResult, error) {
+	// sm.mu.Lock()
+	// defer sm.mu.Unlock()
 
 	logger.Info("segment manager: Flushing buffer with size:", len(buffer))
 
+	// nextsegmentcounter is referenced only once in the function body, since it is atomic
 	currentSegment := sm.segmentMap[sm.nextSegmentCounter.Get()-1]
 
+	// Check if the buffer can fit in the current segment.
+	// The store is now responsible for chunking, but we retain this check as a safeguard.
 	if uint32(len(buffer)) > (constants.DefaultMaxSegmentSize - currentSegment.size) {
+		// This case should ideally not be hit if the store chunks correctly.
+		// We will create a new segment to handle this oversized buffer.
 		logger.Info("FlushBuffer: Buffer too large for current segment, creating a new one.")
 		newSegment, err := sm.createNewSegment(sm.basePath)
 		if err != nil {
@@ -249,20 +254,22 @@ func (sm *SegmentManager) FlushBuffer(buffer []byte, entries map[string]*Entry) 
 		return nil, fmt.Errorf("failed to write buffer to segment: %w", err)
 	}
 
-	newIndexPointers := make(map[string]*HashTableEntry)
-	currentOffset := startOffset
+	// flushResults := make(map[string]*FlushResult)
+
+
+	flushResults := make([]*FlushResult, 0, len(entries))
+	currentOffset := int64(startOffset)
 	for _, entry := range entries {
-		keyStr := string(entry.Key)
-		newIndexPointers[keyStr] = &HashTableEntry{
-			TimeStamp: entry.TimeStamp,
-			SegmentId: currentSegment.id,
+		flushResults = append(flushResults, &FlushResult{
+			SegmentID: int(currentSegment.id),
 			Offset:    currentOffset,
-			ValueSize: entry.ValueSize,
-		}
-		currentOffset += entry.getEntrySize()
+		})
+		currentOffset += int64(entry.getEntrySize())
 	}
 
-	return newIndexPointers, nil
+	logger.Debug("FlushBuffer: Flush results:", flushResults)
+
+	return flushResults, nil
 }
 
 func (sm *SegmentManager) Delete(entry *Entry) (uint32, error) {

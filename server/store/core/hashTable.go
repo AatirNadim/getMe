@@ -62,27 +62,12 @@ func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp 
 	return nil
 }
 
-func (ht *HashTable) BatchUpdate(newEntries map[string]*HashTableEntry) {
-	ht.mu.Lock()
-	defer ht.mu.Unlock()
-
-	for key, newEntry := range newEntries {
-		if existingEntry, ok := ht.table[key]; ok {
-			if newEntry.TimeStamp >= existingEntry.TimeStamp {
-				ht.table[key] = newEntry
-			}
-		} else {
-			ht.table[key] = newEntry
-		}
-	}
-}
 
 func (ht *HashTable) PutEntry(key string, entry HashTableEntry) {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
 	ht.table[key] = &entry
 }
-
 
 func (ht *HashTable) mergeUtil(table map[string]*HashTableEntry) {
 	for key, otherEntry := range table {
@@ -103,6 +88,13 @@ func (ht *HashTable) mergeUtil(table map[string]*HashTableEntry) {
 			ht.table[key] = otherEntry
 		}
 	}
+}
+
+func (ht *HashTable) BatchUpdate(newEntries map[string]*HashTableEntry) {
+	ht.mu.Lock()
+	defer ht.mu.Unlock()
+	logger.Debug("Batch updating hash table with entries:", newEntries)
+	ht.mergeUtil(newEntries)
 }
 
 func (ht *HashTable) Merge(other *HashTable) {

@@ -133,3 +133,9 @@ func getEntrySizeFromHeader(header []byte) (uint32, error) {
 
 	return getEntryHeaderSize() + keySize + valueSize, nil
 }
+
+// FlushResult holds the result of a buffer flush to a segment.
+type FlushResult struct {
+	SegmentID int
+	Offset    int64
+}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"getMeMod/server/store/core"
 	"getMeMod/server/store/utils"
+	"getMeMod/server/store/utils/constants"
 	"getMeMod/utils/logger"
 	"sync"
 	"time"
@@ -21,7 +22,7 @@ type Store struct {
 func NewStore(mainBasePath, compactedBasePath string) *Store {
 
 	// unbuffered channel to ensure that compaction results are processed in order
-	compactionResultChannel := make(chan *core.CompactionResult, 0)
+	compactionResultChannel := make(chan *core.CompactionResult)
 
 	hashTable := core.NewHashTable()
 	segmentManager, err := core.NewSegmentManager(mainBasePath, compactedBasePath, hashTable, compactionResultChannel)
@@ -150,20 +151,50 @@ func (s *Store) Keys() []string {
 	return s.hashTable.Keys()
 }
 
-func (s *Store) BatchSet(batch map[string]string) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
+func (s *Store) BatchPut(batch map[string]string) error {
 	if len(batch) == 0 {
 		return nil
 	}
+	// No top-level lock here to allow for concurrent reads.
+	// Locking is handled at a granular level in SegmentManager and HashTable.
 
-	logger.Info("Starting BatchSet operation for", len(batch), "items")
+	logger.Info("Starting BatchPut operation for", len(batch), "items")
 
 	// In-memory buffer to hold serialized entries
-	writeBuffer := make([]byte, 0, 64*1024) // Start with 64KB capacity
+	writeBuffer := make([]byte, 0, constants.MaxChunkSize) // Start with MaxChunkSize capacity
 	// Map to hold entries for the current chunk
-	chunkEntries := make(map[string]*core.Entry)
+	chunkEntries := make([]*core.Entry, 0, len(batch))
+
+	flushAndReset := func() error {
+		logger.Debug("flushAndReset called with buffer size:", len(writeBuffer), "and", len(chunkEntries), "entries")
+		if len(writeBuffer) == 0 {
+			return nil
+		}
+		logger.Info("BatchPut: Flushing buffer with", len(chunkEntries), "entries.")
+		flushResults, err := s.segmentManager.FlushBuffer(writeBuffer, chunkEntries)
+		if err != nil {
+			return fmt.Errorf("failed to flush write buffer during batch set: %w", err)
+		}
+
+		newIndexPointers := make(map[string]*core.HashTableEntry)
+		for i, result := range flushResults {
+			originalEntry := chunkEntries[i]
+			// Map the original entry key to its new location
+			newIndexPointers[s.convertBytesToString(originalEntry.Key)] = &core.HashTableEntry{
+				SegmentId: uint32(result.SegmentID),
+				Offset:    uint32(result.Offset),
+				TimeStamp: originalEntry.TimeStamp,
+				ValueSize: originalEntry.ValueSize,
+			}
+		}
+
+		s.hashTable.BatchUpdate(newIndexPointers)
+
+		// Reset buffers for the next chunk
+		writeBuffer = make([]byte, 0, 64*1024)
+		chunkEntries = make([]*core.Entry, 0, len(batch))
+		return nil
+	}
 
 	for key, value := range batch {
 		keyBytes := s.convertStringToBytes(key)
@@ -173,47 +204,35 @@ func (s *Store) BatchSet(batch map[string]string) error {
 		entry, err := core.CreateEntry(keyBytes, valueBytes, timeStamp)
 		if err != nil {
 			// This should ideally not happen.
-			logger.Error("BatchSet: Failed to create entry for key", key, ":", err)
+			logger.Error("BatchPut: Failed to create entry for key", key, ":", err)
 			continue
 		}
 
 		serializedEntry, err := entry.Serialize()
 		if err != nil {
-			logger.Error("BatchSet: Failed to serialize entry for key", key, ":", err)
+			logger.Error("BatchPut: Failed to serialize entry for key", key, ":", err)
 			continue
 		}
 
 		// If adding the new entry exceeds the buffer, flush the current buffer first.
-		if len(writeBuffer)+len(serializedEntry) > 64*1024 && len(writeBuffer) > 0 {
-			logger.Info("BatchSet: Write buffer full, flushing", len(chunkEntries), "entries.")
-			newIndexPointers, err := s.segmentManager.FlushBuffer(writeBuffer, chunkEntries)
-			if err != nil {
-				// This is a critical error. The data is partially written to disk but the index is not updated.
-				// This could lead to data inconsistency. Future improvements could involve a recovery mechanism.
-				return fmt.Errorf("failed to flush write buffer during batch set: %w", err)
+		if len(writeBuffer)+len(serializedEntry) > constants.MaxChunkSize {
+			logger.Debug("BatchPut: Buffer full. Flushing current buffer before adding key:", key)
+			if err := flushAndReset(); err != nil {
+				return err
 			}
-			s.hashTable.BatchUpdate(newIndexPointers)
-
-			// Reset buffers for the next chunk
-			writeBuffer = make([]byte, 0, 64*1024)
-			chunkEntries = make(map[string]*core.Entry)
 		}
 
 		writeBuffer = append(writeBuffer, serializedEntry...)
-		chunkEntries[key] = entry
+		// chunkEntries have the order of entries same as they are added to the writeBuffer
+		chunkEntries = append(chunkEntries, entry)
 	}
 
 	// Flush any remaining entries in the buffer
-	if len(writeBuffer) > 0 {
-		logger.Info("BatchSet: Flushing remaining", len(chunkEntries), "entries.")
-		newIndexPointers, err := s.segmentManager.FlushBuffer(writeBuffer, chunkEntries)
-		if err != nil {
-			return fmt.Errorf("failed to flush final write buffer during batch set: %w", err)
-		}
-		s.hashTable.BatchUpdate(newIndexPointers)
+	if err := flushAndReset(); err != nil {
+		return err
 	}
 
-	logger.Info("BatchSet operation completed successfully.")
+	logger.Info("BatchPut operation completed successfully.")
 	return nil
 }
 

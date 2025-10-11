@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"getMeMod/cli/core"
+	"getMeMod/cli/utils"
 	"getMeMod/server/store/utils/constants"
 	"getMeMod/utils/logger"
 	"io"
@@ -14,13 +15,6 @@ import (
 
 	"github.com/spf13/cobra"
 )
-
-
-type PutRequestBody struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
-
 
 var rootCmd = &cobra.Command{
 	Use:   "getMe",
@@ -49,7 +43,6 @@ var getCmd = &cobra.Command{
 
 		key := args[0]
 
-
 		if key == "" {
 			return fmt.Errorf("invalid key: %s", key)
 		}
@@ -59,7 +52,7 @@ var getCmd = &cobra.Command{
 			return fmt.Errorf("http client not found in context")
 		}
 
-		req, err := http.NewRequest("GET", "http://unix/get", nil)
+		req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", utils.BaseUrl, utils.GetRoute), nil)
 		if err != nil {
 			return fmt.Errorf("failed to create request: %w", err)
 		}
@@ -100,7 +93,6 @@ var putCmd = &cobra.Command{
 	Short: "Put a key-value pair into the store",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		
 
 		key := args[0]
 		value := args[1]
@@ -118,9 +110,8 @@ var putCmd = &cobra.Command{
 			return fmt.Errorf("http client not found in context")
 		}
 
-
 		logger.Debug("Preparing JSON payload for PUT request with key:", key, " and value:", value)
-		jsonPayload, err := json.Marshal(PutRequestBody{
+		jsonPayload, err := json.Marshal(utils.PutRequestBody{
 			Key:   key,
 			Value: value,
 		})
@@ -128,12 +119,10 @@ var putCmd = &cobra.Command{
 			return fmt.Errorf("failed to marshal JSON payload: %w", err)
 		}
 
-
 		logger.Debug("preparing io reader payload with:", jsonPayload)
 		readerPayload := bytes.NewReader(jsonPayload)
 
-
-		req, err := http.NewRequest("POST", "http://unix/put", readerPayload)
+		req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", utils.BaseUrl, utils.PutRoute), readerPayload)
 		if err != nil {
 			return fmt.Errorf("failed to create request: %w", err)
 		}
@@ -182,40 +171,39 @@ var deleteCmd = &cobra.Command{
 			return fmt.Errorf("http client not found in context")
 		}
 
-		req, err := http.NewRequest("DELETE", "http://unix/delete", nil)
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s%s", utils.BaseUrl, utils.DeleteRoute), nil)
 		if err != nil {
 			return fmt.Errorf("failed to create request: %w", err)
 		}
-		
+
 		q := req.URL.Query()
 		q.Add("key", key)
 		req.URL.RawQuery = q.Encode()
 		logger.Info("Sending DELETE request for key:", key, " encoded as request query parameter")
-		
+
 		resp, err := httpClient.Do(req)
 		logger.Debug("Received response from server for DELETE request for key:", resp)
-		
+
 		if err != nil {
 			logger.Error("Error occurred while making DELETE request:", err)
 			return fmt.Errorf("failed to delete key '%s': %w", key, err)
 		}
 		defer resp.Body.Close()
-		
+
 		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf("server returned non-OK status: %s", resp.Status)
 		}
-		
+
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("failed to read response body: %w", err)
 		}
-		
+
 		fmt.Println(string(body))
 
 		return nil
 	},
 }
-
 
 var clearCmd = &cobra.Command{
 	Use:   "clear",
@@ -229,7 +217,7 @@ var clearCmd = &cobra.Command{
 			return fmt.Errorf("http client not found in context")
 		}
 
-		req, err := http.NewRequest("DELETE", "http://unix/clearStore", nil)
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s%s", utils.BaseUrl, utils.ClearStoreRoute), nil)
 		if err != nil {
 			return fmt.Errorf("failed to create request: %w", err)
 		}
@@ -261,11 +249,80 @@ var clearCmd = &cobra.Command{
 	},
 }
 
+var batchPutCmd = &cobra.Command{
+	Use:   "batchPut [jsonFilePath]",
+	Short: "Batch put key-value pairs from a JSON file into the store",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+
+		jsonFilePath := args[0]
+
+		if jsonFilePath == "" {
+			return fmt.Errorf("invalid file path: %s", jsonFilePath)
+		}
+
+		fileContent, err := os.ReadFile(jsonFilePath)
+		if err != nil {
+			return fmt.Errorf("failed to read file '%s': %w", jsonFilePath, err)
+		}
+
+		// being able to parse the JSON input file in the desired format is important!
+		var keyValuePairs map[string]string
+		if err := json.Unmarshal(fileContent, &keyValuePairs); err != nil {
+			return fmt.Errorf("failed to parse JSON file '%s': %w", jsonFilePath, err)
+		}
+
+		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
+
+		if !ok {
+			return fmt.Errorf("http client not found in context")
+		}
+
+		jsonPayload, err := json.Marshal(keyValuePairs)
+		if err != nil {
+			return fmt.Errorf("failed to marshal JSON payload: %w", err)
+		}
+
+		readerPayload := bytes.NewReader(jsonPayload)
+
+		req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", utils.BaseUrl, utils.BatchPutRoute), readerPayload)
+		if err != nil {
+			return fmt.Errorf("failed to create request: %w", err)
+		}
+
+		logger.Info("Sending BATCH PUT request with data from file:", jsonFilePath)
+
+		resp, err := httpClient.Do(req)
+
+		logger.Debug("Received response from server for BATCH PUT request:", resp)
+
+		if err != nil {
+			logger.Error("Error occurred while making BATCH PUT request:", err)
+			return fmt.Errorf("failed to perform batch put: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("server returned non-OK status: %s", resp.Status)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read response body: %w", err)
+		}
+
+		fmt.Println(string(body))
+
+		return nil
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(getCmd)
 	rootCmd.AddCommand(putCmd)
 	rootCmd.AddCommand(deleteCmd)
 	rootCmd.AddCommand(clearCmd)
+	rootCmd.AddCommand(batchPutCmd)
 }
 
 func main() {

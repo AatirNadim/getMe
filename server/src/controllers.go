@@ -10,16 +10,14 @@ import (
 	"net/http"
 )
 
+type Controllers struct{}
 
-type Controllers struct {}
-
-
-func GetController(storeInstance *store.Store) http.HandlerFunc{
+func GetController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
 		if key == "" {
 			http.Error(w, "missing key parameter", http.StatusBadRequest)
-			return 
+			return
 		}
 		value, found, err := storeInstance.Get(key)
 		if err != nil {
@@ -52,7 +50,7 @@ func PutController(storeInstance *store.Store) http.HandlerFunc {
 			return
 		}
 
-		var requestPayload utils.PutRequestBody	
+		var requestPayload utils.PutRequestBody
 
 		if err := json.Unmarshal(body, &requestPayload); err != nil {
 			logger.Error("Error parsing JSON body:", err)
@@ -81,7 +79,7 @@ func PutController(storeInstance *store.Store) http.HandlerFunc {
 	}
 }
 
-func DeleteController (storeInstance *store.Store) http.HandlerFunc {
+func DeleteController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// if r.Method != http.MethodDelete {
 		// 	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -102,7 +100,6 @@ func DeleteController (storeInstance *store.Store) http.HandlerFunc {
 	}
 }
 
-
 func ClearStoreController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -117,7 +114,7 @@ func ClearStoreController(storeInstance *store.Store) http.HandlerFunc {
 	}
 }
 
-func BatchSetCController(storeInstance *store.Store) http.HandlerFunc {
+func BatchPutCController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -126,25 +123,27 @@ func BatchSetCController(storeInstance *store.Store) http.HandlerFunc {
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
-			logger.Error("Error reading batch-set request body:", err)
+			logger.Error("Error reading batch-put request body:", err)
 			http.Error(w, "failed to read request body", http.StatusBadRequest)
 			return
 		}
 
 		var batch map[string]string
 		if err := json.Unmarshal(body, &batch); err != nil {
-			logger.Error("Error parsing batch-set JSON body:", err)
+			logger.Error("Error parsing batch-put JSON body:", err)
 			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
 			return
 		}
 
-		if err := storeInstance.BatchSet(batch); err != nil {
-			logger.Error("Error in BatchSet operation:", err)
-			http.Error(w, fmt.Sprintf("error during batch set: %v", err), http.StatusInternalServerError)
+		logger.Debug("\n\nParsed batch put request payload:", batch, "\n\n")
+
+		if err := storeInstance.BatchPut(batch); err != nil {
+			logger.Error("Error in BatchPut operation:", err)
+			http.Error(w, fmt.Sprintf("error during batch put: %v", err), http.StatusInternalServerError)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, "Batch set operation successful")
+		fmt.Fprintln(w, "Batch put operation successful")
 	}
 }

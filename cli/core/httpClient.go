@@ -19,3 +19,4 @@ func CreateHttpClient(socketPath string) (*http.Client, error) {
 	}
 	return httpClient, nil
 }
+
