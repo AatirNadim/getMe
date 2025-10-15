@@ -3,7 +3,7 @@ package core
 import (
 	"encoding/binary"
 	"getMeMod/server/store/utils"
-	"getMeMod/utils/logger"
+	"getMeMod/server/utils/logger"
 )
 
 // we are dealing with the segment ids instead of the actual segment locations

@@ -5,7 +5,7 @@ import (
 	"getMeMod/server/store/core"
 	"getMeMod/server/store/utils"
 	"getMeMod/server/store/utils/constants"
-	"getMeMod/utils/logger"
+	"getMeMod/server/utils/logger"
 	"time"
 )
 
@@ -240,7 +240,7 @@ func (s *Store) Close() error {
 	// defer s.mu.Unlock()
 
 	close(s.doneChannel)
-	
+
 	close(s.compactionResultChannel)
 	return nil
 }

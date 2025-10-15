@@ -3,37 +3,33 @@ package core
 import (
 	"fmt"
 	"getMeMod/server/store/utils/constants"
-	"getMeMod/utils/logger"
+	"getMeMod/server/utils/logger"
 	"os"
 	"path/filepath"
 )
 
-
 type CompactionResult struct {
-	CompactedHashTable  *HashTable
-	OldSegmentIds       []uint32
+	CompactedHashTable *HashTable
+	OldSegmentIds      []uint32
 }
-
 
 type CompactedSegmentManager struct {
 	// mu         sync.RWMutex
-	basePath   string
+	basePath               string
 	nextAvailableSegmentId uint32
-	maxAvailableSegmentId uint32
+	maxAvailableSegmentId  uint32
 	// to keep track of the original segments that are to be compacted, we can fetch the active segment ids from this
-	activeSegment *Segment
-	originalSegmentMap map[uint32]*Segment
+	activeSegment       *Segment
+	originalSegmentMap  map[uint32]*Segment
 	compactedSegmentMap map[uint32]*Segment
 }
-
 
 func NewCompactedSegmentManager(basePath string) (*CompactedSegmentManager, error) {
 
 	csm := &CompactedSegmentManager{
-		basePath:      basePath,
+		basePath:            basePath,
 		compactedSegmentMap: make(map[uint32]*Segment),
 	}
-
 
 	// remove existing directory if it exists
 	err := os.RemoveAll(basePath)
@@ -41,12 +37,10 @@ func NewCompactedSegmentManager(basePath string) (*CompactedSegmentManager, erro
 		return nil, fmt.Errorf("failed to remove dir: %w", err)
 	}
 
-
 	// create base directory
 	if err := os.MkdirAll(basePath, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create base directory: %w", err)
 	}
-
 
 	// // TODO: check whether this is required
 	// // Load existing compacted segments, if they exist
@@ -57,10 +51,8 @@ func NewCompactedSegmentManager(basePath string) (*CompactedSegmentManager, erro
 	return csm, nil
 }
 
-
-
 func (csm *CompactedSegmentManager) populateCompactedSegments(compactedHashTable *HashTable) (*HashTable, error) {
-	
+
 	logger.Info("Populating compacted segments from base path:", csm.basePath)
 
 	for key, hashTableEntry := range compactedHashTable.Entries() {
@@ -70,23 +62,22 @@ func (csm *CompactedSegmentManager) populateCompactedSegments(compactedHashTable
 		if err != nil {
 			return nil, fmt.Errorf("failed to get entry from original segment: %w", err)
 		}
-		
+
 		offset, err := csm.appendEntryToActiveCompactedSegment(entry)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to append entry to active compacted segment: %w", err)
 		}
 
-		updatedhashTableEntry := hashTableEntry;
+		updatedhashTableEntry := hashTableEntry
 		updatedhashTableEntry.SegmentId = csm.nextAvailableSegmentId - 1 // the segment id of the active compacted segment
 		updatedhashTableEntry.Offset = offset
-		
+
 		compactedHashTable.PutEntry(key, updatedhashTableEntry)
 	}
 
 	return compactedHashTable, nil
 }
-
 
 // this is supposed to return the segment id and the offset of the appended entry
 func (csm *CompactedSegmentManager) appendEntryToActiveCompactedSegment(entry *Entry) (uint32, error) {
@@ -126,15 +117,10 @@ func (csm *CompactedSegmentManager) createNewSegment() error {
 	// 	return err
 	// }
 
-
 	// defer logfile.Close()
 
 	logger.Info("Created new compacted segment with id:", csm.nextAvailableSegmentId, " at path:", path)
 	// fmt.Fprintf(logfile, "Created new compacted segment with id: %d at path: %s\n", csm.nextAvailableSegmentId, path)
-
-
-	
-	
 
 	csm.activeSegment = &Segment{
 		// for the id, use the currently available segment id
@@ -145,7 +131,7 @@ func (csm *CompactedSegmentManager) createNewSegment() error {
 		maxCount: constants.MaxEntriesPerSegment,
 		maxSize:  constants.DefaultMaxSegmentSize,
 	}
-	
+
 	csm.compactedSegmentMap[csm.nextAvailableSegmentId] = csm.activeSegment
 
 	csm.nextAvailableSegmentId += 1
@@ -153,12 +139,10 @@ func (csm *CompactedSegmentManager) createNewSegment() error {
 	return nil
 }
 
-
 func (csm *CompactedSegmentManager) clearManager() {
 	// csm.mu.Lock()
 	// defer csm.mu.Unlock()
 
-	
 	csm.compactedSegmentMap = make(map[uint32]*Segment)
 	csm.nextAvailableSegmentId = 0
 	csm.maxAvailableSegmentId = 0

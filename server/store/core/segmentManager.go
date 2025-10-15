@@ -3,13 +3,12 @@ package core
 import (
 	"fmt"
 	"getMeMod/server/store/utils/constants"
-	"getMeMod/utils/logger"
+	"getMeMod/server/utils/logger"
 	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
 )
-
 
 // FlushResult holds the result of a buffer flush to a segment.
 type FlushResult struct {
@@ -244,16 +243,16 @@ func (sm *SegmentManager) FlushBuffer(buffer []byte, entries []*Entry) ([]*Flush
 
 	// Check if the buffer can fit in the current segment.
 	// The store is now responsible for chunking, but we retain this check as a safeguard.
-	if uint32(len(buffer)) > (constants.DefaultMaxSegmentSize - currentSegment.size) {
-		// This case should ideally not be hit if the store chunks correctly.
-		// We will create a new segment to handle this oversized buffer.
-		logger.Info("FlushBuffer: Buffer too large for current segment, creating a new one.")
-		newSegment, err := sm.createNewSegment(sm.basePath)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create new segment for flush: %w", err)
-		}
-		currentSegment = newSegment
-	}
+	// if uint32(len(buffer)) > (constants.DefaultMaxSegmentSize - currentSegment.size) {
+	// 	// This case should ideally not be hit if the store chunks correctly.
+	// 	// We will create a new segment to handle this oversized buffer.
+	// 	logger.Info("FlushBuffer: Buffer too large for current segment, creating a new one.")
+	// 	newSegment, err := sm.createNewSegment(sm.basePath)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed to create new segment for flush: %w", err)
+	// 	}
+	// 	currentSegment = newSegment
+	// }
 
 	startOffset := currentSegment.size
 	if err := currentSegment.AppendBuffer(buffer); err != nil {
@@ -261,7 +260,6 @@ func (sm *SegmentManager) FlushBuffer(buffer []byte, entries []*Entry) ([]*Flush
 	}
 
 	// flushResults := make(map[string]*FlushResult)
-
 
 	flushResults := make([]*FlushResult, 0, len(entries))
 	currentOffset := int64(startOffset)

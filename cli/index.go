@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"getMeMod/cli/core"
 	"getMeMod/cli/utils"
-	"getMeMod/server/store/utils/constants"
 	"getMeMod/utils/logger"
 	"io"
 	"net/http"
@@ -23,9 +22,9 @@ var rootCmd = &cobra.Command{
 backed by an append-only log on your local disk.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		// Determine default store path in user's home directory: ~/.getMeStore
-		httpClient, err := core.CreateHttpClient(constants.SocketPath)
+		httpClient, err := core.CreateHttpClient(utils.SocketPath)
 
-		logger.Info("HTTP client created with socket path:", constants.SocketPath)
+		logger.Info("HTTP client created with socket path:", utils.SocketPath)
 
 		logger.Info("Http client set as context to the command")
 		ctx := context.WithValue(cmd.Context(), "httpClientKey", httpClient)

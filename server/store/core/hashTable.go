@@ -1,7 +1,7 @@
 package core
 
 import (
-	"getMeMod/utils/logger"
+	"getMeMod/server/utils/logger"
 	"sync"
 )
 
@@ -62,7 +62,6 @@ func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp 
 	return nil
 }
 
-
 func (ht *HashTable) PutEntry(key string, entry HashTableEntry) {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
@@ -100,7 +99,7 @@ func (ht *HashTable) BatchUpdate(newEntries map[string]*HashTableEntry) {
 func (ht *HashTable) Merge(other *HashTable) {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
-	ht.mergeUtil(other.table)	
+	ht.mergeUtil(other.table)
 }
 
 func (ht *HashTable) Delete(key string) {

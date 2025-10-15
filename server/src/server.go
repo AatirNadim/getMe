@@ -3,10 +3,9 @@ package src
 import (
 	"fmt"
 	"getMeMod/server/store"
-	"getMeMod/utils/logger"
+	"getMeMod/server/utils/logger"
 	"net/http"
 )
-
 
 func StartServer(socketPath, storePath, compactedStorePath string) error {
 	l, err := createSocket(socketPath)
@@ -31,4 +30,3 @@ func StartServer(socketPath, storePath, compactedStorePath string) error {
 
 	return nil
 }
-

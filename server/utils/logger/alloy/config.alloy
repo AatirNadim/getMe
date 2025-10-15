@@ -13,6 +13,7 @@ loki.process "parse_and_label" {
     mapping = {
       "log_level" = "level",
       "log_message" = "msg",
+      "log_timestamp" = "timeStamp",
     }
   }
   
@@ -23,7 +24,7 @@ loki.process "parse_and_label" {
   }
   
   stage.timestamp {
-    source = "timestamp"
+    source = "log_timestamp"
     format = "RFC3339"
   }
   

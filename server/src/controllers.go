@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"getMeMod/server/store"
 	"getMeMod/server/utils"
-	"getMeMod/utils/logger"
+	"getMeMod/server/utils/logger"
 	"io"
 	"net/http"
 )

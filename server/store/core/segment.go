@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"getMeMod/server/store/utils"
 	"getMeMod/server/store/utils/constants"
-	"getMeMod/utils/logger"
+	"getMeMod/server/utils/logger"
 	"io"
 	"os"
 	"path/filepath"
