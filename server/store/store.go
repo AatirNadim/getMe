@@ -5,7 +5,9 @@ import (
 	"getMeMod/server/store/core"
 	"getMeMod/server/store/utils"
 	"getMeMod/server/store/utils/constants"
-	"getMeMod/server/utils/logger"
+	"sync"
+
+	// "getMeMod/server/utils/logger"
 	"time"
 )
 
@@ -16,6 +18,7 @@ type Store struct {
 	segmentManager          *core.SegmentManager
 	compactionResultChannel chan *core.CompactionResult
 	doneChannel             chan struct{}
+	wg                      sync.WaitGroup
 }
 
 func NewStore(mainBasePath, compactedBasePath string) *Store {
@@ -29,7 +32,7 @@ func NewStore(mainBasePath, compactedBasePath string) *Store {
 		panic(err)
 	}
 
-	logger.Info("creating a new store instance on the base path:", mainBasePath)
+	// logger.Info("creating a new store instance on the base path:", mainBasePath)
 
 	store := &Store{
 		basePath:                mainBasePath,
@@ -39,6 +42,7 @@ func NewStore(mainBasePath, compactedBasePath string) *Store {
 		doneChannel:             make(chan struct{}),
 	}
 
+	store.wg.Add(1)
 	go store.listenForCompactionResults()
 
 	return store
@@ -48,16 +52,35 @@ func (s *Store) Get(key string) (string, bool, error) {
 	// s.mu.RLock()
 	// defer s.mu.RUnlock()
 
-	logger.Info("Getting the file and the offset for key:", key)
+	// logger.Info("Getting the file and the offset for key:", key)
 	hashTableEntry, exists := s.hashTable.Get(key)
 	if !exists {
-		logger.Error("key not found: ", key)
+		// logger.Error("key not found: ", key)
 		return "", false, utils.ErrKeyNotFound
 	}
 
+	// fmt.Println("Getting the file and the offset for key:", key)
+	// fmt.Println("store: 63: Found in hashtable with segmentId:", hashTableEntry.SegmentId, " offset:", hashTableEntry.Offset)
+
 	data, _, err := s.segmentManager.Read(hashTableEntry.SegmentId, hashTableEntry.Offset)
 	if err != nil {
-		return "", false, err
+
+		if err == utils.ErrSegmentNotFound {
+			// logger.Error("segment not found for key:", key, " segmentId:", hashTableEntry.SegmentId)
+			hashTableEntry, exists := s.hashTable.Get(key)
+			if !exists {
+				// logger.Error("key not found: ", key)
+				return "", false, utils.ErrKeyNotFound
+			}
+			data, _, err = s.segmentManager.Read(hashTableEntry.SegmentId, hashTableEntry.Offset)
+			if err != nil {
+				// If it fails a second time, it's a real error.
+				return "", false, err
+			}
+		} else {
+			return "", false, err
+		}
+
 	}
 
 	return s.convertBytesToString(data.Value), true, nil
@@ -67,7 +90,7 @@ func (s *Store) Put(key string, value string) error {
 	// s.mu.Lock()
 	// defer s.mu.Unlock()
 
-	logger.Info("Putting key:", key, "with value: ", value)
+	// logger.Info("Putting key:", key, "with value: ", value)
 
 	keyBytes := s.convertStringToBytes(key)
 	valueBytes := s.convertStringToBytes(value)
@@ -79,16 +102,17 @@ func (s *Store) Put(key string, value string) error {
 		return err
 	}
 
-	logger.Info("appending entry with key:", key, " to segment manager")
+	// logger.Info("appending entry with key:", key, " to segment manager")
 
 	segmentId, offset, err := s.segmentManager.Append(entry)
 	if err != nil {
 		return err
 	}
 
-	logger.Info("updating hash table with key:", key, " segmentId:", segmentId, " offset:", offset)
+	// logger.Info("updating hash table with key:", key, " segmentId:", segmentId, " offset:", offset)
 
 	s.hashTable.Put(key, segmentId, offset, timeStamp, entry.ValueSize)
+	// fmt.Println("key has been added and hashtable has been updated, key = ", key)
 
 	// if newSegmentCreated {
 	// 	go s.performCompaction()
@@ -102,28 +126,28 @@ func (s *Store) Delete(key string) error {
 	// defer s.mu.Unlock()
 
 	if _, exists := s.hashTable.Get(key); !exists {
-		logger.Error("key not found: ", key)
+		// logger.Error("key not found: ", key)
 		return utils.ErrKeyNotFound
 	}
 
-	logger.Info("creating deletion entry for key:", key)
+	// logger.Info("creating deletion entry for key:", key)
 
 	timeStamp := time.Now().UnixNano()
 
 	deletionEntry, deletionEntryCreationErr := core.CreateDeletionEntry(s.convertStringToBytes(key), timeStamp)
 
 	if deletionEntryCreationErr != nil {
-		logger.Error("store: failed to create deletion entry:", deletionEntryCreationErr)
+		// logger.Error("store: failed to create deletion entry:", deletionEntryCreationErr)
 		return deletionEntryCreationErr
 	}
 
-	logger.Info("appending deletion entry for key:", key, " to segment manager")
+	// logger.Info("appending deletion entry for key:", key, " to segment manager")
 	_, err := s.segmentManager.Delete(deletionEntry)
 	if err != nil {
 		return err
 	}
 
-	logger.Info("removing key:", key, " from hash table")
+	// logger.Info("removing key:", key, " from hash table")
 	s.hashTable.Delete(key)
 	return nil
 }
@@ -157,7 +181,7 @@ func (s *Store) BatchPut(batch map[string]string) error {
 	// No top-level lock here to allow for concurrent reads.
 	// Locking is handled at a granular level in SegmentManager and HashTable.
 
-	logger.Info("Starting BatchPut operation for", len(batch), "items")
+	// logger.Info("Starting BatchPut operation for", len(batch), "items")
 
 	// In-memory buffer to hold serialized entries
 	writeBuffer := make([]byte, 0, constants.MaxChunkSize) // Start with MaxChunkSize capacity
@@ -165,11 +189,11 @@ func (s *Store) BatchPut(batch map[string]string) error {
 	chunkEntries := make([]*core.Entry, 0, len(batch))
 
 	flushAndReset := func() error {
-		logger.Debug("flushAndReset called with buffer size:", len(writeBuffer), "and", len(chunkEntries), "entries")
+		// logger.Debug("flushAndReset called with buffer size:", len(writeBuffer), "and", len(chunkEntries), "entries")
 		if len(writeBuffer) == 0 {
 			return nil
 		}
-		logger.Info("BatchPut: Flushing buffer with", len(chunkEntries), "entries.")
+		// logger.Info("BatchPut: Flushing buffer with", len(chunkEntries), "entries.")
 		flushResults, err := s.segmentManager.FlushBuffer(writeBuffer, chunkEntries)
 		if err != nil {
 			return fmt.Errorf("failed to flush write buffer during batch set: %w", err)
@@ -203,19 +227,19 @@ func (s *Store) BatchPut(batch map[string]string) error {
 		entry, err := core.CreateEntry(keyBytes, valueBytes, timeStamp)
 		if err != nil {
 			// This should ideally not happen.
-			logger.Error("BatchPut: Failed to create entry for key", key, ":", err)
+			// logger.Error("BatchPut: Failed to create entry for key", key, ":", err)
 			continue
 		}
 
 		serializedEntry, err := entry.Serialize()
 		if err != nil {
-			logger.Error("BatchPut: Failed to serialize entry for key", key, ":", err)
+			// logger.Error("BatchPut: Failed to serialize entry for key", key, ":", err)
 			continue
 		}
 
 		// If adding the new entry exceeds the buffer, flush the current buffer first.
 		if len(writeBuffer)+len(serializedEntry) > constants.MaxChunkSize {
-			logger.Debug("BatchPut: Buffer full. Flushing current buffer before adding key:", key)
+			// logger.Debug("BatchPut: Buffer full. Flushing current buffer before adding key:", key)
 			if err := flushAndReset(); err != nil {
 				return err
 			}
@@ -231,7 +255,7 @@ func (s *Store) BatchPut(batch map[string]string) error {
 		return err
 	}
 
-	logger.Info("BatchPut operation completed successfully.")
+	// logger.Info("BatchPut operation completed successfully.")
 	return nil
 }
 
@@ -240,6 +264,8 @@ func (s *Store) Close() error {
 	// defer s.mu.Unlock()
 
 	close(s.doneChannel)
+
+	s.wg.Wait()
 
 	close(s.compactionResultChannel)
 	return nil
@@ -258,7 +284,7 @@ func (s *Store) convertBytesToString(b []byte) string {
 
 func (s *Store) applyCompactionResult(compactionResult *core.CompactionResult) {
 
-	logger.Debug("Applying compaction result with", compactionResult.CompactedHashTable, "entries and", len(compactionResult.OldSegmentIds), "old segments to delete")
+	// logger.Debug("Applying compaction result with", compactionResult.CompactedHashTable, "entries and", len(compactionResult.OldSegmentIds), "old segments to delete")
 
 	s.hashTable.Merge(compactionResult.CompactedHashTable)
 	s.hashTable.DeleteDeletionEntries() // remove deletion entries from the hash table
@@ -266,13 +292,14 @@ func (s *Store) applyCompactionResult(compactionResult *core.CompactionResult) {
 }
 
 func (s *Store) listenForCompactionResults() {
+	defer s.wg.Done()
 	for {
 		select {
 		case compactionResult := <-s.compactionResultChannel:
-			logger.Info("Received compaction result with", compactionResult.CompactedHashTable.Size(), "entries and", len(compactionResult.OldSegmentIds), "old segments to delete")
+			// logger.Info("Received compaction result with", compactionResult.CompactedHashTable.Size(), "entries and", len(compactionResult.OldSegmentIds), "old segments to delete")
 			s.applyCompactionResult(compactionResult)
 		case <-s.doneChannel:
-			logger.Info("Shutting down compaction result listener")
+			// logger.Info("Shutting down compaction result listener")
 			return
 		}
 	}
@@ -281,7 +308,7 @@ func (s *Store) listenForCompactionResults() {
 // func (s *Store) performCompaction() {
 
 // 	if totalSegments > constants.ThresholdForCompaction {
-// 		logger.Info("total segments:", totalSegments, "exceeds threshold:", constants.ThresholdForCompaction, "starting compaction")
+// 		// logger.Info("total segments:", totalSegments, "exceeds threshold:", constants.ThresholdForCompaction, "starting compaction")
 
 // 		s.segmentManager.PerformCompaction(s.hashTable, s.compactedSegmentManager)
 // 	}

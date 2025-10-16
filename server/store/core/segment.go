@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"getMeMod/server/store/utils"
 	"getMeMod/server/store/utils/constants"
-	"getMeMod/server/utils/logger"
+
+	// "getMeMod/server/utils/// logger."
 	"io"
 	"os"
 	"path/filepath"
@@ -50,7 +51,7 @@ func OpenSegment(id uint32, basePath string) (*Segment, error) {
 
 	// Construct the file path for the segment
 
-	logger.Info("Opening segment with id:", id, "at the base path:", basePath)
+	// logger..Info("Opening segment with id:", id, "at the base path:", basePath)
 
 	path := filepath.Join(basePath, fmt.Sprintf("segment_%d.log", id))
 
@@ -93,7 +94,7 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 
 	data, err := entry.Serialize()
 
-	logger.Info("Serialized data: ", data)
+	// logger..Info("Serialized data: ", data)
 
 	if err != nil {
 		return 0, err
@@ -111,7 +112,7 @@ func (segment *Segment) Append(entry *Entry) (uint32, error) {
 	segment.size += uint32(len(data))
 	segment.entryCount += 1
 
-	logger.Info("segment.go : current segment size: ", len(data), segment.size, ", current entry count: ", segment.entryCount)
+	// logger..Info("segment.go : current segment size: ", len(data), segment.size, ", current entry count: ", segment.entryCount)
 
 	// return the starting position of the newly added entry in the segment file
 	return segmentOffset, nil
@@ -146,8 +147,11 @@ func (segment *Segment) Get(offset uint32) (*Entry, uint32, error) {
 
 	// check if the position is valid
 	if offset >= uint32(segment.size) {
+		fmt.Println("segment: 150: Invalid offset:", offset, " for segment:", segment.id, " with size:", segment.size)
 		return nil, offset, utils.ErrInvalidEntry
 	}
+
+	// fmt.Println("segment: 153: Getting entry from segment:", segment.id, " at offset:", offset)
 
 	serializedEntry, newOffset, err := segment.getSerializedEntryFromOffset(offset)
 
@@ -169,7 +173,7 @@ func (segment *Segment) Get(offset uint32) (*Entry, uint32, error) {
 // in the alternative, new segment creation will be cascaded
 func (segment *Segment) isSpaceAvailableInCurrentSegment(entry *Entry) bool {
 
-	logger.Info("is space available: Current segment size: %d, max size: %d, entry count: %d, max count: %d, new entry size: %d\n", segment.size, segment.maxSize, segment.entryCount, segment.maxCount, entry.getEntrySize())
+	// logger..Info("is space available: Current segment size: %d, max size: %d, entry count: %d, max count: %d, new entry size: %d\n", segment.size, segment.maxSize, segment.entryCount, segment.maxCount, entry.getEntrySize())
 	return segment.size <= segment.maxSize && segment.entryCount < segment.maxCount
 }
 
@@ -195,7 +199,7 @@ func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 		entry, desErr := deserializeEntry(serializedEntry)
 		if desErr != nil {
 			// Log this, but continue if possible, as it might be a partial write
-			logger.Error("Failed to deserialize entry at offset %d: %v", offset, desErr)
+			// logger..Error("Failed to deserialize entry at offset %d: %v", offset, desErr)
 			offset = nextOffset
 			continue
 		}
@@ -222,7 +226,7 @@ func (segment *Segment) readAllEntriesAsync(wg *sync.WaitGroup, resultChan chan<
 	defer wg.Done()
 	ht, err := segment.ReadAllEntries()
 	if err != nil {
-		logger.Error("Failed to read entries from segment %d: %v", segment.id, err)
+		// logger..Error("Failed to read entries from segment %d: %v", segment.id, err)
 		return
 	}
 	resultChan <- ht

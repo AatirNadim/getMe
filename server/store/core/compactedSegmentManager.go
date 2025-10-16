@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 	"getMeMod/server/store/utils/constants"
-	"getMeMod/server/utils/logger"
+	// "getMeMod/server/utils/// logger."
 	"os"
 	"path/filepath"
 )
@@ -53,7 +53,7 @@ func NewCompactedSegmentManager(basePath string) (*CompactedSegmentManager, erro
 
 func (csm *CompactedSegmentManager) populateCompactedSegments(compactedHashTable *HashTable) (*HashTable, error) {
 
-	logger.Info("Populating compacted segments from base path:", csm.basePath)
+	// logger..Info("Populating compacted segments from base path:", csm.basePath)
 
 	for key, hashTableEntry := range compactedHashTable.Entries() {
 
@@ -119,7 +119,7 @@ func (csm *CompactedSegmentManager) createNewSegment() error {
 
 	// defer logfile.Close()
 
-	logger.Info("Created new compacted segment with id:", csm.nextAvailableSegmentId, " at path:", path)
+	// logger..Info("Created new compacted segment with id:", csm.nextAvailableSegmentId, " at path:", path)
 	// fmt.Fprintf(logfile, "Created new compacted segment with id: %d at path: %s\n", csm.nextAvailableSegmentId, path)
 
 	csm.activeSegment = &Segment{

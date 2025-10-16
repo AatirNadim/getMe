@@ -3,7 +3,7 @@ package src
 import (
 	"fmt"
 	"getMeMod/server/store"
-	"getMeMod/server/utils/logger"
+	// "getMeMod/server/utils/logger"
 	"net/http"
 )
 
@@ -15,7 +15,7 @@ func StartServer(socketPath, storePath, compactedStorePath string) error {
 	defer l.Close()
 
 	storeInstance := store.NewStore(storePath, compactedStorePath)
-	logger.Info("Store has been initialized at path:", storePath)
+	// logger.Info("Store has been initialized at path:", storePath)
 
 	mux := muxHandler(storeInstance)
 
