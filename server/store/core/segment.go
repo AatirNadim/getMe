@@ -204,7 +204,7 @@ func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 			continue
 		}
 
-		entryKey := convertBytesToString(entry.Key)
+		entryKey := utils.ConvertBytesToString(entry.Key)
 
 		// at the time of creation of new hashtable, deletion entries remove the key if present
 		// if entry.isDeletionEntry() {
@@ -266,12 +266,4 @@ func (sg *Segment) getSerializedEntryFromOffset(offset uint32) ([]byte, uint32, 
 	}
 	offset = offset + uint32(entrySize)
 	return serializedEntry, offset, nil
-}
-
-func convertStringToBytes(str string) []byte {
-	return []byte(str)
-}
-
-func convertBytesToString(b []byte) string {
-	return string(b)
 }

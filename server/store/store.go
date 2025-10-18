@@ -1,6 +1,7 @@
 package store
 
 import (
+	"bytes"
 	"fmt"
 	"getMeMod/server/store/core"
 	"getMeMod/server/store/utils"
@@ -9,6 +10,35 @@ import (
 
 	// "getMeMod/server/utils/logger"
 	"time"
+)
+
+// Pools for reusing byte buffers to reduce allocations for keys and values.
+var (
+	keyBufferPool = sync.Pool{
+		New: func() interface{} {
+			return new(bytes.Buffer)
+		},
+	}
+	valueBufferPool = sync.Pool{
+		New: func() interface{} {
+			return new(bytes.Buffer)
+		},
+	}
+	batchBufferPool = sync.Pool{
+		New: func() interface{} {
+			return new(bytes.Buffer)
+		},
+	}
+	entryPool = sync.Pool{
+		New: func() interface{} {
+			return new(core.Entry)
+		},
+	}
+	hashTableEntryPool = sync.Pool{
+		New: func() interface{} {
+			return new(core.HashTableEntry)
+		},
+	}
 )
 
 type Store struct {
@@ -92,12 +122,22 @@ func (s *Store) Put(key string, value string) error {
 
 	// logger.Info("Putting key:", key, "with value: ", value)
 
-	keyBytes := s.convertStringToBytes(key)
-	valueBytes := s.convertStringToBytes(value)
+	keyBuffer := keyBufferPool.Get().(*bytes.Buffer)
+	defer keyBufferPool.Put(keyBuffer)
+	keyBuffer.Reset()
+	keyBuffer.WriteString(key)
+
+	valueBuffer := valueBufferPool.Get().(*bytes.Buffer)
+	defer valueBufferPool.Put(valueBuffer)
+	valueBuffer.Reset()
+	valueBuffer.WriteString(value)
+
+	// keyBytes := s.convertStringToBytes(key)
+	// valueBytes := s.convertStringToBytes(value)
 
 	timeStamp := time.Now().UnixNano()
 
-	entry, err := core.CreateEntry(keyBytes, valueBytes, timeStamp)
+	entry, err := core.CreateEntry(keyBuffer.Bytes(), valueBuffer.Bytes(), timeStamp)
 	if err != nil {
 		return err
 	}
@@ -184,68 +224,101 @@ func (s *Store) BatchPut(batch map[string]string) error {
 	// logger.Info("Starting BatchPut operation for", len(batch), "items")
 
 	// In-memory buffer to hold serialized entries
-	writeBuffer := make([]byte, 0, constants.MaxChunkSize) // Start with MaxChunkSize capacity
+	// writeBuffer := make([]byte, 0, constants.MaxChunkSize)
+	writeBuffer := batchBufferPool.Get().(*bytes.Buffer)
+	defer batchBufferPool.Put(writeBuffer)
+	writeBuffer.Reset()
+
+	// Start with MaxChunkSize capacity
 	// Map to hold entries for the current chunk
 	chunkEntries := make([]*core.Entry, 0, len(batch))
+	newIndexPointers := make(map[string]*core.HashTableEntry)
 
 	flushAndReset := func() error {
 		// logger.Debug("flushAndReset called with buffer size:", len(writeBuffer), "and", len(chunkEntries), "entries")
-		if len(writeBuffer) == 0 {
+		if writeBuffer.Len() == 0 {
 			return nil
 		}
 		// logger.Info("BatchPut: Flushing buffer with", len(chunkEntries), "entries.")
-		flushResults, err := s.segmentManager.FlushBuffer(writeBuffer, chunkEntries)
+		flushResults, err := s.segmentManager.FlushBuffer(writeBuffer.Bytes(), chunkEntries)
 		if err != nil {
 			return fmt.Errorf("failed to flush write buffer during batch set: %w", err)
 		}
 
-		newIndexPointers := make(map[string]*core.HashTableEntry)
 		for i, result := range flushResults {
 			originalEntry := chunkEntries[i]
 			// Map the original entry key to its new location
-			newIndexPointers[s.convertBytesToString(originalEntry.Key)] = &core.HashTableEntry{
-				SegmentId: uint32(result.SegmentID),
-				Offset:    uint32(result.Offset),
-				TimeStamp: originalEntry.TimeStamp,
-				ValueSize: originalEntry.ValueSize,
-			}
+			// newIndexPointers[s.convertBytesToString(originalEntry.Key)] = &core.HashTableEntry{
+			// 	SegmentId: uint32(result.SegmentID),
+			// 	Offset:    uint32(result.Offset),
+			// 	TimeStamp: originalEntry.TimeStamp,
+			// 	ValueSize: originalEntry.ValueSize,
+			// }
+
+			indexEntry := hashTableEntryPool.Get().(*core.HashTableEntry)
+			indexEntry.SegmentId = uint32(result.SegmentID)
+			indexEntry.Offset = uint32(result.Offset)
+			indexEntry.TimeStamp = originalEntry.TimeStamp
+			indexEntry.ValueSize = originalEntry.ValueSize
+			newIndexPointers[s.convertBytesToString(originalEntry.Key)] = indexEntry
 		}
 
 		s.hashTable.BatchUpdate(newIndexPointers)
 
+		for _, entry := range chunkEntries {
+			entryPool.Put(entry)
+		}
+
+		for _, indexEntry := range newIndexPointers {
+			hashTableEntryPool.Put(indexEntry)
+		}
+
 		// Reset buffers for the next chunk
-		writeBuffer = make([]byte, 0, 64*1024)
-		chunkEntries = make([]*core.Entry, 0, len(batch))
+		writeBuffer.Reset()
+		chunkEntries = chunkEntries[:0]
+		clear(newIndexPointers)
 		return nil
 	}
 
 	for key, value := range batch {
-		keyBytes := s.convertStringToBytes(key)
-		valueBytes := s.convertStringToBytes(value)
+		keyBuffer := keyBufferPool.Get().(*bytes.Buffer)
+		keyBuffer.Reset()
+		keyBuffer.WriteString(key)
+
+		valueBuffer := valueBufferPool.Get().(*bytes.Buffer)
+		valueBuffer.Reset()
+		valueBuffer.WriteString(value)
+
 		timeStamp := time.Now().UnixNano()
 
-		entry, err := core.CreateEntry(keyBytes, valueBytes, timeStamp)
-		if err != nil {
-			// This should ideally not happen.
-			// logger.Error("BatchPut: Failed to create entry for key", key, ":", err)
-			continue
-		}
+		// entry, err := core.CreateEntry(keyBuffer.Bytes(), valueBuffer.Bytes(), timeStamp)
+
+		entry := entryPool.Get().(*core.Entry)
+		entry.Key = keyBuffer.Bytes()
+		entry.Value = valueBuffer.Bytes()
+		entry.KeySize = uint32(keyBuffer.Len())
+		entry.ValueSize = uint32(valueBuffer.Len())
+		entry.TimeStamp = timeStamp
+
+		keyBufferPool.Put(keyBuffer)
+		valueBufferPool.Put(valueBuffer)
 
 		serializedEntry, err := entry.Serialize()
 		if err != nil {
 			// logger.Error("BatchPut: Failed to serialize entry for key", key, ":", err)
+			entryPool.Put(entry)
 			continue
 		}
 
 		// If adding the new entry exceeds the buffer, flush the current buffer first.
-		if len(writeBuffer)+len(serializedEntry) > constants.MaxChunkSize {
+		if writeBuffer.Len()+len(serializedEntry) > constants.MaxChunkSize {
 			// logger.Debug("BatchPut: Buffer full. Flushing current buffer before adding key:", key)
 			if err := flushAndReset(); err != nil {
 				return err
 			}
 		}
 
-		writeBuffer = append(writeBuffer, serializedEntry...)
+		writeBuffer.Write(serializedEntry)
 		// chunkEntries have the order of entries same as they are added to the writeBuffer
 		chunkEntries = append(chunkEntries, entry)
 	}
