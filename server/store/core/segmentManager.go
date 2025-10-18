@@ -15,7 +15,7 @@ import (
 // FlushResult holds the result of a buffer flush to a segment.
 type FlushResult struct {
 	SegmentID int
-	Offset    int64
+	Offset    uint32
 }
 type SegmentManager struct {
 	mu         sync.RWMutex
@@ -268,13 +268,13 @@ func (sm *SegmentManager) FlushBuffer(buffer []byte, entries []*Entry) ([]*Flush
 	// flushResults := make(map[string]*FlushResult)
 
 	flushResults := make([]*FlushResult, 0, len(entries))
-	currentOffset := int64(startOffset)
+	currentOffset := startOffset
 	for _, entry := range entries {
 		flushResults = append(flushResults, &FlushResult{
 			SegmentID: int(currentSegment.id),
 			Offset:    currentOffset,
 		})
-		currentOffset += int64(entry.getEntrySize())
+		currentOffset += entry.getEntrySize()
 	}
 
 	// logger.Debug("FlushBuffer: Flush results:", flushResults)

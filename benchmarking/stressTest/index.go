@@ -1,13 +1,13 @@
-package main
+package stressTest
 
 import (
 	"fmt"
+	"getMeMod/server/store"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
-	"getMeMod/server/store"
 	"testing"
 )
 
@@ -156,7 +156,6 @@ func BenchmarkDelete(b *testing.B) {
 		}
 	})
 }
-
 
 // BenchmarkPut measures the performance of concurrent single-key writes.
 func BenchmarkPut1(b *testing.B) {
@@ -381,7 +380,6 @@ func BenchmarkDelete2(b *testing.B) {
 		}
 	})
 }
-
 
 // BenchmarkReadWriteMixed measures performance under a mixed workload of reads and writes.
 func BenchmarkReadWriteMixed(b *testing.B) {
