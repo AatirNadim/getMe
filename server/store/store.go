@@ -6,6 +6,7 @@ import (
 	"getMeMod/server/store/core"
 	"getMeMod/server/store/utils"
 	"getMeMod/server/store/utils/constants"
+	"getMeMod/utils/logger"
 	"sync"
 
 	// "getMeMod/server/utils/logger"
@@ -85,7 +86,7 @@ func (s *Store) Get(key string) (string, bool, error) {
 	// logger.Info("Getting the file and the offset for key:", key)
 	hashTableEntry, exists := s.hashTable.Get(key)
 	if !exists {
-		// logger.Error("key not found: ", key)
+		fmt.Println("key not found for the given request")
 		return "", false, utils.ErrKeyNotFound
 	}
 
@@ -236,6 +237,12 @@ func (s *Store) BatchPut(batch map[string]string) error {
 
 	flushAndReset := func() error {
 		// logger.Debug("flushAndReset called with buffer size:", len(writeBuffer), "and", len(chunkEntries), "entries")
+
+		logger.Debug("\n\n ---- printing the current state of chunkentries --- \n\n")
+		for _, itr := range chunkEntries {
+			fmt.Printf("itr --> %v\n", itr)
+		}
+
 		if writeBuffer.Len() == 0 {
 			return nil
 		}
@@ -260,15 +267,21 @@ func (s *Store) BatchPut(batch map[string]string) error {
 			indexEntry.Offset = uint32(result.Offset)
 			indexEntry.TimeStamp = originalEntry.TimeStamp
 			indexEntry.ValueSize = originalEntry.ValueSize
-			newIndexPointers[s.convertBytesToString(originalEntry.Key)] = indexEntry
+			keyStr := s.convertBytesToString(originalEntry.Key)
+			logger.Debug("store: 264 : original entry --> ", keyStr, " with index entry --> ", indexEntry)
+			newIndexPointers[keyStr] = indexEntry
 		}
+
+		logger.Debug("batchput: updating hashtable with the latest index pointers, --> ", newIndexPointers)
 
 		s.hashTable.BatchUpdate(newIndexPointers)
 
+		// release all the entry objects back into the pool
 		for _, entry := range chunkEntries {
 			entryPool.Put(entry)
 		}
 
+		// release all the hashTableEntry objects back into the pool
 		for _, indexEntry := range newIndexPointers {
 			hashTableEntryPool.Put(indexEntry)
 		}
@@ -289,15 +302,21 @@ func (s *Store) BatchPut(batch map[string]string) error {
 		valueBuffer.Reset()
 		valueBuffer.WriteString(value)
 
+		keyBytes := make([]byte, keyBuffer.Len())
+		copy(keyBytes, keyBuffer.Bytes())
+
+		valueBytes := make([]byte, valueBuffer.Len())
+		copy(valueBytes, valueBuffer.Bytes())
+
 		timeStamp := time.Now().UnixNano()
 
 		// entry, err := core.CreateEntry(keyBuffer.Bytes(), valueBuffer.Bytes(), timeStamp)
 
 		entry := entryPool.Get().(*core.Entry)
-		entry.Key = keyBuffer.Bytes()
-		entry.Value = valueBuffer.Bytes()
-		entry.KeySize = uint32(keyBuffer.Len())
-		entry.ValueSize = uint32(valueBuffer.Len())
+		entry.Key = keyBytes // dont use the original variable's bytes here, since they are passed by reference
+		entry.Value = valueBytes
+		entry.KeySize = uint32(len(keyBytes))
+		entry.ValueSize = uint32(len(valueBytes))
 		entry.TimeStamp = timeStamp
 
 		keyBufferPool.Put(keyBuffer)
@@ -305,7 +324,8 @@ func (s *Store) BatchPut(batch map[string]string) error {
 
 		serializedEntry, err := entry.Serialize()
 		if err != nil {
-			// logger.Error("BatchPut: Failed to serialize entry for key", key, ":", err)
+			logger.Error("BatchPut: Failed to serialize entry for key", key, ":", err)
+			// in case of any problem, release the object back into the pool
 			entryPool.Put(entry)
 			continue
 		}

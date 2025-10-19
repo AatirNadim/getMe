@@ -85,10 +85,6 @@ func printMessage(title string, color string, message []any) {
 		return
 	}
 
-	// Write in logfmt format for log aggregation (without colors)
-
-	fmt.Println("\n\n===== writing logs to the dump file ======\n\n")
-
 	fmt.Fprintf(file, "level=%s timeStamp=%s msg=%q\n", title, time.Now().Format(time.RFC3339), fmt.Sprint(message...))
 }
 

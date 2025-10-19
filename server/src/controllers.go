@@ -20,12 +20,14 @@ func GetController(storeInstance *store.Store) http.HandlerFunc {
 			return
 		}
 		value, found, err := storeInstance.Get(key)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("error getting value for key '%s': %v", key, err), http.StatusInternalServerError)
-			return
-		}
+
 		if !found {
 			http.Error(w, fmt.Sprintf("key '%s' not found", key), http.StatusNotFound)
+			return
+		}
+
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error getting value for key '%s': %v", key, err), http.StatusInternalServerError)
 			return
 		}
 
@@ -36,10 +38,6 @@ func GetController(storeInstance *store.Store) http.HandlerFunc {
 
 func PutController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// if r.Method != http.MethodPost {
-		// 	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		// 	return
-		// }
 
 		logger.Debug("Handling PUT request, parsing form data")
 		body, err := io.ReadAll(r.Body)
@@ -81,10 +79,6 @@ func PutController(storeInstance *store.Store) http.HandlerFunc {
 
 func DeleteController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// if r.Method != http.MethodDelete {
-		// 	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-		// 	return
-		// }
 		key := r.URL.Query().Get("key")
 		if key == "" {
 			http.Error(w, "missing key parameter", http.StatusBadRequest)

@@ -4,7 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"getMeMod/server/store/utils"
-	// "getMeMod/server/utils/// logger."
+	"getMeMod/server/utils/logger"
 )
 
 // we are dealing with the segment ids instead of the actual segment locations
@@ -19,7 +19,7 @@ type Entry struct {
 }
 
 func CreateEntry(key []byte, value []byte, timeStamp int64) (*Entry, error) {
-	// logger..Info("Creating entry with key: ", string(key), " and value: ", value)
+	logger.Info("Creating entry with key: ", string(key), " and value: ", value)
 	return &Entry{
 		TimeStamp: timeStamp,
 		KeySize:   uint32(len(key)),
@@ -56,7 +56,7 @@ func (e *Entry) getEntrySize() uint32 {
 }
 
 func (e *Entry) Serialize() ([]byte, error) {
-	// logger..Info("Serializing entry with key: ", string(e.Key), " and value size: ", e.ValueSize)
+	logger.Info("Serializing entry with key: ", string(e.Key), " and value size: ", e.ValueSize)
 
 	bytarr := make([]byte, e.getEntrySize())
 
@@ -88,7 +88,7 @@ func (e *Entry) Serialize() ([]byte, error) {
 
 func deserializeEntry(bytarr []byte) (*Entry, error) {
 
-	// logger..Info("Deserializing entry")
+	logger.Info("Deserializing entry")
 
 	offset := 0
 

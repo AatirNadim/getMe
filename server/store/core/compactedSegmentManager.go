@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 	"getMeMod/server/store/utils/constants"
-	// "getMeMod/server/utils/// logger."
+	"getMeMod/server/utils/logger"
 	"os"
 	"path/filepath"
 )
@@ -53,7 +53,7 @@ func NewCompactedSegmentManager(basePath string) (*CompactedSegmentManager, erro
 
 func (csm *CompactedSegmentManager) populateCompactedSegments(compactedHashTable *HashTable) (*HashTable, error) {
 
-	// logger..Info("Populating compacted segments from base path:", csm.basePath)
+	logger.Info("Populating compacted segments from base path:", csm.basePath)
 
 	for key, hashTableEntry := range compactedHashTable.Entries() {
 
@@ -81,8 +81,6 @@ func (csm *CompactedSegmentManager) populateCompactedSegments(compactedHashTable
 
 // this is supposed to return the segment id and the offset of the appended entry
 func (csm *CompactedSegmentManager) appendEntryToActiveCompactedSegment(entry *Entry) (uint32, error) {
-	// csm.mu.Lock()
-	// defer csm.mu.Unlock()
 
 	if csm.activeSegment == nil || !csm.activeSegment.isSpaceAvailableInCurrentSegment(entry) {
 		if err := csm.createNewSegment(); err != nil {
@@ -101,8 +99,6 @@ func (csm *CompactedSegmentManager) appendEntryToActiveCompactedSegment(entry *E
 }
 
 func (csm *CompactedSegmentManager) createNewSegment() error {
-	// csm.mu.Lock()
-	// defer csm.mu.Unlock()
 	path := filepath.Join(csm.basePath, fmt.Sprintf("segment_%d.log", csm.nextAvailableSegmentId))
 
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
@@ -111,16 +107,7 @@ func (csm *CompactedSegmentManager) createNewSegment() error {
 		return err
 	}
 
-	// logfile, err := os.OpenFile("compactedSegmentManager_log.txt", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0644)
-
-	// if err != nil {
-	// 	return err
-	// }
-
-	// defer logfile.Close()
-
-	// logger..Info("Created new compacted segment with id:", csm.nextAvailableSegmentId, " at path:", path)
-	// fmt.Fprintf(logfile, "Created new compacted segment with id: %d at path: %s\n", csm.nextAvailableSegmentId, path)
+	logger.Info("Created new compacted segment with id:", csm.nextAvailableSegmentId, " at path:", path)
 
 	csm.activeSegment = &Segment{
 		// for the id, use the currently available segment id
@@ -140,8 +127,6 @@ func (csm *CompactedSegmentManager) createNewSegment() error {
 }
 
 func (csm *CompactedSegmentManager) clearManager() {
-	// csm.mu.Lock()
-	// defer csm.mu.Unlock()
 
 	csm.compactedSegmentMap = make(map[uint32]*Segment)
 	csm.nextAvailableSegmentId = 0

@@ -72,13 +72,13 @@ var getCmd = &cobra.Command{
 		}
 		defer resp.Body.Close()
 
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("server returned non-OK status: %s", resp.Status)
-		}
-
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("failed to read response body: %w", err)
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("server returned non-OK status: %s, \nbody: %v", resp.Status, string(body))
 		}
 
 		fmt.Println(string(body))

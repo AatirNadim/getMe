@@ -1,7 +1,7 @@
 package core
 
 import (
-	// "getMeMod/server/utils/// logger."
+	"getMeMod/server/utils/logger"
 	"sync"
 )
 
@@ -23,13 +23,6 @@ func NewHashTable() *HashTable {
 		table: make(map[string]*HashTableEntry),
 	}
 }
-
-// func (ht *HashTable) IsEntryPresentInHashTable(key string) bool {
-// 	ht.mu.RLock()
-// 	defer ht.mu.RUnlock()
-// 	_, exists := ht.Get(key)
-// 	return exists
-// }
 
 func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 	ht.mu.RLock()
@@ -92,7 +85,7 @@ func (ht *HashTable) mergeUtil(table map[string]*HashTableEntry) {
 func (ht *HashTable) BatchUpdate(newEntries map[string]*HashTableEntry) {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
-	// logger..Debug("Batch updating hash table with entries:", newEntries)
+	logger.Debug("Batch updating hash table with entries:", newEntries)
 	ht.mergeUtil(newEntries)
 }
 
@@ -117,7 +110,7 @@ func (ht *HashTable) Size() int {
 func (ht *HashTable) Clear() {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
-	// logger..Info("Clearing all entries from the hash table")
+	logger.Info("Clearing all entries from the hash table")
 	ht.table = make(map[string]*HashTableEntry)
 }
 

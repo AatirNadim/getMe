@@ -31,6 +31,7 @@ func (ac *AtomicCounter) Next() uint32 {
 
 // Reserve reserves n values and returns the first value in the reservation
 // the atomic counter now holds the first value beyond the reserved range
+// This operation is going to be used to reserve segment ids for compaction
 func (ac *AtomicCounter) Reserve(n uint32) uint32 {
   return atomic.AddUint32(&ac.value, n) - n
 }
