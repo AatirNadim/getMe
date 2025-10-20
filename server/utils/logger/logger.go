@@ -73,9 +73,9 @@ func Close() error {
 // core printer - outputs in logfmt format for Loki/Alloy parsing
 func printMessage(title string, color string, message []any) {
 	// Print colored output to stdout for human readability
-	fmt.Fprintf(os.Stdout, "%s%s[%s]%s %s%s%s\n",
-		color, bold, title, reset, color, fmt.Sprint(message...), reset,
-	)
+	// fmt.Fprintf(os.Stdout, "%s%s[%s]%s %s%s%s\n",
+	// 	color, bold, title, reset, color, fmt.Sprint(message...), reset,
+	// )
 
 	// Get the singleton log file
 	file, err := getLogFile()
