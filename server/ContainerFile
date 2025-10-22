@@ -3,19 +3,21 @@ FROM golang:1.23.1-alpine AS builder
 
 WORKDIR /app
 
+ARG OUTDIR=/app/dist
+
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /getMe .
+RUN CGO_ENABLED=0 GOOS=linux go build -o ${OUTDIR}/getMe .
 
 # Stage 2: Create the final lightweight image
 FROM alpine:latest AS final
 
-COPY --from=builder /getMe /getMe
+COPY --from=builder /app/dist/getMe /getMe
 
-# Use a hidden directory in root's home to emulate ~/.getMeStore inside container
-VOLUME /root/.getMeStore
+# build the dir which holds the logs and the sock file
+RUN mkdir -p /tmp/getMeStore
 
-ENTRYPOINT ["/getMe"]
+CMD [ "/getMe" ]

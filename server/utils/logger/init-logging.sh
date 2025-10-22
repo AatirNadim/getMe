@@ -4,6 +4,7 @@
 
 # Define the log directory that the Go application writes to and Alloy reads from.
 LOG_DIR="/tmp/getMeStore/dump"
+LOGGING_COMPOSE_FILE_PATH="./docker-compose.logging.yml"
 
 echo "--- Initializing Logging Stack ---"
 
@@ -16,7 +17,7 @@ mkdir -p "$LOG_DIR"
 # Step 2: Launch the Grafana, Loki, and Alloy services using Docker Compose.
 # '-d' runs the containers in detached mode (in the background).
 echo "Starting Grafana, Loki, and Alloy containers..."
-docker-compose up -d
+docker-compose -f $LOGGING_COMPOSE_FILE_PATH up -d
 
 echo ""
 echo "--- Logging Stack Initialized ---"

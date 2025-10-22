@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   get_me_store:
     build:
@@ -7,7 +8,73 @@ services:
       target: final
     container_name: get_me_store
     volumes:
+      # Volume for persistent store data
       - getMeStoreData:/root/.getMeStore
+      # The Go app writes logs to this shared volume.
+      - log_dump:/tmp/getMeStore/dump
+      # This dir 
+      - /tmp/getMeStore:/tmp/getMeStore
+    networks:
+      - getme-wrapper-net
     restart: unless-stopped
+
+  grafana-loki:
+    image: grafana/loki:3.4.2
+    container_name: grafana-loki
+    command: -config.file=/etc/loki/config.yml
+    volumes:
+      - ./utils/logger/loki:/etc/loki
+      - loki-storage:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - getme-wrapper-net
+    restart: unless-stopped
+
+  grafana-alloy:
+    image: grafana/alloy:v1.11.2
+    container_name: grafana-alloy
+    volumes:
+      - ./utils/logger/alloy/config.alloy:/etc/alloy/config.alloy
+      # Alloy reads logs from the same shared volume.
+      - log_dump:/var/log/getme:ro
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --server.http.listen-addr=0.0.0.0:12345
+    ports:
+      - "12345:12345"
+    depends_on:
+      get_me_store:
+        condition: service_started
+      grafana-loki:
+        condition: service_started
+    networks:
+      - getme-wrapper-net
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+      - ./utils/logger/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - grafana-loki
+    networks:
+      - getme-wrapper-net
+    restart: unless-stopped
+
 volumes:
   getMeStoreData:
+  loki-storage:
+  grafana-storage:
+  # This named volume is the bridge between the app and alloy containers.
+  log_dump:
+
+networks:
+  getme-wrapper-net:
+    driver: bridge
