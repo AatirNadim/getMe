@@ -19,7 +19,7 @@ func main() {
 
 	fmt.Println("Creating the log file in the executable directory")
 
-	logPath := filepath.Join("/tmp", "getMeStore", "dump", "index.log")
+	logPath := filepath.Join("/var", "lib", "getMeStore", "dumpDir", "index.log")
 	if err := logger.Initialize(logPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
 		os.Exit(1)

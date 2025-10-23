@@ -43,6 +43,7 @@ func NewSegmentManager(basePath, compactedBasePath string, centralHashTable *Has
 	}
 
 	if err := os.MkdirAll(basePath, 0755); err != nil {
+		fmt.Println("base path --> ", basePath)
 		return nil, fmt.Errorf("failed to create base directory: %w", err)
 	}
 

@@ -6,10 +6,8 @@ import (
 	"getMeMod/server/store/core"
 	"getMeMod/server/store/utils"
 	"getMeMod/server/store/utils/constants"
-	"getMeMod/utils/logger"
+	"getMeMod/server/utils/logger"
 	"sync"
-
-	// "getMeMod/server/utils/logger"
 	"time"
 )
 

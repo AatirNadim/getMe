@@ -1,23 +1,26 @@
 version: '3.8'
 
 services:
+# Main application service
   get_me_store:
     build:
       context: .
       dockerfile: ContainerFile
       target: final
     container_name: get_me_store
+    user: "${currentUserId}:${currentGroupId}"
     volumes:
       # Volume for persistent store data
-      - getMeStoreData:/root/.getMeStore
-      # The Go app writes logs to this shared volume.
-      - log_dump:/tmp/getMeStore/dump
-      # This dir 
-      - /tmp/getMeStore:/tmp/getMeStore
+      - get-me-store-data:/var/lib/getMeStore/dataDir
+      # Bind mount the log directory from the host into the container.
+      - log-dump:/var/lib/getMeStore/dumpDir
+      # Bind mount the socket directory from the host into the container.
+      - /var/lib/getMeStore/sockDir:/var/lib/getMeStore/sockDir
     networks:
       - getme-wrapper-net
     restart: unless-stopped
 
+# loki will serve as the log storage backend
   grafana-loki:
     image: grafana/loki:3.4.2
     container_name: grafana-loki
@@ -31,13 +34,14 @@ services:
       - getme-wrapper-net
     restart: unless-stopped
 
+# grafana-alloy will collect and forward logs to loki
   grafana-alloy:
     image: grafana/alloy:v1.11.2
     container_name: grafana-alloy
     volumes:
       - ./utils/logger/alloy/config.alloy:/etc/alloy/config.alloy
-      # Alloy reads logs from the same shared volume.
-      - log_dump:/var/log/getme:ro
+      # Bind mount to the host's log directory to read logs.
+      - log-dump:/var/log/getme:ro
     command:
       - run
       - /etc/alloy/config.alloy
@@ -53,6 +57,7 @@ services:
       - getme-wrapper-net
     restart: unless-stopped
 
+# Grafana for log visualization
   grafana:
     image: grafana/grafana:11.0.0
     container_name: grafana
@@ -69,11 +74,10 @@ services:
     restart: unless-stopped
 
 volumes:
-  getMeStoreData:
+  get-me-store-data:
+  log-dump:
   loki-storage:
   grafana-storage:
-  # This named volume is the bridge between the app and alloy containers.
-  log_dump:
 
 networks:
   getme-wrapper-net:

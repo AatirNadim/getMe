@@ -16,7 +16,7 @@ class GetMeClient:
         load_dotenv()
         self.unix_session = requests_unixsocket.Session()
         self.sock_path = quote_plus(
-            os.getenv("GETME_SOCK_PATH", "/tmp/getMeStore/getMe.sock")
+            os.getenv("GETME_SOCK_PATH", "/var/lib/getMeStore/sockDir/getMe.sock")
         )
 
     def put(self, key, value):

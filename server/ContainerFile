@@ -10,14 +10,15 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o ${OUTDIR}/getMe .
+RUN CGO_ENABLED=0 GOOS=linux go build -o ./dist/getMe .
+RUN go build -o /app/dist/getMe .
 
 # Stage 2: Create the final lightweight image
 FROM alpine:latest AS final
 
 COPY --from=builder /app/dist/getMe /getMe
 
-# build the dir which holds the logs and the sock file
-RUN mkdir -p /tmp/getMeStore
+# build the dirs which holds the logs and socket file
+# RUN mkdir -p /var/lib/getMeStore/sockDir
 
 CMD [ "/getMe" ]

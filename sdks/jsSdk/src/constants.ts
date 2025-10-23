@@ -1,5 +1,5 @@
 const baseUrl = 'http://unix';
 
-const defaultSocketPath = '/tmp/getMeStore/getMe.sock';
+const defaultSocketPath = '/var/lib/getMeStore/sockDir/getMe.sock';
 
 export { baseUrl, defaultSocketPath };

@@ -15,8 +15,8 @@ func createSocket(socketPath string) (net.Listener, error) {
 
 	logger.Info("Removed existing socket file at:", socketPath)
 
-	if err := os.MkdirAll("/tmp/getMeStore", 0755); err != nil {
-		return nil, fmt.Errorf("failed to create directory for socket at /tmp/getMeStore: %w", err)
+	if err := os.MkdirAll("/tmp/getMeStore/sockDir", 0755); err != nil {
+		return nil, fmt.Errorf("failed to create directory for socket at /tmp/getMeStore/sockDir: %w", err)
 	}
 	logger.Info("directory created or already present for socket at:", socketPath)
 
