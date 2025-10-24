@@ -3,22 +3,33 @@ FROM golang:1.23.1-alpine AS builder
 
 WORKDIR /app
 
-ARG OUTDIR=/app/dist
-
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o ./dist/getMe .
-RUN go build -o /app/dist/getMe .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/dist/getMe .
 
-# Stage 2: Create the final lightweight image
 FROM alpine:latest AS final
 
-COPY --from=builder /app/dist/getMe /getMe
+ARG UID=1000
+ARG GID=1000
 
-# build the dirs which holds the logs and socket file
-# RUN mkdir -p /tmp/getMeStore/sockDir
+# --- Running as root ---
+RUN mkdir -p /var/lib/getMeStore/dataDir
+
+RUN addgroup -g ${GID} appgroup && \
+    adduser -u ${UID} -G appgroup -D appuser
+
+# --- Making the added user the owner of the data directory ---
+RUN chown -R appuser:appgroup /var/lib/getMeStore
+
+USER appuser
+
+# --- Now running as appuser ---
+RUN mkdir -p /tmp/getMeStore/dumpDir && \
+    mkdir -p /tmp/getMeStore/sockDir
+
+COPY --from=builder /app/dist/getMe /getMe
 
 CMD [ "/getMe" ]

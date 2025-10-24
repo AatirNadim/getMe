@@ -4,21 +4,19 @@
 # containerized getMe application stack using Docker Compose.
 #
 # It performs the following steps:
-# 1. Defines the host paths for the log and socket directories.
-# 2. Creates these directories on the host machine to ensure they are
+# 1. Defines the host paths for the socket directory.
+# 2. Creates this directory on the host machine to ensure it is
 #    available for bind mounting into the containers.
 # 3. Runs `docker compose up` to build the images and start all services,
 #    including the getMe server and the logging infrastructure.
 
 # Define host directories that will be mounted into containers.
-LOG_DIR="/tmp/getMeStore/dumpDir"
 SOCK_DIR="/tmp/getMeStore/sockDir"
 
 echo -e "\n=== Initializing Containerized Server Environment ===\n"
 
 # --- 1. Prepare Host Directories ---
 echo "--> Ensuring host directories for bind mounts exist..."
-mkdir -p "$LOG_DIR"
 mkdir -p "$SOCK_DIR"
 echo "Host directories are ready."
 

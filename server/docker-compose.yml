@@ -5,14 +5,19 @@ services:
       context: .
       dockerfile: ContainerFile
       target: final
+      # Pass the host's UID/GID to the ContainerFile build process.
+      args:
+        UID: "${currentUserId}"
+        GID: "${currentGroupId}"
     container_name: get_me_store
-    user: "${currentUserId}:${currentGroupId}"
+    # The user is now set inside the ContainerFile, so this is no longer needed.
+    # user: "${currentUserId}:${currentGroupId}"
     volumes:
-      # Volume for persistent store data
+      # Persistent data
       - get-me-store-data:/var/lib/getMeStore/dataDir
-      # Bind mount the log directory from the host into the container.
+      # Logs for Alloy to consume
       - log-dump:/tmp/getMeStore/dumpDir
-      # Bind mount the socket directory from the host into the container.
+      # Socket for host CLI to connect
       - /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir
     networks:
       - getme-wrapper-net
