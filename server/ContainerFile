@@ -19,6 +19,6 @@ FROM alpine:latest AS final
 COPY --from=builder /app/dist/getMe /getMe
 
 # build the dirs which holds the logs and socket file
-# RUN mkdir -p /var/lib/getMeStore/sockDir
+# RUN mkdir -p /tmp/getMeStore/sockDir
 
 CMD [ "/getMe" ]

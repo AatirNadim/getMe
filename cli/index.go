@@ -21,7 +21,6 @@ var rootCmd = &cobra.Command{
 	Long: `getMe is a CLI application that provides a persistent key-value store
 backed by an append-only log on your local disk.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		// Determine default store path in user's home directory: ~/.getMeStore
 		httpClient, err := core.CreateHttpClient(utils.SocketPath)
 
 		logger.Info("HTTP client created with socket path:", utils.SocketPath)

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
 # Main application service
   get_me_store:
@@ -13,9 +11,9 @@ services:
       # Volume for persistent store data
       - get-me-store-data:/var/lib/getMeStore/dataDir
       # Bind mount the log directory from the host into the container.
-      - log-dump:/var/lib/getMeStore/dumpDir
+      - log-dump:/tmp/getMeStore/dumpDir
       # Bind mount the socket directory from the host into the container.
-      - /var/lib/getMeStore/sockDir:/var/lib/getMeStore/sockDir
+      - /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir
     networks:
       - getme-wrapper-net
     restart: unless-stopped

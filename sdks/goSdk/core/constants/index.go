@@ -1,6 +1,6 @@
 package constants
 
 const (
-	SocketPath = "/var/lib/getMeStore/sockDir/getMe.sock"
+	SocketPath = "/tmp/getMeStore/sockDir/getMe.sock"
 	BaseUrl    = "http://unix"
 )

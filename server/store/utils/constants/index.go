@@ -1,7 +1,8 @@
 package constants
 
 const (
-	SocketPath                   = "/var/lib/getMeStore/sockDir/getMe.sock"
+	SocketPath                   = "/tmp/getMeStore/sockDir/getMe.sock"
+	LogsDirName                  = "/tmp/getMeStore/dumpDir/index.log"
 	StoreDirName                 = "/var/lib/getMeStore/dataDir/segments"
 	CompactedStoreDirName        = "/var/lib/getMeStore/dataDir/compactedSegments"
 	DefaultMaxSegmentSize        = 100 * 1024 // 100KB

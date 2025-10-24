@@ -15,5 +15,5 @@ type PutRequestBody struct {
 }
 
 const (
-	SocketPath = "/var/lib/getMeStore/sockDir/getMe.sock"
+	SocketPath = "/tmp/getMeStore/sockDir/getMe.sock"
 )

@@ -1,61 +1,54 @@
 #!/bin/bash
 
-
-# This script sets up and runs the getMe server in a development environment.
+# This script sets up and runs the getMe server in a local development environment.
 # It performs the following steps:
-# 1. Builds the Go project and outputs the binary to the 'dist' directory.
-# 2. Sets up background services (like logging) using Docker Compose.
-# 3. Runs the main getMe server application in the foreground.
-#
-# Basically, the project is built first.
-# To start the logging stack, the log directory is created if it doesn't exist,
-# and Docker Compose is used to start the logging services in the background. The creation of the log 
-# directory beforehand is necessary to ensure that the containers have a valid dir mounted.
-# Finally, the getMe server is started, and its output is shown in the terminal.
+# 1. Builds the Go project. If the build fails, it exits.
+# 2. Runs the data directory setup script with sudo to create persistent storage in /var/lib.
+# 3. Runs scripts to create temporary log and socket directories in /tmp.
+# 4. Starts the background logging services (Loki, Grafana, Alloy) using Docker Compose.
+# 5. Runs the main getMe server application in the foreground.
 
-
-# Define the vars
+# --- Configuration ---
 OUT_DIR="dist"
+SCRIPTS_BASE_PATH="./scripts"
 LOGGING_COMPOSE_FILE_PATH="./utils/logger/docker-compose.logging.yml"
-# Define the log directory that the Go application writes to and Alloy reads from.
-LOG_DIR="/tmp/getMeStore/dump"
+DATA_DIR_SCRIPT="$SCRIPTS_BASE_PATH/init-data-dir.sh"
+LOGS_DIR_SCRIPT="$SCRIPTS_BASE_PATH/init-logs-dir.sh"
+SOCK_DIR_SCRIPT="$SCRIPTS_BASE_PATH/init-sock-dir.sh"
 
-# This script initializes the server environment.
-echo -e "\n=== Initializing Server Environment ===\n"
+echo -e "\n=== Initializing Local Server Environment ===\n"
 
-
-# --------------------------- 1. Build the Go Project ------------------------------
-echo -e "\n--- Building the getMe server project ---\n"
-
-echo "Creating output directory: $OUT_DIR"
-mkdir -p $OUT_DIR
-
-echo "Building the Go project..."
-go build -o $OUT_DIR/getMeMod .
+# --- 1. Build the Go Project ---
+echo "--> Building the Go project..."
+mkdir -p "$OUT_DIR"
+if ! go build -o "$OUT_DIR/getMeMod" .; then
+    echo -e "\n[ERROR] Go build failed. Please check the compilation errors above."
+    exit 1
+fi
 echo "Build complete."
 
+# --- 2. Initialize Persistent Data Directory ---
+echo -e "\n--> Setting up persistent data directory in /var/lib..."
+# This requires sudo to create the directory and set permissions.
+sudo "$DATA_DIR_SCRIPT"
+echo "Data directory is ready."
 
+# --- 3. Initialize Temporary Log and Socket Directories ---
+echo -e "\n--> Setting up temporary directories in /tmp..."
+"$LOGS_DIR_SCRIPT"
+"$SOCK_DIR_SCRIPT"
+echo "Log and socket directories are ready."
 
-# --------------------------- 2. Set up Background Services (Logging) ------------------------------
-echo -e "\n--- Setting up the logging stack ---\n"
+# --- 4. Set up Background Logging Services ---
+echo -e "\n--> Starting the logging stack via Docker Compose..."
+# The docker-compose command is run with '-d' to start containers in the background.
+docker compose -f "$LOGGING_COMPOSE_FILE_PATH" up -d
+echo "Logging stack is running in the background."
 
-echo "Ensuring log directory exists: $LOG_DIR"
-mkdir -p "$LOG_DIR"
-
-# The docker-compose command is run first with '-d' to start the containers
-# in the background, allowing the script to proceed immediately.
-docker compose -f $LOGGING_COMPOSE_FILE_PATH up -d
-
-echo -e "\n--- Logging stack initialized! ---\n"
-
-
-
-# --------------------------- 3. Run the Main Application ------------------------------
-echo -e "\n--- Spinning up the getMe server ---\n"
-
-# This is the last command. It runs the server in the foreground,
-# so you will see its log output directly in this terminal.
+# --- 5. Run the Main Application ---
+echo -e "\n--> Starting the getMe server..."
+# This is the last command. It runs the server in the foreground.
 # The script will end when you stop the server (e.g., with Ctrl+C).
-./$OUT_DIR/getMeMod
+./"$OUT_DIR/getMeMod"
 
 echo -e "\n--- getMe server has stopped. ---"

@@ -1,3 +1,3 @@
 class Constants:
-    GETME_SOCKET_PATH = "/var/lib/getMeStore/sockDir/getMe.sock"
+    GETME_SOCKET_PATH = "/tmp/getMeStore/sockDir/getMe.sock"
     BaseUrl = "http+unix://"

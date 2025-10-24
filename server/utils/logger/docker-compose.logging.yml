@@ -19,7 +19,7 @@ services:
     volumes:
       - ./alloy/config.alloy:/etc/alloy/config.alloy
        # Mount the log directory from host to container
-      - /tmp/getMeStore/dump:/var/log/getme:ro
+      - /tmp/getMeStore/dumpDir:/var/log/getme:ro
     command:
       - run
       - /etc/alloy/config.alloy

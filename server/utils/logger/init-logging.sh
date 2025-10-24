@@ -3,7 +3,7 @@
 # This script prepares the host environment and launches the Grafana logging stack.
 
 # Define the log directory that the Go application writes to and Alloy reads from.
-LOG_DIR="/tmp/getMeStore/dump"
+LOG_DIR="/tmp/getMeStore/dumpDir"
 LOGGING_COMPOSE_FILE_PATH="./docker-compose.logging.yml"
 
 echo "--- Initializing Logging Stack ---"

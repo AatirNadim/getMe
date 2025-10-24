@@ -11,7 +11,7 @@
 #    including the getMe server and the logging infrastructure.
 
 # Define host directories that will be mounted into containers.
-LOG_DIR="/tmp/getMeStore/dump"
+LOG_DIR="/tmp/getMeStore/dumpDir"
 SOCK_DIR="/tmp/getMeStore/sockDir"
 
 echo -e "\n=== Initializing Containerized Server Environment ===\n"
