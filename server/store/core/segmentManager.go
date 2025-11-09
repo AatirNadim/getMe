@@ -130,8 +130,6 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 	logger.Info("current segment map : ", sm.segmentMap)
 
 	logger.Info("current hash table : ", centralHashTable.Entries())
-	// if the latest entry is a deletion entry, simply remove it from the hash table
-	centralHashTable.DeleteDeletionEntries()
 
 	logger.Info("loaded segments from the disk")
 	// increment the nextSegmentId to be one more than the max id found
@@ -401,6 +399,7 @@ func (sm *SegmentManager) getScopedSegmentMap(segments []*Segment) map[uint32]*S
 // perform compaction and returns the compacted hash table to be merged with the central hash table
 func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSegmentId uint32) {
 
+	// this ensures that only one compaction runs at a time --> very important!!
 	if !sm.isCompacting.CompareAndSwap(false, true) {
 		logger.Info("Compaction is already in progress, skipping this trigger.")
 		return
@@ -414,11 +413,13 @@ func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSe
 
 	logger.Debug("Starting compaction for segments, creating a channel")
 
+	// creating a new scoped hash table based on the segments to be compacted
+
 	resultChan := make(chan *HashTable, len(segments))
 
 	var wg sync.WaitGroup
 
-	// read all the entries in these segmnents and create a new hash table, which contains latest and unique entries in the scope of these segments
+	// read all the entries in these segments and create a new hash table, which contains latest and unique entries in the scope of these segments
 	for _, segment := range segments {
 		wg.Add(1)
 		segment.readAllEntriesAsync(&wg, resultChan)
@@ -446,6 +447,7 @@ func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSe
 
 	sm.compactedSegmentManager.originalSegmentMap = sm.getScopedSegmentMap(segments)
 
+	// populate the compacted segments in the compacted segment manager and retrieve a hashtable which references the new locations of the entries (in the compacted segments)
 	compactedHashTable, err := sm.compactedSegmentManager.populateCompactedSegments(updatedHashTable)
 
 	if err != nil {
@@ -476,6 +478,7 @@ func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSe
 	// end of critical section
 	sm.mu.Unlock()
 
+	// send the compacted hashtable and the old segment ids to be deleted to the main segment manager via the compaction result channel
 	sm.compactionResultChannel <- &CompactionResult{
 		CompactedHashTable: compactedHashTable,
 		OldSegmentIds: func() []uint32 {

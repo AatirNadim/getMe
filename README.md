@@ -29,14 +29,27 @@ The storage engine is built on a few key principles:
 
 ### Running the Server
 
-1.  Navigate to the `server` directory:
+The repository ships with helper scripts that bootstrap everything you need for a local or containerised deployment of the store.
+
+#### Option A: Local binaries + logging stack
+
+1.  Switch to the server module and run the local init script:
     ```bash
     cd server
+    ./init-server-local.sh
     ```
-2.  Run the server:
+    This script builds the Go binary into `server/dist/`, prepares data/log/socket directories, and starts the Loki + Alloy + Grafana logging stack via Docker Compose before launching the server in the foreground.
+
+#### Option B: Full Docker Compose stack
+
+1.  From the same `server` directory run:
     ```bash
-    go run .
+    cd server
+    ./init-server-docker.sh
     ```
+    The script ensures host bind-mount directories exist, exports your UID/GID for correct ownership, and then invokes `docker compose up --build` to start the containerised server alongside its logging dependencies.
+
+> Prefer Option A when iterating on Go code locally; use Option B to validate the container stack or share an environment with teammates.
 
 ### Using the CLI
 
