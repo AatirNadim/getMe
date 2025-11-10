@@ -5,42 +5,59 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 // ANSI color codes
 const (
-	reset = "\033[0m"
-	bold  = "\033[1m"
-
 	offwhite = "\033[37m"
 
 	red    = "\033[31m"
 	yellow = "\033[33m"
-	blue   = "\033[34m"
 	green  = "\033[32m"
 	cyan   = "\033[36m"
-	grey   = "\033[90m"
 )
 
 var (
-	logFile     *os.File
-	logFilePath string
-	logFileOnce sync.Once
-	logFileErr  error
+	logFile         *os.File
+	logFilePath     string
+	logFileOnce     sync.Once
+	logFileErr      error
+	loggingDisabled atomic.Bool
 )
 
 func Initialize(logPath string) error {
 	logFilePath = logPath
+	if loggingDisabled.Load() {
+		fmt.Println("logging is disabled")
+		return nil
+	}
 	// Force initialization
 	_, err := getLogFile()
 	return err
 }
 
+func Disable() {
+	loggingDisabled.Store(true)
+}
+
+func Enable() {
+	loggingDisabled.Store(false)
+}
+
 // getLogFile returns the singleton log file instance
 func getLogFile() (*os.File, error) {
+	if loggingDisabled.Load() {
+		return nil, nil
+	}
 	logFileOnce.Do(func() {
+		if loggingDisabled.Load() {
+			fmt.Println("logging is disabled inside logfileonce")
+			return
+		}
 		if logFilePath == "" {
+			fmt.Println("log file path is empty")
 			logFileErr = fmt.Errorf("logger not initialized: call logger.Initialize() first")
 			return
 		}
@@ -59,6 +76,9 @@ func getLogFile() (*os.File, error) {
 			logFileErr = fmt.Errorf("failed to open log file: %w", logFileErr)
 		}
 	})
+	if loggingDisabled.Load() {
+		return nil, nil
+	}
 	return logFile, logFileErr
 }
 
@@ -72,6 +92,9 @@ func Close() error {
 
 // core printer - outputs in logfmt format for Loki/Alloy parsing
 func printMessage(title string, color string, message []any) {
+	if loggingDisabled.Load() {
+		return
+	}
 	// Print colored output to stdout for human readability
 	// fmt.Fprintf(os.Stdout, "%s%s[%s]%s %s%s%s\n",
 	// 	color, bold, title, reset, color, fmt.Sprint(message...), reset,
@@ -82,6 +105,11 @@ func printMessage(title string, color string, message []any) {
 	if err != nil {
 		// If we can't open the log file, write error to stderr
 		fmt.Fprintf(os.Stderr, "level=ERROR msg=%q\n", fmt.Sprintf("Logger error: %v", err))
+		return
+	}
+
+	if file == nil {
+		fmt.Println("Logging is disabled, not writing to log file")
 		return
 	}
 

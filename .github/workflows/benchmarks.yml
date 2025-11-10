@@ -1,0 +1,48 @@
+name: Benchmark
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+
+      - name: Run benchmarks
+        id: bench
+        run: |
+          RESULT_DIR=benchmark-results
+          mkdir -p "$RESULT_DIR"
+          TIMESTAMP=$(date -u +"%Y%m%dT%H%M%SZ")
+          BENCH_BASENAME="benchmark-${GITHUB_SHA}-${TIMESTAMP}"
+          BENCH_TXT="$RESULT_DIR/${BENCH_BASENAME}.txt"
+          BENCH_JSON="$RESULT_DIR/${BENCH_BASENAME}.json"
+          go test ./benchmarking -run=^$ -bench=. -benchmem | tee "$BENCH_TXT"
+          go tool test2json -p getMeMod/benchmarking < "$BENCH_TXT" > "$BENCH_JSON"
+          echo "bench_txt=$BENCH_TXT" >> "$GITHUB_OUTPUT"
+          echo "bench_json=$BENCH_JSON" >> "$GITHUB_OUTPUT"
+
+      - name: Publish benchmark results
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: go-benchmarks
+          tool: "go"
+          output-file-path: ${{ steps.bench.outputs.bench_txt }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+
+      - name: Upload JSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-json
+          path: ${{ steps.bench.outputs.bench_json }}

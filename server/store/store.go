@@ -236,10 +236,10 @@ func (s *Store) BatchPut(batch map[string]string) error {
 	flushAndReset := func() error {
 		// logger.Debug("flushAndReset called with buffer size:", len(writeBuffer), "and", len(chunkEntries), "entries")
 
-		logger.Debug("\n\n ---- printing the current state of chunkentries --- \n\n")
-		for _, itr := range chunkEntries {
-			fmt.Printf("itr --> %v\n", itr)
-		}
+		// logger.Debug("\n\n ---- printing the current state of chunkentries --- \n\n")
+		// for _, itr := range chunkEntries {
+		// 	fmt.Printf("itr --> %v\n", itr)
+		// }
 
 		if writeBuffer.Len() == 0 {
 			return nil
@@ -266,11 +266,11 @@ func (s *Store) BatchPut(batch map[string]string) error {
 			indexEntry.TimeStamp = originalEntry.TimeStamp
 			indexEntry.ValueSize = originalEntry.ValueSize
 			keyStr := s.convertBytesToString(originalEntry.Key)
-			logger.Debug("store: 264 : original entry --> ", keyStr, " with index entry --> ", indexEntry)
+			// logger.Debug("store: 264 : original entry --> ", keyStr, " with index entry --> ", indexEntry)
 			newIndexPointers[keyStr] = indexEntry
 		}
 
-		logger.Debug("batchput: updating hashtable with the latest index pointers, --> ", newIndexPointers)
+		// logger.Debug("batchput: updating hashtable with the latest index pointers, --> ", newIndexPointers)
 
 		s.hashTable.BatchUpdate(newIndexPointers)
 

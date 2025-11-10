@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"getMeMod/server/src"
 	"getMeMod/server/store"
 	"math/rand"
 	"os"
@@ -21,9 +22,16 @@ func setupStore(b *testing.B) (*store.Store, func()) {
 
 	mainPath := filepath.Join(baseDir, "main")
 	compactedPath := filepath.Join(baseDir, "compacted")
+	loggingDisabled := true
 
 	// Initialize the store
-	kvStore := store.NewStore(mainPath, compactedPath)
+
+	kvStore, err := src.InitializeStore(mainPath, compactedPath, &loggingDisabled)
+
+	if err != nil {
+		b.Fatalf("Failed to initialize store: %v", err)
+	}
+
 	// fmt.Println("Store has been setup")
 	// fmt.Println("Store main path:", mainPath)
 	// fmt.Println("Store compacted path:", compactedPath)

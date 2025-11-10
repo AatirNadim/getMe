@@ -138,7 +138,7 @@ var putCmd = &cobra.Command{
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("server returned non-OK status: %s", resp.Status)
+			fmt.Println("server returned non-OK status: ", resp.Status)
 		}
 
 		body, err := io.ReadAll(resp.Body)
@@ -189,14 +189,16 @@ var deleteCmd = &cobra.Command{
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("server returned non-OK status: %s", resp.Status)
+			fmt.Println("server returned non-OK status:", resp.Status)
 		}
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
+			// fmt.Println("failed to read response body:", err)
 			return fmt.Errorf("failed to read response body: %w", err)
 		}
 
+		// fmt.Println("printing the response body:")
 		fmt.Println(string(body))
 
 		return nil
@@ -233,7 +235,7 @@ var clearCmd = &cobra.Command{
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("server returned non-OK status: %s", resp.Status)
+			fmt.Println("server returned non-OK status:", resp.Status)
 		}
 
 		body, err := io.ReadAll(resp.Body)
@@ -301,7 +303,7 @@ var batchPutCmd = &cobra.Command{
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("server returned non-OK status: %s", resp.Status)
+			fmt.Println("server returned non-OK status:", resp.Status)
 		}
 
 		body, err := io.ReadAll(resp.Body)
