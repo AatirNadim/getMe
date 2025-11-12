@@ -2,10 +2,11 @@ package core
 
 import (
 	"fmt"
-	"getMeMod/server/store/utils/constants"
-	"getMeMod/server/utils/logger"
 	"os"
 	"path/filepath"
+
+	"github.com/AatirNadim/getMe/server/store/utils/constants"
+	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
 type CompactionResult struct {

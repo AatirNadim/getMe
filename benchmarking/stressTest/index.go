@@ -1,14 +1,16 @@
-package stressTest
+package main
 
 import (
 	"fmt"
-	"getMeMod/server/store"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
 	"testing"
+
+	"github.com/AatirNadim/getMe/server/src"
+	"github.com/AatirNadim/getMe/server/store"
 )
 
 // setupStore creates a new store in a temporary directory for isolated testing.
@@ -21,9 +23,16 @@ func setupStore(b *testing.B) (*store.Store, func()) {
 
 	mainPath := filepath.Join(baseDir, "main")
 	compactedPath := filepath.Join(baseDir, "compacted")
+	loggingDisabled := true
 
 	// Initialize the store
-	kvStore := store.NewStore(mainPath, compactedPath)
+
+	kvStore, err := src.InitializeStore(mainPath, compactedPath, &loggingDisabled)
+
+	if err != nil {
+		b.Fatalf("Failed to initialize store: %v", err)
+	}
+
 	// fmt.Println("Store has been setup")
 	// fmt.Println("Store main path:", mainPath)
 	// fmt.Println("Store compacted path:", compactedPath)
@@ -463,8 +472,8 @@ func BenchmarkReadWriteMixed2(b *testing.B) {
 	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		for pb.Next() {
-			// 90% reads, 10% writes
-			if rand.Intn(10) < 9 {
+			// 80% reads, 20% writes
+			if rand.Intn(10) < 8 {
 				// Perform a read
 				key := keys[rand.Intn(numInitialKeys)]
 				_, _, _ = kv.Get(key)

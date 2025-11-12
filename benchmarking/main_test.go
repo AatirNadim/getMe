@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
-	"getMeMod/server/src"
-	"getMeMod/server/store"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
 	"sync"
 	"testing"
+
+	"github.com/AatirNadim/getMe/server/src"
+	"github.com/AatirNadim/getMe/server/store"
 )
 
 // setupStore creates a new store in a temporary directory for isolated testing.
@@ -31,10 +32,6 @@ func setupStore(b *testing.B) (*store.Store, func()) {
 	if err != nil {
 		b.Fatalf("Failed to initialize store: %v", err)
 	}
-
-	// fmt.Println("Store has been setup")
-	// fmt.Println("Store main path:", mainPath)
-	// fmt.Println("Store compacted path:", compactedPath)
 
 	// Return the store and a cleanup function to be called deferred
 	return kvStore, func() {

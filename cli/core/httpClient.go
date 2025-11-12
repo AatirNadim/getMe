@@ -2,9 +2,10 @@ package core
 
 import (
 	"context"
-	"getMeMod/utils/logger"
 	"net"
 	"net/http"
+
+	"github.com/AatirNadim/getMe/utils/logger"
 )
 
 func CreateHttpClient(socketPath string) (*http.Client, error) {
@@ -19,4 +20,3 @@ func CreateHttpClient(socketPath string) (*http.Client, error) {
 	}
 	return httpClient, nil
 }
-

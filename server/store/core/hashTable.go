@@ -1,8 +1,9 @@
 package core
 
 import (
-	"getMeMod/server/utils/logger"
 	"sync"
+
+	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
 type HashTableEntry struct {

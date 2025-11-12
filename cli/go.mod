@@ -1,4 +1,4 @@
-module getMeMod/cli
+module github.com/AatirNadim/getMe/cli
 
 go 1.23.1
 

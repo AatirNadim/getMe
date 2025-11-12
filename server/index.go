@@ -3,8 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"getMeMod/server/src"
-	"getMeMod/server/store/utils/constants"
+
+	"github.com/AatirNadim/getMe/server/src"
+	"github.com/AatirNadim/getMe/server/store/utils/constants"
 )
 
 func main() {

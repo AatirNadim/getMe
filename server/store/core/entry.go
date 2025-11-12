@@ -3,8 +3,9 @@ package core
 import (
 	"encoding/binary"
 	"fmt"
-	"getMeMod/server/store/utils"
-	"getMeMod/server/utils/logger"
+
+	"github.com/AatirNadim/getMe/server/store/utils"
+	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
 // we are dealing with the segment ids instead of the actual segment locations

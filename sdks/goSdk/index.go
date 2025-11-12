@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"getMeClientForGo/core"
-	"getMeClientForGo/core/constants"
 	"io"
 	"net/http"
 	"os"
 
+	"github.com/AatirNadim/getMe/sdks/goSdk/core"
+	"github.com/AatirNadim/getMe/sdks/goSdk/core/constants"
 	"github.com/joho/godotenv"
 )
 

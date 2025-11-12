@@ -8,7 +8,8 @@ import (
 	"sync"
 	"testing"
 
-	"getMeMod/server/store"
+	"github.com/AatirNadim/getMe/server/src"
+	"github.com/AatirNadim/getMe/server/store"
 )
 
 // setupStore creates a new store in a temporary directory for isolated testing.
@@ -21,9 +22,15 @@ func setupStore(b *testing.B) (*store.Store, func()) {
 
 	mainPath := filepath.Join(baseDir, "main")
 	compactedPath := filepath.Join(baseDir, "compacted")
+	loggingDisabled := true
 
 	// Initialize the store
-	kvStore := store.NewStore(mainPath, compactedPath)
+
+	kvStore, err := src.InitializeStore(mainPath, compactedPath, &loggingDisabled)
+
+	if err != nil {
+		b.Fatalf("Failed to initialize store: %v", err)
+	}
 
 	// Return the store and a cleanup function to be called deferred
 	return kvStore, func() {

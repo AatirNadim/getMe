@@ -1,4 +1,4 @@
-module getMeClientForGo
+module github.com/AatirNadim/getMe/sdks/goSdk
 
 go 1.23.1
 

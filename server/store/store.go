@@ -3,12 +3,13 @@ package store
 import (
 	"bytes"
 	"fmt"
-	"getMeMod/server/store/core"
-	"getMeMod/server/store/utils"
-	"getMeMod/server/store/utils/constants"
-	"getMeMod/server/utils/logger"
+
 	"sync"
 	"time"
+	"github.com/AatirNadim/getMe/server/store/core"
+	"github.com/AatirNadim/getMe/server/store/utils"
+	"github.com/AatirNadim/getMe/server/store/utils/constants"
+	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
 // Pools for reusing byte buffers to reduce allocations for keys and values.

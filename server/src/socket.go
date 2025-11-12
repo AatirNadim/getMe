@@ -2,7 +2,7 @@ package src
 
 import (
 	"fmt"
-	// "getMeMod/server/utils/logger"
+	// "github.com/AatirNadim/getMe/server/utils/logger"
 	"net"
 	"os"
 )

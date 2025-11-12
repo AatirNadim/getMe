@@ -3,11 +3,12 @@ package src
 import (
 	"encoding/json"
 	"fmt"
-	"getMeMod/server/store"
-	"getMeMod/server/utils"
-	"getMeMod/server/utils/logger"
 	"io"
 	"net/http"
+
+	"github.com/AatirNadim/getMe/server/store"
+	"github.com/AatirNadim/getMe/server/utils"
+	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
 type Controllers struct{}

@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"getMeMod/cli/core"
-	"getMeMod/cli/utils"
-	"getMeMod/utils/logger"
 	"io"
 	"net/http"
 	"os"
+
+	"github.com/AatirNadim/getMe/cli/core"
+	"github.com/AatirNadim/getMe/cli/utils"
+	"github.com/AatirNadim/getMe/utils/logger"
 
 	"github.com/spf13/cobra"
 )

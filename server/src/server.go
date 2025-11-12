@@ -2,11 +2,12 @@ package src
 
 import (
 	"fmt"
-	"getMeMod/server/store"
-	"getMeMod/server/store/utils/constants"
-	"getMeMod/server/utils/logger"
 	"net/http"
 	"os"
+
+	"github.com/AatirNadim/getMe/server/store"
+	"github.com/AatirNadim/getMe/server/store/utils/constants"
+	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
 func StartServer(socketPath, storePath, compactedStorePath string, loggingDisabled *bool) error {

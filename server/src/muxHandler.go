@@ -2,9 +2,10 @@ package src
 
 import (
 	"fmt"
-	"getMeMod/server/store"
-	"getMeMod/server/utils"
 	"net/http"
+
+	"github.com/AatirNadim/getMe/server/store"
+	"github.com/AatirNadim/getMe/server/utils"
 )
 
 func muxHandler(storeInstance *store.Store) *http.ServeMux {

@@ -2,13 +2,14 @@ package core
 
 import (
 	"fmt"
-	"getMeMod/server/store/utils"
-	"getMeMod/server/store/utils/constants"
-	"getMeMod/server/utils/logger"
 	"os"
 	"path/filepath"
 	"sync"
 	"sync/atomic"
+
+	"github.com/AatirNadim/getMe/server/store/utils"
+	"github.com/AatirNadim/getMe/server/store/utils/constants"
+	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
 // FlushResult holds the result of a buffer flush to a segment.
