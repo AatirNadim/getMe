@@ -94,8 +94,6 @@ func BenchmarkGet_Correctness(b *testing.B) {
 		}
 	})
 
-	fmt.Println("coming here after benchmark")
-
 	if !noFalseFlag {
 		fmt.Println("Data correctness check failed during Get benchmark")
 	}
@@ -156,7 +154,6 @@ func BenchmarkReadWriteMixed_Correctness(b *testing.B) {
 		}
 	})
 
-	fmt.Println("coming here after benchmark")
 
 	if !noFalseFlag {
 		fmt.Println("Data correctness check failed during Read/Write mixed benchmark")

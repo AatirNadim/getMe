@@ -6,8 +6,12 @@ on:
       - main
 
 jobs:
-  run-benchmarks:
+  stress-benchmarks:
+    name: Stress Benchmark Suite
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: benchmarking
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,31 +22,75 @@ jobs:
           go-version: "1.23"
           cache: true
 
-      - name: Run benchmarks
-        id: bench
+      - name: Run stress benchmarks
+        id: stress
         run: |
-          RESULT_DIR=benchmark-results
+          RESULT_DIR=benchmark-results/stress
           mkdir -p "$RESULT_DIR"
+          TEXT_DIR="$RUNNER_TEMP/getme-bench/stress"
+          mkdir -p "$TEXT_DIR"
           TIMESTAMP=$(date -u +"%Y%m%dT%H%M%SZ")
-          BENCH_BASENAME="benchmark-${GITHUB_SHA}-${TIMESTAMP}"
-          BENCH_TXT="$RESULT_DIR/${BENCH_BASENAME}.txt"
+          BENCH_BASENAME="stress-${GITHUB_SHA}-${TIMESTAMP}"
+          BENCH_TXT="$TEXT_DIR/${BENCH_BASENAME}.txt"
           BENCH_JSON="$RESULT_DIR/${BENCH_BASENAME}.json"
-          go test ./benchmarking -run=^$ -bench=. -benchmem | tee "$BENCH_TXT"
-          go tool test2json -p getMeMod/benchmarking < "$BENCH_TXT" > "$BENCH_JSON"
+          go test ./stressTest -run=^$ -bench=. -benchmem | tee "$BENCH_TXT"
+          go tool test2json -p github.com/AatirNadim/getMe/benchmarking/stressTest < "$BENCH_TXT" > "$BENCH_JSON"
           echo "bench_txt=$BENCH_TXT" >> "$GITHUB_OUTPUT"
           echo "bench_json=$BENCH_JSON" >> "$GITHUB_OUTPUT"
 
-      - name: Publish benchmark results
+      - name: Publish stress benchmark results
         uses: benchmark-action/github-action-benchmark@v1
         with:
-          name: go-benchmarks
+          name: go-stress-benchmarks
           tool: "go"
-          output-file-path: ${{ steps.bench.outputs.bench_txt }}
+          output-file-path: ${{ steps.stress.outputs.bench_txt }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: false
 
-      - name: Upload JSON artifact
+      - name: Upload stress JSON artifact
         uses: actions/upload-artifact@v4
         with:
-          name: benchmark-json
-          path: ${{ steps.bench.outputs.bench_json }}
+          name: stress-benchmark-json
+          path: ${{ steps.stress.outputs.bench_json }}
+
+      - name: Cleanup stress benchmark text log
+        if: ${{ always() }}
+        run: rm -f "${{ steps.stress.outputs.bench_txt }}"
+
+  correctness-benchmarks:
+    name: Correctness Benchmark Suite
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: benchmarking
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+
+      - name: Run correctness benchmarks
+        id: correctness
+        run: |
+          RESULT_DIR=benchmark-results/correctness
+          mkdir -p "$RESULT_DIR"
+          TEXT_DIR="$RUNNER_TEMP/getme-bench/correctness"
+          mkdir -p "$TEXT_DIR"
+          TIMESTAMP=$(date -u +"%Y%m%dT%H%M%SZ")
+          BENCH_BASENAME="correctness-${GITHUB_SHA}-${TIMESTAMP}"
+          BENCH_TXT="$TEXT_DIR/${BENCH_BASENAME}.txt"
+          BENCH_JSON="$RESULT_DIR/${BENCH_BASENAME}.json"
+          go test ./correctnessCheck -run=^$ -bench=. -benchmem | tee "$BENCH_TXT"
+          go tool test2json -p github.com/AatirNadim/getMe/benchmarking/correctnessCheck < "$BENCH_TXT" > "$BENCH_JSON"
+          echo "bench_json=$BENCH_JSON" >> "$GITHUB_OUTPUT"
+          rm -f "$BENCH_TXT"
+
+      - name: Upload correctness JSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: correctness-benchmark-json
+          path: ${{ steps.correctness.outputs.bench_json }}
