@@ -12,9 +12,7 @@ func main() {
 	loggingDisabled := flag.Bool("logging_disabled", false, "disable persistent logging output")
 	flag.Parse()
 
-	storePath := constants.StoreDirName
-	compactedStorePath := constants.CompactedStoreDirName
-	if err := src.StartServer(constants.SocketPath, storePath, compactedStorePath, loggingDisabled); err != nil {
+	if err := src.StartServer(constants.SocketPath, constants.StoreDirName, constants.CompactedStoreDirName, loggingDisabled); err != nil {
 		fmt.Println("Error starting server:", err)
 	}
 }

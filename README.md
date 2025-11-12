@@ -33,31 +33,40 @@ The repository ships with helper scripts that bootstrap everything you need for 
 
 #### Option A: Local binaries + logging stack
 
-1.  Switch to the server module and run the local init script:
+1. Switch to the server module and run the local init script:
+
     ```bash
     cd server
     ./init-server-local.sh
     ```
+
     This script builds the Go binary into `server/dist/`, prepares data/log/socket directories, and starts the Loki + Alloy + Grafana logging stack via Docker Compose before launching the server in the foreground.
+
+    **Note: Do not prefix this script with `sudo`**—the script already calls the individual setup helpers with elevated privileges where needed. Running the top-level script as root would cause all generated folders and files to be owned by `root`, making subsequent local development much harder to manage.
 
 #### Option B: Full Docker Compose stack
 
-1.  From the same `server` directory run:
+1. From the same `server` directory run:
+
     ```bash
     cd server
     ./init-server-docker.sh
     ```
+
     The script ensures host bind-mount directories exist, exports your UID/GID for correct ownership, and then invokes `docker compose up --build` to start the containerised server alongside its logging dependencies.
 
 > Prefer Option A when iterating on Go code locally; use Option B to validate the container stack or share an environment with teammates.
 
 ### Using the CLI
 
-1.  Navigate to the `cli` directory:
+1. Navigate to the `cli` directory:
+
     ```bash
     cd cli
     ```
-2.  Use the `set`, `get`, or `delete` commands:
+
+2. Use the `set`, `get`, or `delete` commands:
+
     ```bash
     go run . set mykey "hello world"
     go run . get mykey
@@ -65,8 +74,9 @@ The repository ships with helper scripts that bootstrap everything you need for 
 
 ### Running Benchmarks
 
-1.  Navigate to the project root.
-2.  Run the tests with the `-bench` flag:
+1. Navigate to the project root.
+2. Run the tests with the `-bench` flag:
+
     ```bash
     go test -bench . ./...
     ```

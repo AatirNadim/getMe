@@ -14,7 +14,6 @@ type CompactionResult struct {
 }
 
 type CompactedSegmentManager struct {
-	// mu         sync.RWMutex
 	basePath               string
 	nextAvailableSegmentId uint32
 	maxAvailableSegmentId  uint32

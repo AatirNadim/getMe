@@ -17,7 +17,7 @@ func StartServer(socketPath, storePath, compactedStorePath string, loggingDisabl
 	defer l.Close()
 
 	fmt.Println("Store is being initialized")
-	
+
 	storeInstance, err := InitializeStore(storePath, compactedStorePath, loggingDisabled)
 
 	if err != nil {

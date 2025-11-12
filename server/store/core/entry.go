@@ -62,6 +62,8 @@ func (e *Entry) Serialize() ([]byte, error) {
 
 	offset := 0
 
+	// the format is little endian for all fields since we are targeting x86 compatible architectures
+
 	binary.LittleEndian.PutUint64(bytarr[offset:], uint64(e.TimeStamp))
 
 	offset += 8

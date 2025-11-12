@@ -43,7 +43,7 @@ func NewSegmentManager(basePath, compactedBasePath string, centralHashTable *Has
 	}
 
 	if err := os.MkdirAll(basePath, 0755); err != nil {
-		fmt.Println("base path --> ", basePath)
+		logger.Debug("failed to create base directory at path:", basePath, "error:", err)
 		return nil, fmt.Errorf("failed to create base directory: %w", err)
 	}
 
@@ -69,7 +69,7 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 	// find all segment files in the base path
 	paths, err := filepath.Glob(filepath.Join(basePath, "segment_*.log"))
 	if err != nil {
-		logger.Error("failed to list segment files basePath", basePath, "error", err)
+		logger.Error("failed to list segment files in basePath:", basePath, "error:", err)
 		return fmt.Errorf("failed to list segment files in %s: %w", basePath, err)
 	}
 	if paths == nil {
@@ -79,6 +79,7 @@ func (sm *SegmentManager) populateSegmentMap(basePath string, centralHashTable *
 
 	logger.Info("Segments already exist, loading them from the disk to the current kv instance...")
 
+	// running a waitgroup to read all the segments concurrently (map-reduce style)
 	var wg sync.WaitGroup
 	ch := make(chan *HashTable, len(paths))
 
@@ -236,19 +237,6 @@ func (sm *SegmentManager) FlushBuffer(buffer []byte, entries []*Entry) ([]*Flush
 
 	// nextsegmentcounter is referenced only once in the function body, since it is atomic
 	currentSegment := sm.segmentMap[sm.nextSegmentCounter.Get()-1]
-
-	// Check if the buffer can fit in the current segment.
-	// The store is now responsible for chunking, but we retain this check as a safeguard.
-	// if uint32(len(buffer)) > (constants.DefaultMaxSegmentSize - currentSegment.size) {
-	// 	// This case should ideally not be hit if the store chunks correctly.
-	// 	// We will create a new segment to handle this oversized buffer.
-	// 	// logger.Info("FlushBuffer: Buffer too large for current segment, creating a new one.")
-	// 	newSegment, err := sm.createNewSegment(sm.basePath)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("failed to create new segment for flush: %w", err)
-	// 	}
-	// 	currentSegment = newSegment
-	// }
 
 	startOffset := currentSegment.size
 	if err := currentSegment.AppendBuffer(buffer); err != nil {
