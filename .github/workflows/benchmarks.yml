@@ -25,7 +25,7 @@ jobs:
       - name: Run stress benchmarks
         id: stress
         run: |
-          RESULT_DIR=benchmark-results/stress
+          RESULT_DIR="${GITHUB_WORKSPACE}/benchmarking/benchmark-results/stress"
           mkdir -p "$RESULT_DIR"
           TEXT_DIR="$RUNNER_TEMP/getme-bench/stress"
           mkdir -p "$TEXT_DIR"
@@ -35,7 +35,9 @@ jobs:
           BENCH_JSON="$RESULT_DIR/${BENCH_BASENAME}.json"
           go test ./stressTest -run=^$ -bench=. -benchmem | tee "$BENCH_TXT"
           go tool test2json -p github.com/AatirNadim/getMe/benchmarking/stressTest < "$BENCH_TXT" > "$BENCH_JSON"
+          echo "exporting the benchmark results to text format --> to be used by benchmark-action"
           echo "bench_txt=$BENCH_TXT" >> "$GITHUB_OUTPUT"
+          echo "exporting the benchmark results to json format"
           echo "bench_json=$BENCH_JSON" >> "$GITHUB_OUTPUT"
 
       - name: Publish stress benchmark results
@@ -45,7 +47,7 @@ jobs:
           tool: "go"
           output-file-path: ${{ steps.stress.outputs.bench_txt }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: false
+          auto-push: true
 
       - name: Upload stress JSON artifact
         uses: actions/upload-artifact@v4
@@ -76,7 +78,7 @@ jobs:
       - name: Run correctness benchmarks
         id: correctness
         run: |
-          RESULT_DIR=benchmark-results/correctness
+          RESULT_DIR="${GITHUB_WORKSPACE}/benchmarking/benchmark-results/correctness"
           mkdir -p "$RESULT_DIR"
           TEXT_DIR="$RUNNER_TEMP/getme-bench/correctness"
           mkdir -p "$TEXT_DIR"
