@@ -22,6 +22,11 @@ The server's storage engine is built on a log-structured hash table model. This 
   - **`muxHandler.go`**: Manages the request routing and dispatches commands to the appropriate store methods.
   - **`socket.go`**: (If applicable) Contains logic for handling Unix socket connections for local, high-performance inter-process communication.
 
+
+![image](../utils/assets/core_server_uml.png)
+
+> **Observability Spotlight:** The logging stack that monitors the server lives in [`utils/logger/`](./utils/logger/) with a dedicated overview in [`utils/logger/README.md`](./utils/logger/README.md). It explains how Grafana Alloy tails the application logs, ships them to Loki, and exposes dashboards in Grafana. If you are running the server locally, start the stack with `docker-compose.logging.yml` from that directory to capture structured logs into `/tmp/getMeStore/dumpDir` for live inspection.
+
 ## Core Concepts
 
 ### Write Path

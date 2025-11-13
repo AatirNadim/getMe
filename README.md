@@ -6,7 +6,7 @@
 
 This project is a monorepo containing the core storage server, a command-line interface (CLI), client SDKs for various languages, and a benchmarking suite.
 
-- **[`server/`](./server/)**: The core storage engine and HTTP server. This is the heart of the project, implementing the log-structured hash table for persistent storage.
+- **[`server/`](./server/)**: The core storage engine and HTTP server. This is the heart of the project, implementing the log-structured hash table for persistent storage. <br>**Important:** See [`server/README.md`](./server/README.md) for a diagram-rich tour of the storage layers, HTTP controllers, and background workers.
 - **[`cli/`](./cli/)**: A command-line interface for interacting with the `getMe` server. Useful for manual testing, debugging, and scripting.
 - **[`sdks/`](./sdks/)**: Client libraries (SDKs) for different programming languages to make it easy to integrate `getMe` into your applications.
   - `goSdk/`
@@ -15,6 +15,8 @@ This project is a monorepo containing the core storage server, a command-line in
   - `pythonSdk/`
 - **[`benchmarking/`](./benchmarking/)**: A comprehensive suite of benchmarks for measuring performance, analyzing memory allocations, and stress-testing the database under concurrent loads.
 - **[`utils/`](./utils/)**: Shared utility packages, such as a logger and global constants, used across the project.
+
+> **Spotlight:** The curated inner docs are the quickest way to understand the system end-to-end. Start with [`server/README.md`](./server/README.md) for architecture fundamentals, then explore [`benchmarking/README.md`](./benchmarking/README.md) to see how we measure performance and [`cli/README.md`](./cli/README.md) for a walkthrough of the local tooling.
 
 ## Core Concepts
 
