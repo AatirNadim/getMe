@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1763060029544,
+  "lastUpdate": 1767209365076,
   "repoUrl": "https://github.com/AatirNadim/getMe",
   "entries": {
     "go-stress-benchmarks": [
@@ -1920,6 +1920,390 @@ window.BENCHMARK_DATA = {
             "value": 18,
             "unit": "allocs/op",
             "extra": "398334 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "100563812+AatirNadim@users.noreply.github.com",
+            "name": "collywobble",
+            "username": "AatirNadim"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "646e59e464f3631a408b980c94b2f799e79604b8",
+          "message": "Merge pull request #6 from AatirNadim/feature/put-json\n\nfeat: add JSON handling commands and update client methods for JSON s…",
+          "timestamp": "2026-01-01T00:58:21+05:30",
+          "tree_id": "f375bff092a448677c0170b9a291ce222c443a91",
+          "url": "https://github.com/AatirNadim/getMe/commit/646e59e464f3631a408b980c94b2f799e79604b8"
+        },
+        "date": 1767209364750,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkPut",
+            "value": 7004,
+            "unit": "ns/op\t    1797 B/op\t      39 allocs/op",
+            "extra": "233532 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut - ns/op",
+            "value": 7004,
+            "unit": "ns/op",
+            "extra": "233532 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut - B/op",
+            "value": 1797,
+            "unit": "B/op",
+            "extra": "233532 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut - allocs/op",
+            "value": 39,
+            "unit": "allocs/op",
+            "extra": "233532 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet",
+            "value": 651,
+            "unit": "ns/op\t     143 B/op\t       6 allocs/op",
+            "extra": "1848036 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet - ns/op",
+            "value": 651,
+            "unit": "ns/op",
+            "extra": "1848036 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet - B/op",
+            "value": 143,
+            "unit": "B/op",
+            "extra": "1848036 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet - allocs/op",
+            "value": 6,
+            "unit": "allocs/op",
+            "extra": "1848036 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut",
+            "value": 315808,
+            "unit": "ns/op\t   88666 B/op\t    1115 allocs/op",
+            "extra": "4069 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut - ns/op",
+            "value": 315808,
+            "unit": "ns/op",
+            "extra": "4069 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut - B/op",
+            "value": 88666,
+            "unit": "B/op",
+            "extra": "4069 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut - allocs/op",
+            "value": 1115,
+            "unit": "allocs/op",
+            "extra": "4069 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete",
+            "value": 41.56,
+            "unit": "ns/op\t       1 B/op\t       0 allocs/op",
+            "extra": "28294368 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete - ns/op",
+            "value": 41.56,
+            "unit": "ns/op",
+            "extra": "28294368 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete - B/op",
+            "value": 1,
+            "unit": "B/op",
+            "extra": "28294368 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "28294368 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut1",
+            "value": 6849,
+            "unit": "ns/op\t    1785 B/op\t      39 allocs/op",
+            "extra": "220958 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut1 - ns/op",
+            "value": 6849,
+            "unit": "ns/op",
+            "extra": "220958 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut1 - B/op",
+            "value": 1785,
+            "unit": "B/op",
+            "extra": "220958 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut1 - allocs/op",
+            "value": 39,
+            "unit": "allocs/op",
+            "extra": "220958 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet1",
+            "value": 652.3,
+            "unit": "ns/op\t     143 B/op\t       6 allocs/op",
+            "extra": "1825512 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet1 - ns/op",
+            "value": 652.3,
+            "unit": "ns/op",
+            "extra": "1825512 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet1 - B/op",
+            "value": 143,
+            "unit": "B/op",
+            "extra": "1825512 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet1 - allocs/op",
+            "value": 6,
+            "unit": "allocs/op",
+            "extra": "1825512 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut1",
+            "value": 319438,
+            "unit": "ns/op\t   88980 B/op\t    1114 allocs/op",
+            "extra": "3890 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut1 - ns/op",
+            "value": 319438,
+            "unit": "ns/op",
+            "extra": "3890 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut1 - B/op",
+            "value": 88980,
+            "unit": "B/op",
+            "extra": "3890 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut1 - allocs/op",
+            "value": 1114,
+            "unit": "allocs/op",
+            "extra": "3890 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete1",
+            "value": 40.86,
+            "unit": "ns/op\t       1 B/op\t       0 allocs/op",
+            "extra": "25493736 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete1 - ns/op",
+            "value": 40.86,
+            "unit": "ns/op",
+            "extra": "25493736 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete1 - B/op",
+            "value": 1,
+            "unit": "B/op",
+            "extra": "25493736 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete1 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "25493736 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut2",
+            "value": 6869,
+            "unit": "ns/op\t    1786 B/op\t      39 allocs/op",
+            "extra": "223461 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut2 - ns/op",
+            "value": 6869,
+            "unit": "ns/op",
+            "extra": "223461 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut2 - B/op",
+            "value": 1786,
+            "unit": "B/op",
+            "extra": "223461 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut2 - allocs/op",
+            "value": 39,
+            "unit": "allocs/op",
+            "extra": "223461 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet2",
+            "value": 662.8,
+            "unit": "ns/op\t     143 B/op\t       6 allocs/op",
+            "extra": "1829554 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet2 - ns/op",
+            "value": 662.8,
+            "unit": "ns/op",
+            "extra": "1829554 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet2 - B/op",
+            "value": 143,
+            "unit": "B/op",
+            "extra": "1829554 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet2 - allocs/op",
+            "value": 6,
+            "unit": "allocs/op",
+            "extra": "1829554 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut2",
+            "value": 315982,
+            "unit": "ns/op\t   89065 B/op\t    1114 allocs/op",
+            "extra": "3832 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut2 - ns/op",
+            "value": 315982,
+            "unit": "ns/op",
+            "extra": "3832 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut2 - B/op",
+            "value": 89065,
+            "unit": "B/op",
+            "extra": "3832 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut2 - allocs/op",
+            "value": 1114,
+            "unit": "allocs/op",
+            "extra": "3832 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete2",
+            "value": 39.99,
+            "unit": "ns/op\t       1 B/op\t       0 allocs/op",
+            "extra": "26282838 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete2 - ns/op",
+            "value": 39.99,
+            "unit": "ns/op",
+            "extra": "26282838 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete2 - B/op",
+            "value": 1,
+            "unit": "B/op",
+            "extra": "26282838 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete2 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "26282838 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed",
+            "value": 2898,
+            "unit": "ns/op\t     560 B/op\t      14 allocs/op",
+            "extra": "473316 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed - ns/op",
+            "value": 2898,
+            "unit": "ns/op",
+            "extra": "473316 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed - B/op",
+            "value": 560,
+            "unit": "B/op",
+            "extra": "473316 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed - allocs/op",
+            "value": 14,
+            "unit": "allocs/op",
+            "extra": "473316 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed1",
+            "value": 2899,
+            "unit": "ns/op\t     544 B/op\t      14 allocs/op",
+            "extra": "480386 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed1 - ns/op",
+            "value": 2899,
+            "unit": "ns/op",
+            "extra": "480386 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed1 - B/op",
+            "value": 544,
+            "unit": "B/op",
+            "extra": "480386 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed1 - allocs/op",
+            "value": 14,
+            "unit": "allocs/op",
+            "extra": "480386 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed2",
+            "value": 3817,
+            "unit": "ns/op\t     745 B/op\t      18 allocs/op",
+            "extra": "392840 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed2 - ns/op",
+            "value": 3817,
+            "unit": "ns/op",
+            "extra": "392840 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed2 - B/op",
+            "value": 745,
+            "unit": "B/op",
+            "extra": "392840 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed2 - allocs/op",
+            "value": 18,
+            "unit": "allocs/op",
+            "extra": "392840 times\n4 procs"
           }
         ]
       }
