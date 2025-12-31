@@ -50,6 +50,3 @@ func Debug(msg ...any) {
 	printMessage("DEBUG", cyan, msg)
 }
 
-// func Dim(msg ...any) {
-// 	fmt.Fprintf(os.Stdout, "%s%s%s\n", grey, fmt.Sprint(msg), reset)
-// }

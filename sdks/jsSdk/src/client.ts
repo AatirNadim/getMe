@@ -30,11 +30,31 @@ class GetMeClient {
     }
   };
 
+  getJson = async <T = any>(key: string): Promise<T> => {
+    const raw = await this.get(key);
+    try {
+      return JSON.parse(raw) as T;
+    } catch (error) {
+      console.error("Error parsing JSON value:", error);
+      throw error;
+    }
+  };
+
   put = async (key: string, value: string): Promise<void> => {
     try {
       await this.axiosClient.post(`/put`, { Key: key, Value: value });
     } catch (error) {
       console.error("Error storing value:", error);
+      throw error;
+    }
+  };
+
+  putJson = async (key: string, value: unknown): Promise<void> => {
+    try {
+      const jsonString = JSON.stringify(value);
+      await this.put(key, jsonString);
+    } catch (error) {
+      console.error("Error serializing JSON value:", error);
       throw error;
     }
   };
