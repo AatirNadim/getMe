@@ -70,6 +70,18 @@ func (client *GetMeClient) Get(key string) (string, error) {
 	return string(bodyBytes), nil
 }
 
+// expects the stored value to be a valid JSON document.
+func (client *GetMeClient) GetJSON(key string, out interface{}) error {
+	value, err := client.Get(key)
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal([]byte(value), out); err != nil {
+		return fmt.Errorf("value for key '%s' is not valid JSON: %w", key, err)
+	}
+	return nil
+}
+
 func (client *GetMeClient) Put(key, value string) error {
 
 	fmt.Println("Preparing JSON payload for PUT request with key:", key, " and value:", value)
@@ -105,6 +117,15 @@ func (client *GetMeClient) Put(key, value string) error {
 	}
 
 	return nil
+}
+
+// PutJSON marshals v as JSON and stores it as the value for key.
+func (client *GetMeClient) PutJSON(key string, v interface{}) error {
+	data, err := json.Marshal(v)
+	if err != nil {
+		return fmt.Errorf("failed to marshal JSON value: %w", err)
+	}
+	return client.Put(key, string(data))
 }
 
 func (client *GetMeClient) Delete(key string) error {

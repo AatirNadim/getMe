@@ -41,6 +41,12 @@ class GetMeClient:
 
         return response.json()
 
+    def put_json(self, key, value):
+        """Serializes value as JSON and stores it under the given key."""
+
+        json_string = json.dumps(value, separators=(",", ":"))
+        return self.put(key, json_string)
+
     def get(self, key) -> str:
         """
         Gets a value for a given key from the store.
@@ -58,6 +64,17 @@ class GetMeClient:
 
         print(resp.content.decode("utf-8"))
         return resp.content.decode("utf-8")
+
+    def get_json(self, key):
+        """Gets the value for key and parses it as JSON."""
+
+        raw = self.get(key)
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise Exception(
+                f"value for key '{key}' is not valid JSON: {exc}"
+            ) from exc
 
     def delete(self, key):
         """

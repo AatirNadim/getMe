@@ -15,5 +15,6 @@ type PutRequestBody struct {
 }
 
 const (
-	SocketPath = "/tmp/getMeStore/sockDir/getMe.sock"
+	SocketPath                 = "/tmp/getMeStore/sockDir/getMe.sock"
+	MaxJSONFileSizeBytes int64 = 5 * 1024 * 1024 // 5 MiB
 )
