@@ -1,0 +1,19 @@
+services:
+  getme-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: getme-mcp-server:local
+
+    # the getMe core server over UDS (HTTP over Unix domain socket).
+    volumes:
+      - /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir
+
+    environment:
+      GETME_SOCKET_PATH: /tmp/getMeStore/sockDir/getMe.sock
+      GETME_BASE_URL: http://unix
+
+    stdin_open: true
+    tty: false
+
+    restart: "no"

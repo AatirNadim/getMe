@@ -32,6 +32,31 @@ export GETME_SOCKET_PATH=/tmp/getMeStore/sockDir/getMe.sock
 uv run getme-mcp-server
 ```
 
+## Docker
+
+This MCP server speaks **stdio** (JSON-RPC), so when running in Docker you must avoid allocating a TTY.
+
+Build the image:
+
+```bash
+cd mcp-server
+docker compose build
+```
+
+Run it over stdio (recommended for MCP clients):
+
+```bash
+cd mcp-server
+docker compose run --rm -T getme-mcp-server
+```
+
+The compose file bind-mounts the host UDS directory:
+
+- host: `/tmp/getMeStore/sockDir`
+- container: `/tmp/getMeStore/sockDir`
+
+So the MCP server can reach the core getMe server via `GETME_SOCKET_PATH=/tmp/getMeStore/sockDir/getMe.sock`.
+
 By default, the MCP server runs over **stdio** (the typical MCP deployment model).
 
 ## Tools
