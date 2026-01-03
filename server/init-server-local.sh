@@ -15,6 +15,7 @@ LOGGING_COMPOSE_FILE_PATH="./utils/logger/docker-compose.logging.yml"
 DATA_DIR_SCRIPT="$SCRIPTS_BASE_PATH/init-data-dir.sh"
 LOGS_DIR_SCRIPT="$SCRIPTS_BASE_PATH/init-logs-dir.sh"
 SOCK_DIR_SCRIPT="$SCRIPTS_BASE_PATH/init-sock-dir.sh"
+TEARDOWN_SCRIPT="./teardown-server-local.sh"
 
 echo -e "\n=== Initializing Local Server Environment ===\n"
 
@@ -26,6 +27,37 @@ if ! go build -o "$OUT_DIR/getMeMod" .; then
     exit 1
 fi
 echo "Build complete."
+
+echo " === Setting up teardown handler... === "
+
+# --- Teardown on exit/interrupt ---
+ENABLE_TEARDOWN=0
+TEARDOWN_RAN=0
+
+run_teardown() {
+    # Only teardown once, and only after init is far enough along.
+    if [[ "$ENABLE_TEARDOWN" -ne 1 || "$TEARDOWN_RAN" -eq 1 ]]; then
+        return 0
+    fi
+    TEARDOWN_RAN=1
+
+    echo -e "\n--> Detected shutdown. Running teardown..."
+    if [[ -x "$TEARDOWN_SCRIPT" ]]; then
+        "$TEARDOWN_SCRIPT" || true
+    elif [[ -f "$TEARDOWN_SCRIPT" ]]; then
+        bash "$TEARDOWN_SCRIPT" || true
+    else
+        echo "[WARN] Teardown script not found at: $TEARDOWN_SCRIPT"
+    fi
+}
+
+# Run teardown when this script exits for any reason (Ctrl+C, SIGTERM, terminal hangup, etc.)
+trap run_teardown EXIT INT TERM HUP
+#!/bin/bash
+
+
+# From here on, we've likely created/started resources, so teardown on exit is desired.
+ENABLE_TEARDOWN=1
 
 # --- 2. Initialize Persistent Data Directory ---
 echo -e "\n--> Setting up persistent data directory in /var/lib..."

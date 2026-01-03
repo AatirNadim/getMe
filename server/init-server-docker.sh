@@ -12,6 +12,30 @@
 
 # Define host directories that will be mounted into containers.
 SOCK_DIR="/tmp/getMeStore/sockDir"
+TEARDOWN_SCRIPT="./teardown-server-docker.sh"
+
+# --- Teardown on interrupt/termination ---
+TEARDOWN_RAN=0
+
+run_teardown() {
+	if [[ "$TEARDOWN_RAN" -eq 1 ]]; then
+		return 0
+	fi
+	TEARDOWN_RAN=1
+
+	echo -e "\n--> Detected shutdown. Running docker teardown..."
+	if [[ -x "$TEARDOWN_SCRIPT" ]]; then
+		"$TEARDOWN_SCRIPT" || true
+	elif [[ -f "$TEARDOWN_SCRIPT" ]]; then
+		bash "$TEARDOWN_SCRIPT" || true
+	else
+		echo "[WARN] Teardown script not found at: $TEARDOWN_SCRIPT"
+	fi
+}
+
+# NOTE: We intentionally do NOT trap EXIT here, because this init script starts
+# the stack in detached mode and then exits normally.
+trap run_teardown INT TERM HUP
 
 echo -e "\n=== Initializing Containerized Server Environment ===\n"
 
