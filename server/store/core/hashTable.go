@@ -32,6 +32,19 @@ func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 	return entry, exists
 }
 
+func (ht *HashTable) GetBatch(keys []string) map[string]*HashTableEntry {
+	ht.mu.RLock()
+	defer ht.mu.RUnlock()
+
+	result := make(map[string]*HashTableEntry)
+	for _, key := range keys {
+		if entry, exists := ht.table[key]; exists {
+			result[key] = entry
+		}
+	}
+	return result
+}
+
 // if the existing entry's timestamp is greater than or equal to the new entry's timestamp, it means the new entry is older or same, so we do not consider it present
 func (ht *HashTable) Put(key string, segmentId uint32, offset uint32, timeStamp int64, valueSize uint32) error {
 	ht.mu.Lock()
@@ -100,6 +113,14 @@ func (ht *HashTable) Delete(key string) {
 	ht.mu.Lock()
 	defer ht.mu.Unlock()
 	delete(ht.table, key)
+}
+
+func (ht *HashTable) BatchDelete(keys []string) {
+	ht.mu.Lock()
+	defer ht.mu.Unlock()
+	for _, key := range keys {
+		delete(ht.table, key)
+	}
 }
 
 func (ht *HashTable) Size() int {

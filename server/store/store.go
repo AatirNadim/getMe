@@ -3,12 +3,14 @@ package store
 import (
 	"bytes"
 	"fmt"
-
+	"sort"
 	"sync"
 	"time"
+
 	"github.com/AatirNadim/getMe/server/store/core"
 	"github.com/AatirNadim/getMe/server/store/utils"
 	"github.com/AatirNadim/getMe/server/store/utils/constants"
+	serverUtils "github.com/AatirNadim/getMe/server/utils"
 	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
@@ -112,6 +114,98 @@ func (s *Store) Get(key string) (string, bool, error) {
 	}
 
 	return s.convertBytesToString(data.Value), true, nil
+}
+
+func (s *Store) BatchGet(keys []string) ([]serverUtils.KeyValue, error) {
+	// 1. Lock & Lookup
+	hashTableEntries := s.hashTable.GetBatch(keys)
+
+	// 2. Group and Sort by Location
+	type BatchEntry struct {
+		Key   string
+		Entry *core.HashTableEntry
+	}
+
+	segmentMap := make(map[uint32][]*BatchEntry)
+	for key, entry := range hashTableEntries {
+		segmentMap[entry.SegmentId] = append(segmentMap[entry.SegmentId], &BatchEntry{Key: key, Entry: entry})
+	}
+
+	// Sort by Offset
+	for _, entries := range segmentMap {
+		sort.Slice(entries, func(i, j int) bool {
+			return entries[i].Entry.Offset < entries[j].Entry.Offset
+		})
+	}
+
+	// 3. Release Lock (Already done in GetBatch)
+
+	// 4. Perform Efficient Disk Reads in Parallel
+	var wg sync.WaitGroup
+	resultsChan := make(chan []*core.Entry, len(segmentMap))
+
+	for segmentId, entries := range segmentMap {
+		wg.Add(1)
+		go func(segId uint32, batchEntries []*BatchEntry) {
+			defer wg.Done()
+			offsets := make([]uint32, len(batchEntries))
+			for i, be := range batchEntries {
+				offsets[i] = be.Entry.Offset
+			}
+
+			entries, err := s.segmentManager.BatchRead(segId, offsets)
+			if err != nil {
+				if err == utils.ErrSegmentNotFound {
+					// Fallback: Try to get keys individually (might be compacted)
+					fallbackEntries := make([]*core.Entry, 0)
+					for _, be := range batchEntries {
+						val, found, err2 := s.Get(be.Key)
+						if err2 == nil && found {
+							// Reconstruct entry (expensive but fallback)
+							entry := &core.Entry{
+								Key:       []byte(be.Key),
+								Value:     []byte(val),
+								ValueSize: uint32(len(val)),
+							}
+							fallbackEntries = append(fallbackEntries, entry)
+						} else {
+							logger.Error("Segment not found and key not found in fallback:", segId, "key:", be.Key)
+						}
+					}
+					// Send empty or partial
+					resultsChan <- fallbackEntries
+					return
+				}
+				logger.Error("Error batch reading segment:", segId, "error:", err)
+				resultsChan <- nil
+				return
+			}
+			resultsChan <- entries
+		}(segmentId, entries)
+	}
+
+	wg.Wait()
+	close(resultsChan)
+
+	// 5. Assemble and Return
+	tempMap := make(map[string]string)
+	for entries := range resultsChan {
+		for _, e := range entries {
+			if e != nil && e.ValueSize > 0 {
+				tempMap[string(e.Key)] = s.convertBytesToString(e.Value)
+			}
+		}
+	}
+
+	// Sort in the order of requested keys
+	orderedResult := make([]serverUtils.KeyValue, 0, len(keys))
+	for _, k := range keys {
+		if v, ok := tempMap[k]; ok {
+			orderedResult = append(orderedResult, serverUtils.KeyValue{Key: k, Value: v})
+		}
+	}
+
+	return orderedResult, nil
 }
 
 func (s *Store) Put(key string, value string) error {
@@ -335,6 +429,87 @@ func (s *Store) BatchPut(batch map[string]string) error {
 	}
 
 	logger.Info("BatchPut operation completed successfully.")
+	return nil
+}
+
+func (s *Store) BatchDelete(keys []string) error {
+	if len(keys) == 0 {
+		return nil
+	}
+	logger.Info("Starting BatchDelete operation for", len(keys), "keys")
+
+	writeBuffer := batchBufferPool.Get().(*bytes.Buffer)
+	defer batchBufferPool.Put(writeBuffer)
+	writeBuffer.Reset()
+
+	chunkEntries := make([]*core.Entry, 0, len(keys))
+
+	flushAndReset := func() error {
+		if writeBuffer.Len() == 0 {
+			return nil
+		}
+		_, err := s.segmentManager.FlushBuffer(writeBuffer.Bytes(), chunkEntries)
+		if err != nil {
+			return fmt.Errorf("failed to flush write buffer during batch delete: %w", err)
+		}
+
+		keysToDelete := make([]string, 0, len(chunkEntries))
+		for _, entry := range chunkEntries {
+			keysToDelete = append(keysToDelete, string(entry.Key))
+			entryPool.Put(entry)
+		}
+
+		s.hashTable.BatchDelete(keysToDelete)
+
+		writeBuffer.Reset()
+		chunkEntries = chunkEntries[:0]
+		return nil
+	}
+
+	for _, key := range keys {
+		// Check existence to avoid writing useless tombstones
+		if _, exists := s.hashTable.Get(key); !exists {
+			continue
+		}
+
+		keyBuffer := keyBufferPool.Get().(*bytes.Buffer)
+		keyBuffer.Reset()
+		keyBuffer.WriteString(key)
+
+		keyBytes := make([]byte, keyBuffer.Len())
+		copy(keyBytes, keyBuffer.Bytes())
+		keyBufferPool.Put(keyBuffer)
+
+		timeStamp := time.Now().UnixNano()
+
+		entry, err := core.CreateDeletionEntry(keyBytes, timeStamp)
+		if err != nil {
+			logger.Error("BatchDelete: Failed to create deletion entry for key", key, ":", err)
+			continue
+		}
+
+		serializedEntry, err := entry.Serialize()
+		if err != nil {
+			logger.Error("BatchDelete: Failed to serialize entry for key", key, ":", err)
+			entryPool.Put(entry)
+			continue
+		}
+
+		if writeBuffer.Len()+len(serializedEntry) > constants.MaxChunkSize {
+			if err := flushAndReset(); err != nil {
+				return err
+			}
+		}
+
+		writeBuffer.Write(serializedEntry)
+		chunkEntries = append(chunkEntries, entry)
+	}
+
+	if err := flushAndReset(); err != nil {
+		return err
+	}
+
+	logger.Info("BatchDelete operation completed successfully.")
 	return nil
 }
 

@@ -227,6 +227,27 @@ func (sm *SegmentManager) Update(entry *Entry) (uint32, error) {
 	return offset, nil
 }
 
+func (sm *SegmentManager) BatchRead(segmentId uint32, offsets []uint32) ([]*Entry, error) {
+	sm.mu.RLock()
+	defer sm.mu.RUnlock()
+
+	segment, exists := sm.segmentMap[segmentId]
+	if !exists {
+		return nil, utils.ErrSegmentNotFound
+	}
+
+	entries := make([]*Entry, 0, len(offsets))
+	for _, offset := range offsets {
+		entry, _, err := segment.Get(offset)
+		if err != nil {
+			logger.Error("Error reading entry at offset", offset, "in segment", segmentId, ":", err)
+			continue
+		}
+		entries = append(entries, entry)
+	}
+	return entries, nil
+}
+
 // FlushBuffer writes a buffer of serialized entries to the active segment.
 // It returns a map of keys to their new disk locations (SegmentID and Offset).
 // this is not an locked operation, i.e. no mutex is held during the operation
@@ -239,10 +260,39 @@ func (sm *SegmentManager) FlushBuffer(buffer []byte, entries []*Entry) ([]*Flush
 	// nextsegmentcounter is referenced only once in the function body, since it is atomic
 	currentSegment := sm.segmentMap[sm.nextSegmentCounter.Get()-1]
 
+	// Check if space is available for the entire buffer
+	if currentSegment.size+uint32(len(buffer)) > currentSegment.maxSize || currentSegment.entryCount+uint32(len(entries)) > currentSegment.maxCount {
+		logger.Info("FlushBuffer: No space available in current segment, creating a new segment...")
+
+		totalSegments := sm.TotalSegments()
+
+		if totalSegments > constants.ThresholdForCompaction {
+			// reserve segment ids for the compacted segments
+			segmentsForCompaction := sm.getSegmentsForCompaction()
+			currAvailableSegmentId, err := sm.updateActiveSegmentId(uint32(len(segmentsForCompaction)))
+
+			if err != nil {
+				logger.Error("FlushBuffer: failed to update active segment id: ", err)
+				return nil, err
+			}
+
+			go sm.PerformCompaction(segmentsForCompaction, currAvailableSegmentId)
+		}
+
+		newSegment, err := sm.createNewSegment(sm.basePath)
+		if err != nil {
+			return nil, err
+		}
+		currentSegment = newSegment
+	}
+
 	startOffset := currentSegment.size
 	if err := currentSegment.AppendBuffer(buffer); err != nil {
 		return nil, fmt.Errorf("failed to write buffer to segment: %w", err)
 	}
+
+	// Manually update entry count since AppendBuffer doesn't do it
+	currentSegment.entryCount += uint32(len(entries))
 
 	// flushResults := make(map[string]*FlushResult)
 

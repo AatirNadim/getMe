@@ -7,7 +7,10 @@ import (
 	"net/http"
 
 	"github.com/AatirNadim/getMe/server/store"
+	local "github.com/AatirNadim/getMe/server/store/utils"
+	"github.com/AatirNadim/getMe/server/store/utils/constants"
 	"github.com/AatirNadim/getMe/server/utils"
+
 	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
@@ -109,12 +112,14 @@ func ClearStoreController(storeInstance *store.Store) http.HandlerFunc {
 	}
 }
 
-func BatchPutCController(storeInstance *store.Store) http.HandlerFunc {
+func BatchPutController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
+
+		r.Body = http.MaxBytesReader(w, r.Body, constants.MaxBodySize)
 
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -140,5 +145,101 @@ func BatchPutCController(storeInstance *store.Store) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintln(w, "Batch put operation successful")
+	}
+}
+
+func BatchGetController(storeInstance *store.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		r.Body = http.MaxBytesReader(w, r.Body, constants.MaxBodySize)
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			logger.Error("Error reading batch-get request body:", err)
+			http.Error(w, "failed to read request body", http.StatusBadRequest)
+			return
+		}
+
+		var payload struct {
+			Keys []string `json:"keys"`
+		}
+		if err := json.Unmarshal(body, &payload); err != nil {
+			logger.Error("Error parsing batch-get JSON body:", err)
+			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
+			return
+		}
+
+		keys := local.DeleteDuplicateKeys(payload.Keys)
+
+		if len(keys) == 0 {
+			http.Error(w, "empty keys list", http.StatusBadRequest)
+			return
+		}
+		if len(keys) > 10000 {
+			http.Error(w, "too many keys", http.StatusBadRequest)
+			return
+		}
+
+		result, err := storeInstance.BatchGet(keys)
+		if err != nil {
+			logger.Error("Error in BatchGet operation:", err)
+			http.Error(w, fmt.Sprintf("error during batch get: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		if err := json.NewEncoder(w).Encode(result); err != nil {
+			logger.Error("Error encoding response:", err)
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+func BatchDeleteController(storeInstance *store.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		r.Body = http.MaxBytesReader(w, r.Body, constants.MaxBodySize)
+
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			logger.Error("Error reading batch-delete request body:", err)
+			http.Error(w, "failed to read request body", http.StatusBadRequest)
+			return
+		}
+
+		var payload struct {
+			Keys []string `json:"keys"`
+		}
+		if err := json.Unmarshal(body, &payload); err != nil {
+			logger.Error("Error parsing batch-delete JSON body:", err)
+			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
+			return
+		}
+
+		keys := local.DeleteDuplicateKeys(payload.Keys)
+
+		if len(keys) == 0 {
+			http.Error(w, "empty keys list", http.StatusBadRequest)
+			return
+		}
+
+		if err := storeInstance.BatchDelete(keys); err != nil {
+			logger.Error("Error in BatchDelete operation:", err)
+			http.Error(w, fmt.Sprintf("error during batch delete: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w, "Batch delete operation successful")
 	}
 }
