@@ -3,6 +3,7 @@ package store
 import (
 	"bytes"
 	"fmt"
+	"maps"
 	"sort"
 	"sync"
 	"time"
@@ -116,9 +117,9 @@ func (s *Store) Get(key string) (string, bool, error) {
 	return s.convertBytesToString(data.Value), true, nil
 }
 
-func (s *Store) BatchGet(keys []string) ([]serverUtils.KeyValue, error) {
+func (s *Store) BatchGet(keys []string) (serverUtils.BatchGetResult, error) {
 	// 1. Lock & Lookup
-	hashTableEntries := s.hashTable.GetBatch(keys)
+	hashTableEntries, notFoundList := s.hashTable.GetBatch(keys)
 
 	// 2. Group and Sort by Location
 	type BatchEntry struct {
@@ -126,61 +127,88 @@ func (s *Store) BatchGet(keys []string) ([]serverUtils.KeyValue, error) {
 		Entry *core.HashTableEntry
 	}
 
-	segmentMap := make(map[uint32][]*BatchEntry)
+	segmentMap := make(map[uint32][]*BatchEntry) // map from segmentId to list of entries in that segment
 	for key, entry := range hashTableEntries {
 		segmentMap[entry.SegmentId] = append(segmentMap[entry.SegmentId], &BatchEntry{Key: key, Entry: entry})
 	}
 
-	// Sort by Offset
+	// sort the entries for each segment by offset to optimize disk reads (sequential reads are faster)
 	for _, entries := range segmentMap {
 		sort.Slice(entries, func(i, j int) bool {
 			return entries[i].Entry.Offset < entries[j].Entry.Offset
 		})
 	}
 
-	// 3. Release Lock (Already done in GetBatch)
-
-	// 4. Perform Efficient Disk Reads in Parallel
+	// 3. Perform Efficient Disk Reads in Parallel
 	var wg sync.WaitGroup
-	resultsChan := make(chan []*core.Entry, len(segmentMap))
+	resultsChan := make(chan serverUtils.BatchGetResult, len(segmentMap))
 
 	for segmentId, entries := range segmentMap {
 		wg.Add(1)
 		go func(segId uint32, batchEntries []*BatchEntry) {
 			defer wg.Done()
-			offsets := make([]uint32, len(batchEntries))
-			for i, be := range batchEntries {
-				offsets[i] = be.Entry.Offset
+
+			localResult := serverUtils.BatchGetResult{
+				Found:    make(map[string]string),
+				NotFound: make([]string, 0),
+				Errors:   make(map[string]string),
 			}
 
-			entries, err := s.segmentManager.BatchRead(segId, offsets)
+			offsets := make([]uint32, len(batchEntries))
+			segmentKeys := make([]string, len(batchEntries))
+			for i, be := range batchEntries {
+				offsets[i] = be.Entry.Offset
+				segmentKeys[i] = be.Key
+			}
+
+			// load the actual segment keys as well, so that in case of any error, we can update the final result with the corresponding keys and their error messages
+			readEntries, errorsMap, err := s.segmentManager.BatchRead(segId, offsets, segmentKeys)
+
 			if err != nil {
 				if err == utils.ErrSegmentNotFound {
 					// Fallback: Try to get keys individually (might be compacted)
-					fallbackEntries := make([]*core.Entry, 0)
 					for _, be := range batchEntries {
 						val, found, err2 := s.Get(be.Key)
 						if err2 == nil && found {
-							// Reconstruct entry (expensive but fallback)
-							entry := &core.Entry{
-								Key:       []byte(be.Key),
-								Value:     []byte(val),
-								ValueSize: uint32(len(val)),
-							}
-							fallbackEntries = append(fallbackEntries, entry)
+							localResult.Found[be.Key] = val
 						} else {
-							logger.Error("Segment not found and key not found in fallback:", segId, "key:", be.Key)
+							if err2 != nil {
+								localResult.Errors[be.Key] = err2.Error()
+							} else {
+								localResult.NotFound = append(localResult.NotFound, be.Key)
+							}
 						}
 					}
-					// Send empty or partial
-					resultsChan <- fallbackEntries
+					resultsChan <- localResult
 					return
 				}
 				logger.Error("Error batch reading segment:", segId, "error:", err)
-				resultsChan <- nil
+				// in case of an error different than segment not found, we consider all the keys in this batch as failed with the same error message, since we cannot determine which key caused the error
+				for _, be := range batchEntries {
+					localResult.Errors[be.Key] = err.Error()
+				}
+				resultsChan <- localResult
 				return
 			}
-			resultsChan <- entries
+
+			for k, v := range errorsMap {
+				localResult.Errors[k] = v
+			}
+
+			// Add found entries
+			for _, e := range readEntries {
+				if e != nil {
+					if e.ValueSize > 0 {
+						localResult.Found[string(e.Key)] = s.convertBytesToString(e.Value)
+					} else {
+						localResult.NotFound = append(localResult.NotFound, string(e.Key))
+					}
+				}
+			}
+
+			logger.Info("local result for the segment: \n", segmentId, "\nis\n", localResult)
+
+			resultsChan <- localResult
 		}(segmentId, entries)
 	}
 
@@ -188,24 +216,19 @@ func (s *Store) BatchGet(keys []string) ([]serverUtils.KeyValue, error) {
 	close(resultsChan)
 
 	// 5. Assemble and Return
-	tempMap := make(map[string]string)
-	for entries := range resultsChan {
-		for _, e := range entries {
-			if e != nil && e.ValueSize > 0 {
-				tempMap[string(e.Key)] = s.convertBytesToString(e.Value)
-			}
-		}
+	finalResult := serverUtils.BatchGetResult{
+		Found:    make(map[string]string),
+		NotFound: notFoundList,
+		Errors:   make(map[string]string),
 	}
 
-	// Sort in the order of requested keys
-	orderedResult := make([]serverUtils.KeyValue, 0, len(keys))
-	for _, k := range keys {
-		if v, ok := tempMap[k]; ok {
-			orderedResult = append(orderedResult, serverUtils.KeyValue{Key: k, Value: v})
-		}
+	for res := range resultsChan {
+		maps.Copy(finalResult.Found, res.Found)
+		finalResult.NotFound = append(finalResult.NotFound, res.NotFound...)
+		maps.Copy(finalResult.Errors, res.Errors)
 	}
 
-	return orderedResult, nil
+	return finalResult, nil
 }
 
 func (s *Store) Put(key string, value string) error {

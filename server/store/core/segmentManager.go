@@ -227,25 +227,41 @@ func (sm *SegmentManager) Update(entry *Entry) (uint32, error) {
 	return offset, nil
 }
 
-func (sm *SegmentManager) BatchRead(segmentId uint32, offsets []uint32) ([]*Entry, error) {
+
+
+
+// BatchRead reads multiple entries sequentially from a specific segment based on their offsets.
+//
+// Parameters:
+//   - segmentId (uint32): The unique identifier of the segment to read from.
+//   - offsets ([]uint32): A slice of starting byte positions within the segment for each entry to read.
+//   - keys ([]string): A slice of keys corresponding to each offset, used for error mapping.
+//
+// Returns:
+//   - []*Entry: A slice of pointers to the successfully read Entry objects.
+//   - map[string]string: A map containing any individual read errors, mapped by key.
+//   - error: An overall error if the segment cannot be accessed (e.g., segment not found).
+func (sm *SegmentManager) BatchRead(segmentId uint32, offsets []uint32, keys []string) ([]*Entry, map[string]string, error) {
 	sm.mu.RLock()
 	defer sm.mu.RUnlock()
 
 	segment, exists := sm.segmentMap[segmentId]
 	if !exists {
-		return nil, utils.ErrSegmentNotFound
+		return nil, nil, utils.ErrSegmentNotFound
 	}
 
 	entries := make([]*Entry, 0, len(offsets))
-	for _, offset := range offsets {
+	errorsMap := make(map[string]string)
+	for i, offset := range offsets {
 		entry, _, err := segment.Get(offset)
 		if err != nil {
 			logger.Error("Error reading entry at offset", offset, "in segment", segmentId, ":", err)
+			errorsMap[keys[i]] = err.Error()
 			continue
 		}
 		entries = append(entries, entry)
 	}
-	return entries, nil
+	return entries, errorsMap, nil
 }
 
 // FlushBuffer writes a buffer of serialized entries to the active segment.

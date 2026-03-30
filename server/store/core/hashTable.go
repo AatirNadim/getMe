@@ -32,17 +32,20 @@ func (ht *HashTable) Get(key string) (*HashTableEntry, bool) {
 	return entry, exists
 }
 
-func (ht *HashTable) GetBatch(keys []string) map[string]*HashTableEntry {
+func (ht *HashTable) GetBatch(keys []string) (map[string]*HashTableEntry, []string) {
 	ht.mu.RLock()
 	defer ht.mu.RUnlock()
 
 	result := make(map[string]*HashTableEntry)
+	notFound := make([]string, 0)
 	for _, key := range keys {
 		if entry, exists := ht.table[key]; exists {
 			result[key] = entry
+		} else {
+			notFound = append(notFound, key)
 		}
 	}
-	return result
+	return result, notFound
 }
 
 // if the existing entry's timestamp is greater than or equal to the new entry's timestamp, it means the new entry is older or same, so we do not consider it present

@@ -164,9 +164,7 @@ func BatchGetController(storeInstance *store.Store) http.HandlerFunc {
 			return
 		}
 
-		var payload struct {
-			Keys []string `json:"keys"`
-		}
+		var payload utils.BatchGetRequestBody
 		if err := json.Unmarshal(body, &payload); err != nil {
 			logger.Error("Error parsing batch-get JSON body:", err)
 			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
@@ -217,9 +215,7 @@ func BatchDeleteController(storeInstance *store.Store) http.HandlerFunc {
 			return
 		}
 
-		var payload struct {
-			Keys []string `json:"keys"`
-		}
+		var payload utils.BatchGetRequestBody
 		if err := json.Unmarshal(body, &payload); err != nil {
 			logger.Error("Error parsing batch-delete JSON body:", err)
 			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
