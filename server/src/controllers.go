@@ -137,14 +137,23 @@ func BatchPutController(storeInstance *store.Store) http.HandlerFunc {
 
 		logger.Debug("\n\nParsed batch put request payload:", batch, "\n\n")
 
-		if err := storeInstance.BatchPut(batch); err != nil {
+		res, err := storeInstance.BatchPut(batch)
+
+		if err != nil {
 			logger.Error("Error in BatchPut operation:", err)
 			http.Error(w, fmt.Sprintf("error during batch put: %v", err), http.StatusInternalServerError)
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, "Batch put operation successful")
+
+		if err := json.NewEncoder(w).Encode(res); err != nil {
+			logger.Error("Error encoding batch put response:", err)
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			return
+		}
+
 	}
 }
 
@@ -215,7 +224,7 @@ func BatchDeleteController(storeInstance *store.Store) http.HandlerFunc {
 			return
 		}
 
-		var payload utils.BatchGetRequestBody
+		var payload utils.BatchDeleteRequestBody
 		if err := json.Unmarshal(body, &payload); err != nil {
 			logger.Error("Error parsing batch-delete JSON body:", err)
 			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
@@ -229,13 +238,20 @@ func BatchDeleteController(storeInstance *store.Store) http.HandlerFunc {
 			return
 		}
 
-		if err := storeInstance.BatchDelete(keys); err != nil {
+		res, err := storeInstance.BatchDelete(keys)
+		if err != nil {
 			logger.Error("Error in BatchDelete operation:", err)
 			http.Error(w, fmt.Sprintf("error during batch delete: %v", err), http.StatusInternalServerError)
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, "Batch delete operation successful")
+
+		if err := json.NewEncoder(w).Encode(res); err != nil {
+			logger.Error("Error encoding batch delete response:", err)
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			return
+		}
 	}
 }

@@ -1,16 +1,4 @@
-package constants
-
-const (
-	SocketPath       = "/tmp/getMeStore/sockDir/getMe.sock"
-	BaseUrl          = "http://unix"
-	GetRoute         = "/get"
-	PutRoute         = "/put"
-	DeleteRoute      = "/delete"
-	ClearStoreRoute  = "/clearStore"
-	BatchPutRoute    = "/batch-put"
-	BatchGetRoute    = "/batch-get"
-	BatchDeleteRoute = "/batch-delete"
-)
+package utils
 
 type PutRequestBody struct {
 	Key   string `json:"key"`
@@ -36,6 +24,7 @@ type BatchPutResult struct {
 	Successful int               `json:"successful"`
 	Failed     map[string]string `json:"failed"` // key is the key that failed to put, value is the error message
 }
+
 type BatchDeleteRequestBody = BatchGetRequestBody
 
 type BatchDeleteResult = BatchPutResult

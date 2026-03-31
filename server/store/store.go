@@ -328,9 +328,14 @@ func (s *Store) Keys() []string {
 	return s.hashTable.Keys()
 }
 
-func (s *Store) BatchPut(batch map[string]string) error {
+func (s *Store) BatchPut(batch map[string]string) (serverUtils.BatchPutResult, error) {
+	result := serverUtils.BatchPutResult{
+		Successful: 0,
+		Failed:     make(map[string]string),
+	}
+
 	if len(batch) == 0 {
-		return nil
+		return result, nil
 	}
 	// No top-level lock here to allow for concurrent reads.
 	// Locking is handled at a granular level in SegmentManager and HashTable.
@@ -338,7 +343,8 @@ func (s *Store) BatchPut(batch map[string]string) error {
 	logger.Info("Starting BatchPut operation for", len(batch), "items")
 
 	// In-memory buffer to hold serialized entries
-	// writeBuffer := make([]byte, 0, constants.MaxChunkSize)
+
+	// Note: we are using a buffer pool to fetch a buffer from, which reduces the number of allocations and GC overhead for large batches, since we reuse the same buffer for multiple batch put operations
 	writeBuffer := batchBufferPool.Get().(*bytes.Buffer)
 	defer batchBufferPool.Put(writeBuffer)
 	writeBuffer.Reset()
@@ -348,59 +354,62 @@ func (s *Store) BatchPut(batch map[string]string) error {
 	chunkEntries := make([]*core.Entry, 0, len(batch))
 	newIndexPointers := make(map[string]*core.HashTableEntry)
 
-	flushAndReset := func() error {
+	flushAndReset := func() {
 		// logger.Debug("flushAndReset called with buffer size:", writeBuffer.Len(), "and", len(chunkEntries), "entries")
 
 		if writeBuffer.Len() == 0 {
-			return nil
+			return
 		}
 		// logger.Info("BatchPut: Flushing buffer with", len(chunkEntries), "entries.")
 		flushResults, err := s.segmentManager.FlushBuffer(writeBuffer.Bytes(), chunkEntries)
 		if err != nil {
-			return fmt.Errorf("failed to flush write buffer during batch set: %w", err)
-		}
-
-		for i, result := range flushResults {
-			originalEntry := chunkEntries[i]
-			// Map the original entry key to its new location
-
-			indexEntry := hashTableEntryPool.Get().(*core.HashTableEntry)
-			indexEntry.SegmentId = uint32(result.SegmentID)
-			indexEntry.Offset = uint32(result.Offset)
-			indexEntry.TimeStamp = originalEntry.TimeStamp
-			indexEntry.ValueSize = originalEntry.ValueSize
-			keyStr := s.convertBytesToString(originalEntry.Key)
-			newIndexPointers[keyStr] = indexEntry
-		}
-
-		// logger.Debug("batchput: updating hashtable with the latest index pointers, --> ", newIndexPointers)
-
-		s.hashTable.BatchUpdate(newIndexPointers)
-
-		// release all the entry objects back into the pool
-		for _, entry := range chunkEntries {
-			entryPool.Put(entry)
-		}
-
-		// release all the hashTableEntry objects back into the pool
-		for _, indexEntry := range newIndexPointers {
-			hashTableEntryPool.Put(indexEntry)
+			errStr := fmt.Sprintf("failed to flush write buffer: %v", err)
+			logger.Error("BatchPut: " + errStr)
+			for _, entry := range chunkEntries {
+				keyStr := s.convertBytesToString(entry.Key)
+				result.Failed[keyStr] = errStr
+				entryPool.Put(entry)
+			}
+		} else {
+			for i, res := range flushResults {
+				originalEntry := chunkEntries[i]
+				// Map the original entry key to its new location
+	
+				indexEntry := &core.HashTableEntry{
+					SegmentId: uint32(res.SegmentID),
+					Offset:    uint32(res.Offset),
+					TimeStamp: originalEntry.TimeStamp,
+					ValueSize: originalEntry.ValueSize,
+				}
+				keyStr := s.convertBytesToString(originalEntry.Key)
+				newIndexPointers[keyStr] = indexEntry
+			}
+	
+			// logger.Debug("batchput: updating hashtable with the latest index pointers, --> ", newIndexPointers)
+	
+			s.hashTable.BatchUpdate(newIndexPointers)
+	
+			// release all the entry objects back into the pool
+			for _, entry := range chunkEntries {
+				entryPool.Put(entry)
+			}
+			
+			result.Successful += len(chunkEntries)
 		}
 
 		// Reset buffers for the next chunk
 		writeBuffer.Reset()
 		chunkEntries = chunkEntries[:0]
 		clear(newIndexPointers)
-		return nil
 	}
 
 	// Process each key-value pair in the batch
 	for key, value := range batch {
-		keyBuffer := keyBufferPool.Get().(*bytes.Buffer)
+		keyBuffer := keyBufferPool.Get().(*bytes.Buffer) // fetch a buffer from the pool
 		keyBuffer.Reset()
 		keyBuffer.WriteString(key)
 
-		valueBuffer := valueBufferPool.Get().(*bytes.Buffer)
+		valueBuffer := valueBufferPool.Get().(*bytes.Buffer) // fetch a buffer from the pool
 		valueBuffer.Reset()
 		valueBuffer.WriteString(value)
 
@@ -427,7 +436,9 @@ func (s *Store) BatchPut(batch map[string]string) error {
 
 		serializedEntry, err := entry.Serialize()
 		if err != nil {
+			errStr := fmt.Sprintf("failed to serialize entry: %v", err)
 			logger.Error("BatchPut: Failed to serialize entry for key", key, ":", err)
+			result.Failed[key] = errStr
 			// in case of any problem, release the object back into the pool
 			entryPool.Put(entry)
 			continue
@@ -436,9 +447,7 @@ func (s *Store) BatchPut(batch map[string]string) error {
 		// If adding the new entry exceeds the buffer, flush the current buffer first.
 		if writeBuffer.Len()+len(serializedEntry) > constants.MaxChunkSize {
 			// logger.Debug("BatchPut: Buffer full. Flushing current buffer before adding key:", key)
-			if err := flushAndReset(); err != nil {
-				return err
-			}
+			flushAndReset()
 		}
 
 		writeBuffer.Write(serializedEntry)
@@ -447,17 +456,20 @@ func (s *Store) BatchPut(batch map[string]string) error {
 	}
 
 	// Flush any remaining entries in the buffer
-	if err := flushAndReset(); err != nil {
-		return err
-	}
+	flushAndReset()
 
-	logger.Info("BatchPut operation completed successfully.")
-	return nil
+	logger.Info("BatchPut operation completed. Successful:", result.Successful, "Failed:", len(result.Failed))
+	return result, nil
 }
 
-func (s *Store) BatchDelete(keys []string) error {
+func (s *Store) BatchDelete(keys []string) (serverUtils.BatchDeleteResult, error) {
+	result := serverUtils.BatchDeleteResult{
+		Successful: 0,
+		Failed:     make(map[string]string),
+	}
+
 	if len(keys) == 0 {
-		return nil
+		return result, nil
 	}
 	logger.Info("Starting BatchDelete operation for", len(keys), "keys")
 
@@ -467,31 +479,39 @@ func (s *Store) BatchDelete(keys []string) error {
 
 	chunkEntries := make([]*core.Entry, 0, len(keys))
 
-	flushAndReset := func() error {
+	flushAndReset := func() {
 		if writeBuffer.Len() == 0 {
-			return nil
+			return
 		}
 		_, err := s.segmentManager.FlushBuffer(writeBuffer.Bytes(), chunkEntries)
 		if err != nil {
-			return fmt.Errorf("failed to flush write buffer during batch delete: %w", err)
+			errStr := fmt.Sprintf("failed to flush write buffer during batch delete: %v", err)
+			logger.Error(errStr)
+			for _, entry := range chunkEntries {
+				keyStr := s.convertBytesToString(entry.Key)
+				result.Failed[keyStr] = errStr
+				entryPool.Put(entry)
+			}
+		} else {
+			keysToDelete := make([]string, 0, len(chunkEntries))
+			for _, entry := range chunkEntries {
+				keysToDelete = append(keysToDelete, string(entry.Key))
+				entryPool.Put(entry)
+			}
+	
+			s.hashTable.BatchDelete(keysToDelete)
+			result.Successful += len(chunkEntries)
 		}
-
-		keysToDelete := make([]string, 0, len(chunkEntries))
-		for _, entry := range chunkEntries {
-			keysToDelete = append(keysToDelete, string(entry.Key))
-			entryPool.Put(entry)
-		}
-
-		s.hashTable.BatchDelete(keysToDelete)
 
 		writeBuffer.Reset()
 		chunkEntries = chunkEntries[:0]
-		return nil
 	}
 
 	for _, key := range keys {
 		// Check existence to avoid writing useless tombstones
 		if _, exists := s.hashTable.Get(key); !exists {
+			// Idempotent delete: if it doesn't exist, it's effectively "deleted"
+			result.Successful++
 			continue
 		}
 
@@ -507,33 +527,33 @@ func (s *Store) BatchDelete(keys []string) error {
 
 		entry, err := core.CreateDeletionEntry(keyBytes, timeStamp)
 		if err != nil {
+			errStr := fmt.Sprintf("failed to create deletion entry: %v", err)
 			logger.Error("BatchDelete: Failed to create deletion entry for key", key, ":", err)
+			result.Failed[key] = errStr
 			continue
 		}
 
 		serializedEntry, err := entry.Serialize()
 		if err != nil {
+			errStr := fmt.Sprintf("failed to serialize entry: %v", err)
 			logger.Error("BatchDelete: Failed to serialize entry for key", key, ":", err)
+			result.Failed[key] = errStr
 			entryPool.Put(entry)
 			continue
 		}
 
 		if writeBuffer.Len()+len(serializedEntry) > constants.MaxChunkSize {
-			if err := flushAndReset(); err != nil {
-				return err
-			}
+			flushAndReset()
 		}
 
 		writeBuffer.Write(serializedEntry)
 		chunkEntries = append(chunkEntries, entry)
 	}
 
-	if err := flushAndReset(); err != nil {
-		return err
-	}
+	flushAndReset()
 
 	logger.Info("BatchDelete operation completed successfully.")
-	return nil
+	return result, nil
 }
 
 func (s *Store) Close() error {

@@ -433,6 +433,72 @@ var deleteCmd = &cobra.Command{
 	},
 }
 
+var batchDeleteCmd = &cobra.Command{
+	Use:   "batchDelete [jsonFilePath]",
+	Short: "Batch delete multiple keys specified in a JSON file",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		jsonFilePath := args[0]
+
+		if jsonFilePath == "" {
+			return fmt.Errorf("invalid file path: %s", jsonFilePath)
+		}
+
+		fileContent, err := os.ReadFile(jsonFilePath)
+		if err != nil {
+			return fmt.Errorf("failed to read file '%s': %w", jsonFilePath, err)
+		}
+
+		var batchDeleteReq utils.BatchGetRequestBody
+		if err := json.Unmarshal(fileContent, &batchDeleteReq); err != nil {
+			return fmt.Errorf("failed to parse JSON file '%s': %w", jsonFilePath, err)
+		}
+
+		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
+
+		if !ok {
+			return fmt.Errorf("http client not found in context")
+		}
+
+		jsonPayload, err := json.Marshal(batchDeleteReq)
+		if err != nil {
+			return fmt.Errorf("failed to marshal JSON payload: %w", err)
+		}
+
+		readerPayload := bytes.NewReader(jsonPayload)
+
+		req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", utils.BaseUrl, utils.BatchDeleteRoute), readerPayload)
+		if err != nil {
+			return fmt.Errorf("failed to create request: %w", err)
+		}
+
+		logger.Info("Sending BATCH DELETE request with data from file:", jsonFilePath)
+
+		resp, err := httpClient.Do(req)
+
+		logger.Debug("Received response from server for BATCH DELETE request:", resp)
+
+		if err != nil {
+			logger.Error("Error occurred while making BATCH DELETE request:", err)
+			return fmt.Errorf("failed to perform batch delete: %w", err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			fmt.Println("server returned non-OK status:", resp.Status)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read response body: %w", err)
+		}
+
+		fmt.Println(string(body))
+
+		return nil
+	},
+}
+
 var clearCmd = &cobra.Command{
 	Use:   "clear",
 	Short: "Clear all key-value pairs from the store",
@@ -552,9 +618,10 @@ func init() {
 	rootCmd.AddCommand(batchGetCmd)
 	rootCmd.AddCommand(putCmd)
 	rootCmd.AddCommand(putJsonCmd)
-	rootCmd.AddCommand(deleteCmd)
-	rootCmd.AddCommand(clearCmd)
 	rootCmd.AddCommand(batchPutCmd)
+	rootCmd.AddCommand(deleteCmd)
+	rootCmd.AddCommand(batchDeleteCmd)
+	rootCmd.AddCommand(clearCmd)
 }
 
 func main() {
