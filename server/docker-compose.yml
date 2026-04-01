@@ -21,7 +21,7 @@ services:
       - /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir
     networks:
       - getme-wrapper-net
-    restart: unless-stopped
+    restart: "on-failure:3"
 
 # loki will serve as the log storage backend
   grafana-loki:
@@ -35,7 +35,7 @@ services:
       - "3100:3100"
     networks:
       - getme-wrapper-net
-    restart: unless-stopped
+    restart: "on-failure:3"
 
 # grafana-alloy will collect and forward logs to loki
   grafana-alloy:
@@ -58,7 +58,7 @@ services:
         condition: service_started
     networks:
       - getme-wrapper-net
-    restart: unless-stopped
+    restart: "on-failure:3"
 
 # Grafana for log visualization
   grafana:
@@ -74,7 +74,7 @@ services:
       - grafana-loki
     networks:
       - getme-wrapper-net
-    restart: unless-stopped
+    restart: "on-failure:3"
 
 volumes:
   get-me-store-data:
