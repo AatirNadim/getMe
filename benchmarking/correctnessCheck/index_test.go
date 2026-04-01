@@ -3,55 +3,15 @@ package correctnessCheck
 import (
 	"fmt"
 	"math/rand"
-	"os"
-	"path/filepath"
 	"sync"
 	"testing"
 
-	"github.com/AatirNadim/getMe/server/src"
-	"github.com/AatirNadim/getMe/server/store"
+	"github.com/AatirNadim/getMe/benchmarking/util"
 )
-
-// setupStore creates a new store in a temporary directory for isolated testing.
-func setupStore(b *testing.B) (*store.Store, func()) {
-	// Create a temporary base directory for the benchmark run
-	baseDir, err := os.MkdirTemp("", "getme_benchmark_*")
-	if err != nil {
-		b.Fatalf("Failed to create temp dir: %v", err)
-	}
-
-	mainPath := filepath.Join(baseDir, "main")
-	compactedPath := filepath.Join(baseDir, "compacted")
-	loggingDisabled := true
-
-	// Initialize the store
-
-	kvStore, err := src.InitializeStore(mainPath, compactedPath, &loggingDisabled)
-
-	if err != nil {
-		b.Fatalf("Failed to initialize store: %v", err)
-	}
-
-	// Return the store and a cleanup function to be called deferred
-	return kvStore, func() {
-		kvStore.Close()
-		os.RemoveAll(baseDir)
-	}
-}
-
-// generateRandomString creates a random string of a given length.
-func generateRandomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(b)
-}
 
 // BenchmarkGet_Correctness measures the performance of reads while also verifying data correctness.
 func BenchmarkGet_Correctness(b *testing.B) {
-	kv, cleanup := setupStore(b)
+	kv, cleanup := util.SetupStore(b)
 	defer cleanup()
 
 	noFalseFlag := true
@@ -102,7 +62,7 @@ func BenchmarkGet_Correctness(b *testing.B) {
 
 // BenchmarkReadWriteMixed_Correctness measures performance and correctness under a mixed workload.
 func BenchmarkReadWriteMixed_Correctness(b *testing.B) {
-	kv, cleanup := setupStore(b)
+	kv, cleanup := util.SetupStore(b)
 	defer cleanup()
 
 	noFalseFlag := true
@@ -144,8 +104,8 @@ func BenchmarkReadWriteMixed_Correctness(b *testing.B) {
 				}
 			} else {
 				// Perform a write
-				key := generateRandomString(16)
-				value := generateRandomString(128)
+				key := util.GenerateRandomString(16)
+				value := util.GenerateRandomString(128)
 				expectedData.Store(key, value) // Store for potential future reads, though unlikely in this test structure
 				if err := kv.Put(key, value); err != nil {
 					b.Errorf("Put failed during mixed test: %v", err)
@@ -154,9 +114,71 @@ func BenchmarkReadWriteMixed_Correctness(b *testing.B) {
 		}
 	})
 
-
 	if !noFalseFlag {
 		fmt.Println("Data correctness check failed during Read/Write mixed benchmark")
 	}
 
+}
+
+// BenchmarkBatchGet_Correctness measures the performance of bulk-reading while also verifying data correctness.
+func BenchmarkBatchGet_Correctness(b *testing.B) {
+	kv, cleanup := util.SetupStore(b)
+	defer cleanup()
+
+	noFalseFlag := true
+
+	const numKeys = 10000
+	const batchSize = 100
+	expectedData := make(map[string]string, numKeys)
+	keys := make([]string, numKeys)
+
+	// Pre-populate an initial batch map
+	for i := 0; i < numKeys; i++ {
+		key := fmt.Sprintf("key%d", i)
+		value := fmt.Sprintf("value%d", i)
+		expectedData[key] = value
+		keys[i] = key
+	}
+
+	// Perform a batch-put to populate the store
+	if _, err := kv.BatchPut(expectedData); err != nil {
+		b.Fatalf("Failed to pre-populate store with BatchPut: %v", err)
+	}
+
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			batchKeys := make([]string, batchSize)
+			for i := 0; i < batchSize; i++ {
+				batchKeys[i] = keys[rand.Intn(numKeys)]
+			}
+
+			result, err := kv.BatchGet(batchKeys)
+			if err != nil {
+				b.Errorf("BatchGet failed: %v", err)
+				continue
+			}
+
+			if len(result.Errors) > 0 {
+				b.Errorf("BatchGet returned errors: %v", result.Errors)
+			}
+
+			for _, key := range batchKeys {
+				expectedValue := expectedData[key]
+				if retrievedValue, ok := result.Found[key]; ok {
+					if retrievedValue != expectedValue {
+						b.Errorf("Data mismatch for key %s: got %s, want %s", key, retrievedValue, expectedValue)
+						noFalseFlag = false
+					}
+				} else {
+					b.Errorf("Expected key %s to exist, but it was not found in result", key)
+					noFalseFlag = false
+				}
+			}
+		}
+	})
+
+	if !noFalseFlag {
+		fmt.Println("Data correctness check failed during BatchGet benchmark")
+	}
 }
