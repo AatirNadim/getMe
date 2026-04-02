@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -25,17 +26,29 @@ var (
 	logFileOnce     sync.Once
 	logFileErr      error
 	loggingDisabled atomic.Bool
+	logToStdout     atomic.Bool
 )
 
-func Initialize(logPath string) error {
+func Initialize(logPath string, loggingToShell *bool) error {
 	logFilePath = logPath
+	// updating the logToStdout atomic value based on the provided flag
 	if loggingDisabled.Load() {
 		fmt.Println("logging is disabled")
 		return nil
 	}
+
+	if *loggingToShell {
+		fmt.Println("Logging to stdout is enabled")
+		logToStdout.Store(true)
+	} else {
+		fmt.Println("Logging to stdout is disabled; logs will be written to file")
+		logToStdout.Store(false)
+		_, err := getLogFile()
+		return err
+	}
 	// Force initialization
-	_, err := getLogFile()
-	return err
+
+	return nil
 }
 
 func Disable() {
@@ -44,6 +57,14 @@ func Disable() {
 
 func Enable() {
 	loggingDisabled.Store(false)
+}
+
+func DisableLoggingToStdout() {
+	logToStdout.Store(false)
+}
+
+func EnableLoggingToStdout() {
+	logToStdout.Store(true)
 }
 
 // getLogFile returns the singleton log file instance
@@ -82,6 +103,13 @@ func getLogFile() (*os.File, error) {
 	return logFile, logFileErr
 }
 
+func getOutputWriter() (io.Writer, error) {
+	if logToStdout.Load() {
+		return os.Stdout, nil
+	}
+	return getLogFile()
+}
+
 // Close closes the log file (call this on application shutdown)
 func Close() error {
 	if logFile != nil {
@@ -101,19 +129,20 @@ func printMessage(title string, color string, message []any) {
 	// )
 
 	// Get the singleton log file
-	file, err := getLogFile()
+
+	writer, err := getOutputWriter()
 	if err != nil {
 		// If we can't open the log file, write error to stderr
 		fmt.Fprintf(os.Stderr, "level=ERROR msg=%q\n", fmt.Sprintf("Logger error: %v", err))
 		return
 	}
 
-	if file == nil {
+	if writer == nil {
 		fmt.Println("Logging is disabled, not writing to log file")
 		return
 	}
 
-	fmt.Fprintf(file, "level=%s timeStamp=%s msg=%q\n", title, time.Now().Format(time.RFC3339), fmt.Sprint(message...))
+	fmt.Fprintf(writer, "level=%s timeStamp=%s msg=%q\n", title, time.Now().Format(time.RFC3339), fmt.Sprint(message...))
 }
 
 // Public functions
