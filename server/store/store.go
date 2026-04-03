@@ -374,7 +374,7 @@ func (s *Store) BatchPut(batch map[string]string) (serverUtils.BatchPutResult, e
 			for i, res := range flushResults {
 				originalEntry := chunkEntries[i]
 				// Map the original entry key to its new location
-	
+
 				indexEntry := &core.HashTableEntry{
 					SegmentId: uint32(res.SegmentID),
 					Offset:    uint32(res.Offset),
@@ -384,16 +384,16 @@ func (s *Store) BatchPut(batch map[string]string) (serverUtils.BatchPutResult, e
 				keyStr := s.convertBytesToString(originalEntry.Key)
 				newIndexPointers[keyStr] = indexEntry
 			}
-	
+
 			// logger.Debug("batchput: updating hashtable with the latest index pointers, --> ", newIndexPointers)
-	
+
 			s.hashTable.BatchUpdate(newIndexPointers)
-	
+
 			// release all the entry objects back into the pool
 			for _, entry := range chunkEntries {
 				entryPool.Put(entry)
 			}
-			
+
 			result.Successful += len(chunkEntries)
 		}
 
@@ -498,7 +498,7 @@ func (s *Store) BatchDelete(keys []string) (serverUtils.BatchDeleteResult, error
 				keysToDelete = append(keysToDelete, string(entry.Key))
 				entryPool.Put(entry)
 			}
-	
+
 			s.hashTable.BatchDelete(keysToDelete)
 			result.Successful += len(chunkEntries)
 		}
