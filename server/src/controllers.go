@@ -16,7 +16,7 @@ import (
 
 type Controllers struct{}
 
-func GetController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) GetController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
 		if key == "" {
@@ -40,7 +40,7 @@ func GetController(storeInstance *store.Store) http.HandlerFunc {
 	}
 }
 
-func PutController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) PutController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		logger.Debug("Handling PUT request, parsing form data")
@@ -81,7 +81,7 @@ func PutController(storeInstance *store.Store) http.HandlerFunc {
 	}
 }
 
-func DeleteController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) DeleteController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
 		if key == "" {
@@ -98,7 +98,7 @@ func DeleteController(storeInstance *store.Store) http.HandlerFunc {
 	}
 }
 
-func ClearStoreController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) ClearStoreController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		if err := storeInstance.Clear(); err != nil {
@@ -112,7 +112,7 @@ func ClearStoreController(storeInstance *store.Store) http.HandlerFunc {
 	}
 }
 
-func BatchPutController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) BatchPutController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -157,7 +157,7 @@ func BatchPutController(storeInstance *store.Store) http.HandlerFunc {
 	}
 }
 
-func BatchGetController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) BatchGetController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -208,7 +208,7 @@ func BatchGetController(storeInstance *store.Store) http.HandlerFunc {
 	}
 }
 
-func BatchDeleteController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) BatchDeleteController(storeInstance *store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
