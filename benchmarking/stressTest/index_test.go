@@ -12,7 +12,7 @@ import (
 
 // BenchmarkPut measures the performance of concurrent single-key writes.
 func runBenchmarkPut(b *testing.B) {
-	kv, cleanup := util.SetupStore(b)
+	kv, cleanup := util.SetupStoreForBenchMarking(b)
 	defer cleanup()
 
 	b.ResetTimer()
@@ -31,7 +31,7 @@ func runBenchmarkPut(b *testing.B) {
 
 // BenchmarkGet measures the performance of concurrent single-key reads.
 func runBenchmarkGet(b *testing.B) {
-	kv, cleanup := util.SetupStore(b)
+	kv, cleanup := util.SetupStoreForBenchMarking(b)
 	defer cleanup()
 
 	// Pre-populate the store with a large number of keys
@@ -59,7 +59,7 @@ func runBenchmarkGet(b *testing.B) {
 
 // BenchmarkBatchPut measures the performance of bulk-writing batches of key-value pairs.
 func runBenchmarkBatchPut(b *testing.B) {
-	kv, cleanup := util.SetupStore(b)
+	kv, cleanup := util.SetupStoreForBenchMarking(b)
 	defer cleanup()
 
 	const batchSize = 100
@@ -82,7 +82,7 @@ func runBenchmarkBatchPut(b *testing.B) {
 
 // BenchmarkDelete measures the performance of concurrent single-key deletions.
 func runBenchmarkDelete(b *testing.B) {
-	kv, cleanup := util.SetupStore(b)
+	kv, cleanup := util.SetupStoreForBenchMarking(b)
 	defer cleanup()
 
 	const numKeys = 100000
@@ -126,7 +126,7 @@ func runBenchmarkDelete(b *testing.B) {
 // using closure here to avoid code duplication for different read/write ratios
 func benchmarkReadWriteMixedWithRatio(readThreshold int) func(b *testing.B) {
 	return func(b *testing.B) {
-		kv, cleanup := util.SetupStore(b)
+		kv, cleanup := util.SetupStoreForBenchMarking(b)
 		defer cleanup()
 
 		// Pre-populate with some initial data
@@ -159,7 +159,7 @@ func benchmarkReadWriteMixedWithRatio(readThreshold int) func(b *testing.B) {
 }
 
 func runBatchGetBenchmark(b *testing.B) {
-	kv, cleanup := util.SetupStore(b)
+	kv, cleanup := util.SetupStoreForBenchMarking(b)
 	defer cleanup()
 
 	const numKeys = 100000

@@ -14,16 +14,18 @@ import (
 	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
-type Controllers struct{}
+type Controllers struct{
+	StoreInstance *store.Store
+}
 
-func (c *Controllers) GetController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) GetController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
 		if key == "" {
 			http.Error(w, "missing key parameter", http.StatusBadRequest)
 			return
 		}
-		value, found, err := storeInstance.Get(key)
+		value, found, err := c.StoreInstance.Get(key)
 
 		if !found {
 			http.Error(w, fmt.Sprintf("key '%s' not found", key), http.StatusNotFound)
@@ -40,7 +42,7 @@ func (c *Controllers) GetController(storeInstance *store.Store) http.HandlerFunc
 	}
 }
 
-func (c *Controllers) PutController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) PutController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		logger.Debug("Handling PUT request, parsing form data")
@@ -70,7 +72,7 @@ func (c *Controllers) PutController(storeInstance *store.Store) http.HandlerFunc
 			http.Error(w, "missing key or value parameter", http.StatusBadRequest)
 			return
 		}
-		if err := storeInstance.Put(key, value); err != nil {
+		if err := c.StoreInstance.Put(key, value); err != nil {
 			logger.Error("Error putting value in store:", err)
 			http.Error(w, fmt.Sprintf("error putting value for key '%s': %v", key, err), http.StatusInternalServerError)
 			return
@@ -81,14 +83,14 @@ func (c *Controllers) PutController(storeInstance *store.Store) http.HandlerFunc
 	}
 }
 
-func (c *Controllers) DeleteController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) DeleteController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
 		if key == "" {
 			http.Error(w, "missing key parameter", http.StatusBadRequest)
 			return
 		}
-		if err := storeInstance.Delete(key); err != nil {
+		if err := c.StoreInstance.Delete(key); err != nil {
 			http.Error(w, fmt.Sprintf("error deleting key '%s': %v", key, err), http.StatusInternalServerError)
 			return
 		}
@@ -98,10 +100,10 @@ func (c *Controllers) DeleteController(storeInstance *store.Store) http.HandlerF
 	}
 }
 
-func (c *Controllers) ClearStoreController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) ClearStoreController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		if err := storeInstance.Clear(); err != nil {
+		if err := c.StoreInstance.Clear(); err != nil {
 			http.Error(w, fmt.Sprintf("error clearing store: %v", err), http.StatusInternalServerError)
 			return
 		}
@@ -112,7 +114,7 @@ func (c *Controllers) ClearStoreController(storeInstance *store.Store) http.Hand
 	}
 }
 
-func (c *Controllers) BatchPutController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) BatchPutController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -137,7 +139,7 @@ func (c *Controllers) BatchPutController(storeInstance *store.Store) http.Handle
 
 		logger.Debug("\n\nParsed batch put request payload:", batch, "\n\n")
 
-		res, err := storeInstance.BatchPut(batch)
+		res, err := c.StoreInstance.BatchPut(batch)
 
 		if err != nil {
 			logger.Error("Error in BatchPut operation:", err)
@@ -157,7 +159,7 @@ func (c *Controllers) BatchPutController(storeInstance *store.Store) http.Handle
 	}
 }
 
-func (c *Controllers) BatchGetController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) BatchGetController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -191,7 +193,7 @@ func (c *Controllers) BatchGetController(storeInstance *store.Store) http.Handle
 			return
 		}
 
-		result, err := storeInstance.BatchGet(keys)
+		result, err := c.StoreInstance.BatchGet(keys)
 		if err != nil {
 			logger.Error("Error in BatchGet operation:", err)
 			http.Error(w, fmt.Sprintf("error during batch get: %v", err), http.StatusInternalServerError)
@@ -208,7 +210,7 @@ func (c *Controllers) BatchGetController(storeInstance *store.Store) http.Handle
 	}
 }
 
-func (c *Controllers) BatchDeleteController(storeInstance *store.Store) http.HandlerFunc {
+func (c *Controllers) BatchDeleteController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -238,7 +240,7 @@ func (c *Controllers) BatchDeleteController(storeInstance *store.Store) http.Han
 			return
 		}
 
-		res, err := storeInstance.BatchDelete(keys)
+		res, err := c.StoreInstance.BatchDelete(keys)
 		if err != nil {
 			logger.Error("Error in BatchDelete operation:", err)
 			http.Error(w, fmt.Sprintf("error during batch delete: %v", err), http.StatusInternalServerError)
