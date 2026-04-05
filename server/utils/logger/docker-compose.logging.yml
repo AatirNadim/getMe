@@ -11,7 +11,7 @@ services:
       - "3100:3100"
     networks:
       - grafana-net
-    restart: unless-stopped
+    restart: "on-failure:3"
 
   grafana-alloy:
     image: grafana/alloy:v1.11.2
@@ -30,7 +30,7 @@ services:
       - grafana-loki
     networks:
       - grafana-net
-    restart: unless-stopped
+    restart: "on-failure:3"
   grafana:
     image: grafana/grafana:11.0.0
     container_name: grafana
@@ -48,7 +48,7 @@ services:
       - grafana-loki
     networks:
       - grafana-net
-    restart: unless-stopped
+    restart: "on-failure:3"
 
 volumes:
   loki-storage:

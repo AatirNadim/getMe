@@ -1,25 +1,14 @@
 package utils
 
-const (
-	BaseUrl          = "http://unix"
-	GetRoute         = "/get"
-	PutRoute         = "/put"
-	DeleteRoute      = "/delete"
-	ClearStoreRoute  = "/clearStore"
-	BatchPutRoute    = "/batch-put"
-	BatchGetRoute    = "/batch-get"
-	BatchDeleteRoute = "/batch-delete"
-)
-
 type PutRequestBody struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
 
-const (
-	SocketPath                 = "/tmp/getMeStore/sockDir/getMe.sock"
-	MaxJSONFileSizeBytes int64 = 5 * 1024 * 1024 // 5 MiB
-)
+type KeyValue struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
 
 type BatchGetRequestBody struct {
 	Keys []string `json:"keys"`
@@ -32,6 +21,10 @@ type BatchGetResult struct {
 }
 
 type BatchPutResult struct {
-	Successful []string          `json:"successful"`
+	Successful int               `json:"successful"`
 	Failed     map[string]string `json:"failed"` // key is the key that failed to put, value is the error message
 }
+
+type BatchDeleteRequestBody = BatchGetRequestBody
+
+type BatchDeleteResult = BatchPutResult

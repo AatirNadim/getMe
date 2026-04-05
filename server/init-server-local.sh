@@ -57,7 +57,7 @@ trap run_teardown EXIT INT TERM HUP
 
 
 # From here on, we've likely created/started resources, so teardown on exit is desired.
-ENABLE_TEARDOWN=1
+# ENABLE_TEARDOWN=1
 
 # --- 2. Initialize Persistent Data Directory ---
 echo -e "\n--> Setting up persistent data directory in /var/lib..."

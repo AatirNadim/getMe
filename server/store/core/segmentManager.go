@@ -227,6 +227,43 @@ func (sm *SegmentManager) Update(entry *Entry) (uint32, error) {
 	return offset, nil
 }
 
+
+
+
+// BatchRead reads multiple entries sequentially from a specific segment based on their offsets.
+//
+// Parameters:
+//   - segmentId (uint32): The unique identifier of the segment to read from.
+//   - offsets ([]uint32): A slice of starting byte positions within the segment for each entry to read.
+//   - keys ([]string): A slice of keys corresponding to each offset, used for error mapping.
+//
+// Returns:
+//   - []*Entry: A slice of pointers to the successfully read Entry objects.
+//   - map[string]string: A map containing any individual read errors, mapped by key.
+//   - error: An overall error if the segment cannot be accessed (e.g., segment not found).
+func (sm *SegmentManager) BatchRead(segmentId uint32, offsets []uint32, keys []string) ([]*Entry, map[string]string, error) {
+	sm.mu.RLock()
+	defer sm.mu.RUnlock()
+
+	segment, exists := sm.segmentMap[segmentId]
+	if !exists {
+		return nil, nil, utils.ErrSegmentNotFound
+	}
+
+	entries := make([]*Entry, 0, len(offsets))
+	errorsMap := make(map[string]string)
+	for i, offset := range offsets {
+		entry, _, err := segment.Get(offset)
+		if err != nil {
+			logger.Error("Error reading entry at offset", offset, "in segment", segmentId, ":", err)
+			errorsMap[keys[i]] = err.Error()
+			continue
+		}
+		entries = append(entries, entry)
+	}
+	return entries, errorsMap, nil
+}
+
 // FlushBuffer writes a buffer of serialized entries to the active segment.
 // It returns a map of keys to their new disk locations (SegmentID and Offset).
 // this is not an locked operation, i.e. no mutex is held during the operation
@@ -239,10 +276,39 @@ func (sm *SegmentManager) FlushBuffer(buffer []byte, entries []*Entry) ([]*Flush
 	// nextsegmentcounter is referenced only once in the function body, since it is atomic
 	currentSegment := sm.segmentMap[sm.nextSegmentCounter.Get()-1]
 
+	// Check if space is available for the entire buffer
+	if currentSegment.size+uint32(len(buffer)) > currentSegment.maxSize || currentSegment.entryCount+uint32(len(entries)) > currentSegment.maxCount {
+		logger.Info("FlushBuffer: No space available in current segment, creating a new segment...")
+
+		totalSegments := sm.TotalSegments()
+
+		if totalSegments > constants.ThresholdForCompaction {
+			// reserve segment ids for the compacted segments
+			segmentsForCompaction := sm.getSegmentsForCompaction()
+			currAvailableSegmentId, err := sm.updateActiveSegmentId(uint32(len(segmentsForCompaction)))
+
+			if err != nil {
+				logger.Error("FlushBuffer: failed to update active segment id: ", err)
+				return nil, err
+			}
+
+			go sm.PerformCompaction(segmentsForCompaction, currAvailableSegmentId)
+		}
+
+		newSegment, err := sm.createNewSegment(sm.basePath)
+		if err != nil {
+			return nil, err
+		}
+		currentSegment = newSegment
+	}
+
 	startOffset := currentSegment.size
 	if err := currentSegment.AppendBuffer(buffer); err != nil {
 		return nil, fmt.Errorf("failed to write buffer to segment: %w", err)
 	}
+
+	// Manually update entry count since AppendBuffer doesn't do it
+	currentSegment.entryCount += uint32(len(entries))
 
 	// flushResults := make(map[string]*FlushResult)
 
