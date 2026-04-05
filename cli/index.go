@@ -1,15 +1,13 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 
 	"github.com/AatirNadim/getMe/cli/core"
+	"github.com/AatirNadim/getMe/cli/core/service"
 	"github.com/AatirNadim/getMe/cli/utils"
 	"github.com/AatirNadim/getMe/utils/logger"
 
@@ -26,10 +24,14 @@ backed by an append-only log on your local disk.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		httpClient, err := core.CreateHttpClient(utils.SocketPath)
 
+		serviceLayer := &service.ServiceLayer{
+			HttpClient: httpClient,
+		}
+
 		logger.Info("HTTP client created with socket path:", utils.SocketPath)
 
 		logger.Info("Http client set as context to the command")
-		ctx := context.WithValue(cmd.Context(), "httpClientKey", httpClient)
+		ctx := context.WithValue(cmd.Context(), "serviceLayer", serviceLayer)
 		cmd.SetContext(ctx)
 
 		return err
@@ -47,43 +49,18 @@ var getCmd = &cobra.Command{
 		if key == "" {
 			return fmt.Errorf("invalid key: %s", key)
 		}
-		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
+		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
 
 		if !ok {
-			return fmt.Errorf("http client not found in context")
+			return fmt.Errorf("service layer not found in context")
 		}
 
-		req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", utils.BaseUrl, utils.GetRoute), nil)
+		var resp, err = serviceLayer.GetService(key)
 		if err != nil {
-			return fmt.Errorf("failed to create request: %w", err)
+			return fmt.Errorf("failed to get value for key '%s': %w", key, err)
 		}
 
-		q := req.URL.Query()
-		q.Add("key", key)
-		req.URL.RawQuery = q.Encode()
-
-		logger.Info("Sending GET request for key:", key, "encoded the key as request query parameter")
-
-		resp, err := httpClient.Do(req)
-
-		logger.Debug("Received response from server for GET request for key:", resp)
-
-		if err != nil {
-			logger.Error("Error occurred while making GET request:", err)
-			return fmt.Errorf("failed to get key '%s': %w", key, err)
-		}
-		defer resp.Body.Close()
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %w", err)
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("server returned non-OK status: %s, \nbody: %v", resp.Status, string(body))
-		}
-
-		fmt.Println(string(body))
+		fmt.Println(resp)
 
 		return nil
 	},
@@ -100,59 +77,26 @@ var getJsonCmd = &cobra.Command{
 		if key == "" {
 			return fmt.Errorf("invalid key: %s", key)
 		}
-		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
+		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
 
 		if !ok {
-			return fmt.Errorf("http client not found in context")
+			return fmt.Errorf("service layer not found in context")
 		}
 
-		req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", utils.BaseUrl, utils.GetRoute), nil)
+		resp, err := serviceLayer.GetJsonValueService(key)
+
 		if err != nil {
-			return fmt.Errorf("failed to create request: %w", err)
-		}
-
-		q := req.URL.Query()
-		q.Add("key", key)
-		req.URL.RawQuery = q.Encode()
-
-		logger.Info("Sending GET (JSON) request for key:", key, "encoded the key as request query parameter")
-
-		resp, err := httpClient.Do(req)
-		if err != nil {
-			logger.Error("Error occurred while making GET (JSON) request:", err)
-			return fmt.Errorf("failed to get key '%s': %w", key, err)
-		}
-		defer resp.Body.Close()
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %w", err)
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("server returned non-OK status: %s, \nbody: %v", resp.Status, string(body))
-		}
-
-		if !json.Valid(body) {
-			return fmt.Errorf("value for key '%s' is not valid JSON; use 'get' instead", key)
-		}
-
-		var pretty bytes.Buffer
-		if err := json.Indent(&pretty, body, "", "  "); err != nil {
-			return fmt.Errorf("failed to pretty-print JSON for key '%s': %w", key, err)
+			return fmt.Errorf("failed to get JSON value for key '%s': %w", key, err)
 		}
 
 		if getJsonOutputPath != "" {
-			if err := os.WriteFile(getJsonOutputPath, pretty.Bytes(), 0o644); err != nil {
-				return fmt.Errorf("failed to write JSON to file '%s': %w", getJsonOutputPath, err)
+			err := utils.StoreJSONInFile(resp, getJsonOutputPath)
+			if err != nil {
+				logger.Error("Error occurred while storing JSON value in file:", err)
 			}
-			fmt.Println("JSON value written to", getJsonOutputPath)
-			return nil
-		} else {
-			fmt.Println("No output path specified, simply printing the value on screen")
 		}
 
-		fmt.Println(pretty.String())
+		fmt.Println(string(resp))
 		return nil
 	},
 }
@@ -164,61 +108,23 @@ var batchGetCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		jsonFilePath := args[0]
 
-		if jsonFilePath == "" {
-			return fmt.Errorf("invalid file path: %s", jsonFilePath)
-		}
-
-		fileContent, err := os.ReadFile(jsonFilePath)
+		err := utils.ValidateJSONAndFilePath(jsonFilePath)
 		if err != nil {
-			return fmt.Errorf("failed to read file '%s': %w", jsonFilePath, err)
+			return fmt.Errorf("failed to validate JSON file '%s': %w", jsonFilePath, err)
 		}
 
-		// being able to parse the JSON input file in the desired format is important!
-		var batchGetReq utils.BatchGetRequestBody
-		if err := json.Unmarshal(fileContent, &batchGetReq); err != nil {
-			return fmt.Errorf("failed to parse JSON file '%s': %w", jsonFilePath, err)
-		}
-
-		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
+		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
 
 		if !ok {
-			return fmt.Errorf("http client not found in context")
+			return fmt.Errorf("service layer not found in context")
 		}
 
-		jsonPayload, err := json.Marshal(batchGetReq)
+		respStr, err := serviceLayer.BatchGetService(jsonFilePath)
 		if err != nil {
-			return fmt.Errorf("failed to marshal JSON payload: %w", err)
-		}
-
-		readerPayload := bytes.NewReader(jsonPayload)
-
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", utils.BaseUrl, utils.BatchGetRoute), readerPayload)
-		if err != nil {
-			return fmt.Errorf("failed to create request: %w", err)
-		}
-
-		logger.Info("Sending BATCH GET request with data from file:", jsonFilePath)
-
-		resp, err := httpClient.Do(req)
-
-		logger.Debug("Received response from server for BATCH GET request:", resp)
-
-		if err != nil {
-			logger.Error("Error occurred while making BATCH GET request:", err)
 			return fmt.Errorf("failed to perform batch get: %w", err)
 		}
-		defer resp.Body.Close()
 
-		if resp.StatusCode != http.StatusOK {
-			fmt.Println("server returned non-OK status:", resp.Status)
-		}
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %w", err)
-		}
-
-		fmt.Println(string(body))
+		fmt.Println(respStr)
 
 		return nil
 	},
@@ -240,51 +146,22 @@ var putCmd = &cobra.Command{
 			return fmt.Errorf("invalid value: %s", value)
 		}
 
-		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
+		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
 
 		if !ok {
-			return fmt.Errorf("http client not found in context")
+			return fmt.Errorf("service layer not found in context")
 		}
 
-		logger.Debug("Preparing JSON payload for PUT request with key:", key, " and value:", value)
-		jsonPayload, err := json.Marshal(utils.PutRequestBody{
-			Key:   key,
-			Value: value,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to marshal JSON payload: %w", err)
-		}
+		err := serviceLayer.PutService(key, value)
 
-		logger.Debug("preparing io reader payload with:", jsonPayload)
-		readerPayload := bytes.NewReader(jsonPayload)
-
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", utils.BaseUrl, utils.PutRoute), readerPayload)
-		if err != nil {
-			return fmt.Errorf("failed to create request: %w", err)
-		}
-
-		logger.Info("Sending PUT request for key:", key, " and value:", value, " encoded as request query parameters")
-
-		resp, err := httpClient.Do(req)
-
-		logger.Debug("Received response from server for PUT request for key:", resp)
+		logger.Debug("Performed put request for key:", key, " and value:", value)
 
 		if err != nil {
 			logger.Error("Error occurred while making PUT request:", err)
 			return fmt.Errorf("failed to put key '%s': %w", key, err)
 		}
-		defer resp.Body.Close()
 
-		if resp.StatusCode != http.StatusOK {
-			fmt.Println("server returned non-OK status: ", resp.Status)
-		}
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %w", err)
-		}
-
-		fmt.Println(string(body))
+		fmt.Println("Key-value pair successfully put into the store")
 
 		return nil
 	},
@@ -296,6 +173,11 @@ var putJsonCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 
+		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
+		if !ok {
+			return fmt.Errorf("service layer not found in context")
+		}
+
 		key := args[0]
 		jsonFilePath := args[1]
 
@@ -306,76 +188,23 @@ var putJsonCmd = &cobra.Command{
 			return fmt.Errorf("invalid JSON file path: %s", jsonFilePath)
 		}
 
-		info, err := os.Stat(jsonFilePath)
+		value, err := utils.GetStringFromJSONFile(jsonFilePath)
+
 		if err != nil {
-			return fmt.Errorf("failed to stat JSON file '%s': %w", jsonFilePath, err)
-		}
-		if !info.Mode().IsRegular() {
-			return fmt.Errorf("JSON path '%s' is not a regular file", jsonFilePath)
-		}
-		if info.Size() == 0 {
-			return fmt.Errorf("JSON file '%s' is empty", jsonFilePath)
-		}
-		if info.Size() > utils.MaxJSONFileSizeBytes {
-			return fmt.Errorf("JSON file '%s' size %d bytes exceeds the limit of %d bytes", jsonFilePath, info.Size(), utils.MaxJSONFileSizeBytes)
+			return fmt.Errorf("Failed to extract value from JSON file '%s': %w", jsonFilePath, err)
 		}
 
-		fileContent, err := os.ReadFile(jsonFilePath)
-		if err != nil {
-			return fmt.Errorf("failed to read JSON file '%s': %w", jsonFilePath, err)
-		}
+		err = serviceLayer.PutService(key, value)
 
-		if !json.Valid(fileContent) {
-			return fmt.Errorf("file '%s' does not contain valid JSON", jsonFilePath)
-		}
+		logger.Debug("Performed PUT (JSON) request for key:", key, " and JSON value from file:", jsonFilePath)
 
-		var compacted bytes.Buffer
-		if err := json.Compact(&compacted, fileContent); err != nil {
-			return fmt.Errorf("failed to compact JSON from file '%s': %w", jsonFilePath, err)
-		}
-		value := compacted.String()
-		fmt.Println("compacted json value: ", value)
-
-		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
-		if !ok {
-			return fmt.Errorf("http client not found in context")
-		}
-
-		logger.Debug("Preparing JSON payload for PUT (JSON) request with key:", key, " and value loaded from file:", jsonFilePath)
-		jsonPayload, err := json.Marshal(utils.PutRequestBody{
-			Key:   key,
-			Value: value,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to marshal JSON payload: %w", err)
-		}
-
-		readerPayload := bytes.NewReader(jsonPayload)
-
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", utils.BaseUrl, utils.PutRoute), readerPayload)
-		if err != nil {
-			return fmt.Errorf("failed to create request: %w", err)
-		}
-
-		logger.Info("Sending PUT (JSON) request for key:", key, " with JSON value from file:", jsonFilePath)
-
-		resp, err := httpClient.Do(req)
 		if err != nil {
 			logger.Error("Error occurred while making PUT (JSON) request:", err)
-			return fmt.Errorf("failed to put key '%s' from JSON file '%s': %w", key, jsonFilePath, err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			fmt.Println("server returned non-OK status: ", resp.Status)
+			return fmt.Errorf("failed to put key '%s' with JSON value from file '%s': %w", key, jsonFilePath, err)
 		}
 
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %w", err)
-		}
+		fmt.Println("Key and JSON value successfully put into the store")
 
-		fmt.Println(string(body))
 		return nil
 	},
 }
@@ -391,43 +220,22 @@ var deleteCmd = &cobra.Command{
 		if key == "" {
 			return fmt.Errorf("invalid key: %s", key)
 		}
-		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
+		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
 
 		if !ok {
-			return fmt.Errorf("http client not found in context")
+			return fmt.Errorf("service layer not found in context")
 		}
 
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s%s", utils.BaseUrl, utils.DeleteRoute), nil)
-		if err != nil {
-			return fmt.Errorf("failed to create request: %w", err)
-		}
+		err := serviceLayer.DeleteService(key)
 
-		q := req.URL.Query()
-		q.Add("key", key)
-		req.URL.RawQuery = q.Encode()
-		logger.Info("Sending DELETE request for key:", key, " encoded as request query parameter")
-
-		resp, err := httpClient.Do(req)
-		logger.Debug("Received response from server for DELETE request for key:", resp)
+		logger.Debug("Performed delete request for key:", key)
 
 		if err != nil {
 			logger.Error("Error occurred while making DELETE request:", err)
 			return fmt.Errorf("failed to delete key '%s': %w", key, err)
 		}
-		defer resp.Body.Close()
 
-		if resp.StatusCode != http.StatusOK {
-			fmt.Println("server returned non-OK status:", resp.Status)
-		}
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			// fmt.Println("failed to read response body:", err)
-			return fmt.Errorf("failed to read response body: %w", err)
-		}
-
-		// fmt.Println("printing the response body:")
-		fmt.Println(string(body))
+		fmt.Println("Key-value pair successfully deleted from the store")
 
 		return nil
 	},
@@ -440,9 +248,12 @@ var batchDeleteCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		jsonFilePath := args[0]
 
-		if jsonFilePath == "" {
-			return fmt.Errorf("invalid file path: %s", jsonFilePath)
+		err := utils.ValidateJSONAndFilePath(jsonFilePath)
+		if err != nil {
+			return fmt.Errorf("failed to validate JSON file '%s': %w", jsonFilePath, err)
 		}
+
+		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
 
 		fileContent, err := os.ReadFile(jsonFilePath)
 		if err != nil {
@@ -454,46 +265,20 @@ var batchDeleteCmd = &cobra.Command{
 			return fmt.Errorf("failed to parse JSON file '%s': %w", jsonFilePath, err)
 		}
 
-		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
-
 		if !ok {
-			return fmt.Errorf("http client not found in context")
+			return fmt.Errorf("service layer not found in context")
 		}
 
-		jsonPayload, err := json.Marshal(batchDeleteReq)
-		if err != nil {
-			return fmt.Errorf("failed to marshal JSON payload: %w", err)
-		}
+		err = serviceLayer.BatchDeleteService(batchDeleteReq)
 
-		readerPayload := bytes.NewReader(jsonPayload)
-
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", utils.BaseUrl, utils.BatchDeleteRoute), readerPayload)
-		if err != nil {
-			return fmt.Errorf("failed to create request: %w", err)
-		}
-
-		logger.Info("Sending BATCH DELETE request with data from file:", jsonFilePath)
-
-		resp, err := httpClient.Do(req)
-
-		logger.Debug("Received response from server for BATCH DELETE request:", resp)
+		logger.Debug("Performed batch delete request for keys from file:", jsonFilePath)
 
 		if err != nil {
-			logger.Error("Error occurred while making BATCH DELETE request:", err)
-			return fmt.Errorf("failed to perform batch delete: %w", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			fmt.Println("server returned non-OK status:", resp.Status)
+			logger.Error("Error occurred while making batch DELETE request:", err)
+			return fmt.Errorf("failed to perform batch delete for keys from file '%s': %w", jsonFilePath, err)
 		}
 
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %w", err)
-		}
-
-		fmt.Println(string(body))
+		fmt.Println("Batch delete operation successful for keys from file:", jsonFilePath)
 
 		return nil
 	},
@@ -505,39 +290,22 @@ var clearCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
+		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
 
 		if !ok {
-			return fmt.Errorf("http client not found in context")
+			return fmt.Errorf("service layer not found in context")
 		}
 
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s%s", utils.BaseUrl, utils.ClearStoreRoute), nil)
-		if err != nil {
-			return fmt.Errorf("failed to create request: %w", err)
-		}
+		err := serviceLayer.ClearStoreService()
 
-		logger.Info("Sending CLEAR request to clear all key-value pairs from the store")
-
-		resp, err := httpClient.Do(req)
-
-		logger.Debug("Received response from server for CLEAR request:", resp)
+		logger.Debug("Performed clear store request")
 
 		if err != nil {
-			logger.Error("Error occurred while making CLEAR request:", err)
-			return fmt.Errorf("failed to clear store: %w", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			fmt.Println("server returned non-OK status:", resp.Status)
+			logger.Error("Error occurred while making clear store request:", err)
+			return fmt.Errorf("failed to clear the store: %w", err)
 		}
 
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %w", err)
-		}
-
-		fmt.Println(string(body))
+		fmt.Println("Store successfully cleared")
 
 		return nil
 	},
@@ -551,8 +319,9 @@ var batchPutCmd = &cobra.Command{
 
 		jsonFilePath := args[0]
 
-		if jsonFilePath == "" {
-			return fmt.Errorf("invalid file path: %s", jsonFilePath)
+		err := utils.ValidateJSONAndFilePath(jsonFilePath)
+		if err != nil {
+			return fmt.Errorf("failed to validate JSON file '%s': %w", jsonFilePath, err)
 		}
 
 		fileContent, err := os.ReadFile(jsonFilePath)
@@ -566,46 +335,22 @@ var batchPutCmd = &cobra.Command{
 			return fmt.Errorf("failed to parse JSON file '%s': %w", jsonFilePath, err)
 		}
 
-		httpClient, ok := cmd.Context().Value("httpClientKey").(*http.Client)
+		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
 
 		if !ok {
-			return fmt.Errorf("http client not found in context")
+			return fmt.Errorf("service layer not found in context")
 		}
 
-		jsonPayload, err := json.Marshal(keyValuePairs)
-		if err != nil {
-			return fmt.Errorf("failed to marshal JSON payload: %w", err)
-		}
+		err = serviceLayer.BatchPutService(keyValuePairs)
 
-		readerPayload := bytes.NewReader(jsonPayload)
-
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", utils.BaseUrl, utils.BatchPutRoute), readerPayload)
-		if err != nil {
-			return fmt.Errorf("failed to create request: %w", err)
-		}
-
-		logger.Info("Sending BATCH PUT request with data from file:", jsonFilePath)
-
-		resp, err := httpClient.Do(req)
-
-		logger.Debug("Received response from server for BATCH PUT request:", resp)
+		logger.Debug("Performed BATCH PUT request with data from file:", jsonFilePath)
 
 		if err != nil {
 			logger.Error("Error occurred while making BATCH PUT request:", err)
-			return fmt.Errorf("failed to perform batch put: %w", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			fmt.Println("server returned non-OK status:", resp.Status)
+			return fmt.Errorf("failed to perform batch put with data from file '%s': %w", jsonFilePath, err)
 		}
 
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %w", err)
-		}
-
-		fmt.Println(string(body))
+		fmt.Println("Batch put operation successful for key-value pairs from file:", jsonFilePath)
 
 		return nil
 	},
