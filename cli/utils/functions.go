@@ -90,12 +90,13 @@ func CreateHTTPRequest(opts RequestOptions) (*http.Request, error) {
 func exetuteHTTPRequestUtil(client *http.Client, req *http.Request) ([]byte, error) {
 	resp, err := client.Do(req)
 
-	logger.Debug("Received response from server for request:", resp)
-
 	if err != nil {
 		logger.Error("Error occurred while making request:", err)
 		return nil, fmt.Errorf("failed to perform request: %w", err)
 	}
+
+	logger.Debug("Received response from server for request:", resp)
+
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)

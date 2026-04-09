@@ -32,6 +32,10 @@ func (s *ServiceLayer) GetService(key string) (string, error) {
 
 	respStr, err := utils.ExecuteHTTPRequest(s.HttpClient, req)
 
+	if err != nil {
+		return "", fmt.Errorf("failed to perform GET request for key '%s': %w", key, err)
+	}
+
 	return respStr, nil
 }
 
@@ -51,28 +55,32 @@ func (s *ServiceLayer) GetJsonValueService(key string) ([]byte, error) {
 	}
 
 	resp, err := utils.ExecuteHTTPRequestAndReturnBuffer(s.HttpClient, req)
+	
+	if err != nil {
+		return nil, fmt.Errorf("failed to perform GET request for key '%s': %w", key, err)
+	}
 
 	return resp, nil
 }
 
-func (s *ServiceLayer) BatchGetService(jsonFilePath string) (utils.BatchGetResult, error) {
+func (s *ServiceLayer) BatchGetService(jsonFilePath string) (string, error) {
 
 	fileContent, err := os.ReadFile(jsonFilePath)
 	if err != nil {
-		return utils.BatchGetResult{}, fmt.Errorf("failed to read file '%s': %w", jsonFilePath, err)
+		return "", fmt.Errorf("failed to read file '%s': %w", jsonFilePath, err)
 	}
 
 	// being able to parse the JSON input file in the desired format is important!
 	var batchGetReq utils.BatchGetRequestBody
 	if err := json.Unmarshal(fileContent, &batchGetReq); err != nil {
-		return utils.BatchGetResult{}, fmt.Errorf("failed to parse JSON file '%s': %w", jsonFilePath, err)
+		return "", fmt.Errorf("failed to parse JSON file '%s': %w", jsonFilePath, err)
 	}
 
 	jsonPayload, err := json.Marshal(utils.BatchGetRequestBody{
 		Keys: batchGetReq.Keys,
 	})
 	if err != nil {
-		return utils.BatchGetResult{}, fmt.Errorf("failed to marshal batch get keys into JSON: %w", err)
+		return "", fmt.Errorf("failed to marshal batch get keys into JSON: %w", err)
 	}
 
 	readerPayload := bytes.NewReader(jsonPayload)
@@ -84,20 +92,20 @@ func (s *ServiceLayer) BatchGetService(jsonFilePath string) (utils.BatchGetResul
 		Body:   readerPayload,
 	})
 	if err != nil {
-		return utils.BatchGetResult{}, fmt.Errorf("failed to create batch get request: %w", err)
+		return "", fmt.Errorf("failed to create batch get request: %w", err)
 	}
 
 	respStr, err := utils.ExecuteHTTPRequest(s.HttpClient, req)
 	if err != nil {
-		return utils.BatchGetResult{}, fmt.Errorf("failed to execute batch get request: %w", err)
+		return "", fmt.Errorf("failed to execute batch get request: %w", err)
 	}
 
 	var result utils.BatchGetResult
 	if err := json.Unmarshal([]byte(respStr), &result); err != nil {
-		return utils.BatchGetResult{}, fmt.Errorf("failed to unmarshal batch get response: %w", err)
+		return "", fmt.Errorf("failed to unmarshal batch get response: %w", err)
 	}
 
-	return result, nil
+	return respStr, nil
 }
 
 func (s *ServiceLayer) PutService(key, value string) error {
@@ -115,7 +123,7 @@ func (s *ServiceLayer) PutService(key, value string) error {
 	readerPayload := bytes.NewReader(jsonPayload)
 
 	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
-		Method: http.MethodPut,
+		Method: http.MethodPost,
 		URL:    utils.BaseUrl,
 		Path:   utils.PutRoute,
 		Body:   readerPayload,
@@ -199,7 +207,7 @@ func (s *ServiceLayer) BatchDeleteService(batchDeleteReq utils.BatchGetRequestBo
 	readerPayload := bytes.NewReader(jsonPayload)
 
 	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
-		Method: http.MethodPost,
+		Method: http.MethodDelete,
 		URL:    utils.BaseUrl,
 		Path:   utils.BatchDeleteRoute,
 		Body:   readerPayload,
@@ -207,6 +215,8 @@ func (s *ServiceLayer) BatchDeleteService(batchDeleteReq utils.BatchGetRequestBo
 	if err != nil {
 		return fmt.Errorf("failed to create batch delete request: %w", err)
 	}
+
+	fmt.Println("request method: ", req.Method, "request url: ", req.URL)
 
 	_, err = utils.ExecuteHTTPRequest(s.HttpClient, req)
 	if err != nil {
@@ -220,7 +230,7 @@ func (s *ServiceLayer) BatchDeleteService(batchDeleteReq utils.BatchGetRequestBo
 func (s *ServiceLayer) ClearStoreService() error {
 
 	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
-		Method: http.MethodPost,
+		Method: http.MethodDelete,
 		URL:    utils.BaseUrl,
 		Path:   utils.ClearStoreRoute,
 	})

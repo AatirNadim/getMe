@@ -55,7 +55,7 @@ var getCmd = &cobra.Command{
 			return fmt.Errorf("service layer not found in context")
 		}
 
-		var resp, err = serviceLayer.GetService(key)
+		resp, err := serviceLayer.GetService(key)
 		if err != nil {
 			return fmt.Errorf("failed to get value for key '%s': %w", key, err)
 		}
