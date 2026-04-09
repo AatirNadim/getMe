@@ -27,6 +27,6 @@ func muxHandler(storeInstance *store.Store) *http.ServeMux {
 
 	mux.HandleFunc(fmt.Sprintf("POST %s", utils.BatchGetRoute), c.BatchGetController())
 
-	mux.HandleFunc(fmt.Sprintf("POST %s", utils.BatchDeleteRoute), c.BatchDeleteController())
+	mux.HandleFunc(fmt.Sprintf("DELETE %s", utils.BatchDeleteRoute), c.BatchDeleteController())
 	return mux
 }

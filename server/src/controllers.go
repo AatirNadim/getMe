@@ -14,12 +14,16 @@ import (
 	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
-type Controllers struct{
+type Controllers struct {
 	StoreInstance *store.Store
 }
 
 func (c *Controllers) GetController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 		key := r.URL.Query().Get("key")
 		if key == "" {
 			http.Error(w, "missing key parameter", http.StatusBadRequest)
@@ -27,13 +31,13 @@ func (c *Controllers) GetController() http.HandlerFunc {
 		}
 		value, found, err := c.StoreInstance.Get(key)
 
-		if !found {
-			http.Error(w, fmt.Sprintf("key '%s' not found", key), http.StatusNotFound)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error getting value for key '%s': %v", key, err), http.StatusInternalServerError)
 			return
 		}
 
-		if err != nil {
-			http.Error(w, fmt.Sprintf("error getting value for key '%s': %v", key, err), http.StatusInternalServerError)
+		if !found {
+			http.Error(w, fmt.Sprintf("key '%s' not found", key), http.StatusNotFound)
 			return
 		}
 
@@ -44,6 +48,10 @@ func (c *Controllers) GetController() http.HandlerFunc {
 
 func (c *Controllers) PutController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
 		logger.Debug("Handling PUT request, parsing form data")
 		body, err := io.ReadAll(r.Body)
@@ -85,6 +93,11 @@ func (c *Controllers) PutController() http.HandlerFunc {
 
 func (c *Controllers) DeleteController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
 		key := r.URL.Query().Get("key")
 		if key == "" {
 			http.Error(w, "missing key parameter", http.StatusBadRequest)
@@ -102,6 +115,10 @@ func (c *Controllers) DeleteController() http.HandlerFunc {
 
 func (c *Controllers) ClearStoreController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodDelete {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
 		if err := c.StoreInstance.Clear(); err != nil {
 			http.Error(w, fmt.Sprintf("error clearing store: %v", err), http.StatusInternalServerError)
@@ -212,7 +229,7 @@ func (c *Controllers) BatchGetController() http.HandlerFunc {
 
 func (c *Controllers) BatchDeleteController() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
+		if r.Method != http.MethodDelete {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
