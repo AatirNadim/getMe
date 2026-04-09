@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: benchmarking
+        working-directory: server/benchmarking
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,7 +25,7 @@ jobs:
       - name: Run stress benchmarks
         id: stress
         run: |
-          RESULT_DIR="${GITHUB_WORKSPACE}/benchmarking/benchmark-results/stress"
+          RESULT_DIR="${GITHUB_WORKSPACE}/server/benchmarking/benchmark-results/stress"
           mkdir -p "$RESULT_DIR"
           TEXT_DIR="$RUNNER_TEMP/getme-bench/stress"
           mkdir -p "$TEXT_DIR"
@@ -34,7 +34,7 @@ jobs:
           BENCH_TXT="$TEXT_DIR/${BENCH_BASENAME}.txt"
           BENCH_JSON="$RESULT_DIR/${BENCH_BASENAME}.json"
           go test ./stressTest -run=^$ -bench=. -benchmem | tee "$BENCH_TXT"
-          go tool test2json -p github.com/AatirNadim/getMe/benchmarking/stressTest < "$BENCH_TXT" > "$BENCH_JSON"
+          go tool test2json -p github.com/AatirNadim/getMe/server/benchmarking/stressTest < "$BENCH_TXT" > "$BENCH_JSON"
           echo "exporting the benchmark results to text format --> to be used by benchmark-action"
           echo "bench_txt=$BENCH_TXT" >> "$GITHUB_OUTPUT"
           echo "exporting the benchmark results to json format"
@@ -64,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: benchmarking
+        working-directory: server/benchmarking
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -78,7 +78,7 @@ jobs:
       - name: Run correctness benchmarks
         id: correctness
         run: |
-          RESULT_DIR="${GITHUB_WORKSPACE}/benchmarking/benchmark-results/correctness"
+          RESULT_DIR="${GITHUB_WORKSPACE}/server/benchmarking/benchmark-results/correctness"
           mkdir -p "$RESULT_DIR"
           TEXT_DIR="$RUNNER_TEMP/getme-bench/correctness"
           mkdir -p "$TEXT_DIR"
@@ -87,7 +87,7 @@ jobs:
           BENCH_TXT="$TEXT_DIR/${BENCH_BASENAME}.txt"
           BENCH_JSON="$RESULT_DIR/${BENCH_BASENAME}.json"
           go test ./correctnessCheck -run=^$ -bench=. -benchmem | tee "$BENCH_TXT"
-          go tool test2json -p github.com/AatirNadim/getMe/benchmarking/correctnessCheck < "$BENCH_TXT" > "$BENCH_JSON"
+          go tool test2json -p github.com/AatirNadim/getMe/server/benchmarking/correctnessCheck < "$BENCH_TXT" > "$BENCH_JSON"
           echo "bench_json=$BENCH_JSON" >> "$GITHUB_OUTPUT"
           rm -f "$BENCH_TXT"
 
