@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -77,4 +78,13 @@ func GenerateRandomString(length int) string {
 		b[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+// Helper to generate a large number of slice keys
+func GenerateDummyKeys(count int) []string {
+	keys := make([]string, count)
+	for i := 0; i < count; i++ {
+		keys[i] = fmt.Sprintf("key%d", i)
+	}
+	return keys
 }

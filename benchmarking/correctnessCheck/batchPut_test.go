@@ -12,17 +12,12 @@ import (
 	"github.com/AatirNadim/getMe/server/store/utils/constants"
 )
 
-func TestBatchGetController_EdgeCases(t *testing.T) {
+func TestBatchPutController_EdgeCases(t *testing.T) {
 
 	controllers, cleanup := util.SetupStoreForCorrectnessCheck(t)
 	defer cleanup()
 
-	err := controllers.StoreInstance.Put("valid_key_1", "value1")
-	if err != nil {
-		t.Fatalf("Failed to set up store with valid key: %v", err)
-	}
-
-	handler := controllers.BatchGetController()
+	handler := controllers.BatchPutController()
 
 	tests := []struct {
 		name           string
@@ -41,40 +36,31 @@ func TestBatchGetController_EdgeCases(t *testing.T) {
 		{
 			name:           "Invalid JSON format",
 			method:         http.MethodPost,
-			requestBody:    `{"keys": ["key1",}`, // syntax error
+			requestBody:    `{"key1": "value1",}`, // syntax error
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   "failed to parse JSON body",
 		},
 		{
-			name:           "Empty Keys List",
+			name:           "Invalid JSON Type (Array instead of Object)",
 			method:         http.MethodPost,
-			requestBody:    map[string][]string{"keys": {}},
+			requestBody:    `[{"key1": "value1"}]`,
 			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "empty keys list",
+			expectedBody:   "failed to parse JSON body",
 		},
 		{
-			name:   "Empty Keys List after Duplicate Removal",
-			method: http.MethodPost,
-			// Testing if delete duplicate leaves an empty list (edge case theoretically if it was ["", ...] but payload.Keys length 0 handles it)
-			requestBody:    map[string][]string{},
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "empty keys list",
-		},
-		{
-			name:           "Too Many Keys (> 10000)",
+			name:           "Empty Batch",
 			method:         http.MethodPost,
-			requestBody:    map[string][]string{"keys": generateDummyKeys(10001)},
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   "too many keys",
-		},
-		{
-			name:   "Valid Keys with Duplicates and Missing keys",
-			method: http.MethodPost,
-			// Payload includes a duplicate key, an existing key, and a missing key
-			requestBody:    map[string][]string{"keys": {"valid_key_1", "valid_key_1", "missing_key"}},
+			requestBody:    map[string]string{},
 			expectedStatus: http.StatusOK,
-			// Should return `{"found":{"valid_key_1":"value1"},"errors":{},"notFound":["missing_key"]}` or similar based on structure
-			expectedBody: `"valid_key_1":"value1"`,
+		},
+		{
+			name:   "Valid Batch",
+			method: http.MethodPost,
+			requestBody: map[string]string{
+				"test_put_key_1": "val1",
+				"test_put_key_2": "val2",
+			},
+			expectedStatus: http.StatusOK,
 		},
 	}
 
@@ -95,7 +81,7 @@ func TestBatchGetController_EdgeCases(t *testing.T) {
 				}
 			}
 
-			req := httptest.NewRequest(tc.method, "/batch-get", bytes.NewReader(bodyBytes))
+			req := httptest.NewRequest(tc.method, "/batch-put", bytes.NewReader(bodyBytes))
 			rr := httptest.NewRecorder()
 
 			handler.ServeHTTP(rr, req)
@@ -111,21 +97,20 @@ func TestBatchGetController_EdgeCases(t *testing.T) {
 	}
 }
 
-func TestBatchGetController_MaxBodySize(t *testing.T) {
+func TestBatchPutController_MaxBodySize(t *testing.T) {
 	controllers, cleanup := util.SetupStoreForCorrectnessCheck(t)
 	defer cleanup()
 
-	handler := controllers.BatchGetController()
+	handler := controllers.BatchPutController()
 
 	// Create a payload larger than MaxBodySize constraint
-	// constants.MaxBodySize is typically around 1MB or similar
 	largeSize := constants.MaxBodySize + 100
 	largeBytes := make([]byte, largeSize)
 	for i := range largeBytes {
-		largeBytes[i] = 'A' // Fill with arbitrary large text
+		largeBytes[i] = 'A' // Fill with arbitrary mock text
 	}
 
-	req := httptest.NewRequest(http.MethodPost, "/batch-get", bytes.NewReader(largeBytes))
+	req := httptest.NewRequest(http.MethodPost, "/batch-put", bytes.NewReader(largeBytes))
 	rr := httptest.NewRecorder()
 
 	handler.ServeHTTP(rr, req)
@@ -138,13 +123,4 @@ func TestBatchGetController_MaxBodySize(t *testing.T) {
 	if !strings.Contains(rr.Body.String(), "failed to read request body") {
 		t.Errorf("Expected 'failed to read request body', got %s", rr.Body.String())
 	}
-}
-
-// Helper to generate a large number of slice keys
-func generateDummyKeys(count int) []string {
-	keys := make([]string, count)
-	for i := 0; i < count; i++ {
-		keys[i] = "dummy_key"
-	}
-	return keys
 }

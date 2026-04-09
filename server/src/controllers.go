@@ -31,13 +31,13 @@ func (c *Controllers) GetController() http.HandlerFunc {
 		}
 		value, found, err := c.StoreInstance.Get(key)
 
-		if err != nil {
-			http.Error(w, fmt.Sprintf("error getting value for key '%s': %v", key, err), http.StatusInternalServerError)
+		if !found {
+			http.Error(w, fmt.Sprintf("key '%s' not found", key), http.StatusNotFound)
 			return
 		}
 
-		if !found {
-			http.Error(w, fmt.Sprintf("key '%s' not found", key), http.StatusNotFound)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error getting value for key '%s': %v", key, err), http.StatusInternalServerError)
 			return
 		}
 
