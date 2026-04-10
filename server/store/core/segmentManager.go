@@ -26,6 +26,7 @@ type SegmentManager struct {
 	compactedSegmentManager *CompactedSegmentManager
 	isCompacting            atomic.Bool
 	compactionResultChannel chan *CompactionResult
+	compactionWg            sync.WaitGroup
 }
 
 func NewSegmentManager(basePath, compactedBasePath string, centralHashTable *HashTable, compactionResultChannel chan *CompactionResult) (*SegmentManager, error) {
@@ -41,6 +42,7 @@ func NewSegmentManager(basePath, compactedBasePath string, centralHashTable *Has
 		nextSegmentCounter:      NewAtomicCounter(0),
 		compactedSegmentManager: compactedSegmentManager,
 		compactionResultChannel: compactionResultChannel,
+		compactionWg:            sync.WaitGroup{},
 	}
 
 	if err := os.MkdirAll(basePath, 0755); err != nil {
@@ -227,9 +229,6 @@ func (sm *SegmentManager) Update(entry *Entry) (uint32, error) {
 	return offset, nil
 }
 
-
-
-
 // BatchRead reads multiple entries sequentially from a specific segment based on their offsets.
 //
 // Parameters:
@@ -292,7 +291,7 @@ func (sm *SegmentManager) FlushBuffer(buffer []byte, entries []*Entry) ([]*Flush
 				return nil, err
 			}
 
-			go sm.PerformCompaction(segmentsForCompaction, currAvailableSegmentId)
+			go sm.TriggerCompaction(segmentsForCompaction, currAvailableSegmentId)
 		}
 
 		newSegment, err := sm.createNewSegment(sm.basePath)
@@ -390,7 +389,7 @@ func (sm *SegmentManager) appendEntryToLatestSegment(entry *Entry) (uint32, erro
 				return 0, err
 			}
 
-			go sm.PerformCompaction(segmentsForCompaction, currAvailableSegmentId)
+			go sm.TriggerCompaction(segmentsForCompaction, currAvailableSegmentId)
 
 		}
 
@@ -450,16 +449,29 @@ func (sm *SegmentManager) getScopedSegmentMap(segments []*Segment) map[uint32]*S
 	return scopedSegmentMap
 }
 
-// this will run as a separate goroutine
-// perform compaction and returns the compacted hash table to be merged with the central hash table
-func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSegmentId uint32) {
+// this will be used by the compaction manager to clear the compacted segments after they have been merged into the main segment manager
+func (sm *SegmentManager) WaitCompactions() {
+	sm.compactionWg.Wait()
+}
+
+func (sm *SegmentManager) TriggerCompaction(segments []*Segment, currAvailableSegmentId uint32) {
 
 	// this ensures that only one compaction runs at a time --> very important!!
 	if !sm.isCompacting.CompareAndSwap(false, true) {
 		logger.Info("Compaction is already in progress, skipping this trigger.")
 		return
 	}
+
+	sm.compactionWg.Add(1)
+	go sm.PerformCompaction(segments, currAvailableSegmentId)
+}
+
+// this will run as a separate goroutine
+// perform compaction and returns the compacted hash table to be merged with the central hash table
+func (sm *SegmentManager) PerformCompaction(segments []*Segment, currAvailableSegmentId uint32) {
+
 	defer sm.isCompacting.Store(false)
+	defer sm.compactionWg.Done()
 
 	if len(segments) == 0 {
 		logger.Info("No segments available for compaction")
