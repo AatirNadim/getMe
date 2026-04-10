@@ -6,12 +6,12 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/AatirNadim/getMe/benchmarking/util"
+	"github.com/AatirNadim/getMe/tests/util"
 )
 
 // BenchmarkGet_Correctness measures the performance of reads while also verifying data correctness.
 func BenchmarkGet_Correctness(b *testing.B) {
-	kv,  cleanup := util.SetupStoreForBenchMarking(b)
+	kv, cleanup := util.SetupStoreForBenchMarking(b)
 	defer cleanup()
 
 	noFalseFlag := true
@@ -62,7 +62,7 @@ func BenchmarkGet_Correctness(b *testing.B) {
 
 // BenchmarkReadWriteMixed_Correctness measures performance and correctness under a mixed workload.
 func BenchmarkReadWriteMixed_Correctness(b *testing.B) {
-	kv,  cleanup := util.SetupStoreForBenchMarking(b)
+	kv, cleanup := util.SetupStoreForBenchMarking(b)
 	defer cleanup()
 
 	noFalseFlag := true
@@ -122,7 +122,7 @@ func BenchmarkReadWriteMixed_Correctness(b *testing.B) {
 
 // BenchmarkBatchGet_Correctness measures the performance of bulk-reading while also verifying data correctness.
 func BenchmarkBatchGet_Correctness(b *testing.B) {
-	kv,  cleanup := util.SetupStoreForBenchMarking(b)
+	kv, cleanup := util.SetupStoreForBenchMarking(b)
 	defer cleanup()
 
 	noFalseFlag := true

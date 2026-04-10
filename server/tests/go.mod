@@ -1,4 +1,4 @@
-module github.com/AatirNadim/getMe/benchmarking
+module github.com/AatirNadim/getMe/tests
 
 go 1.23.1
 

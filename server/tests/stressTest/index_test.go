@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/AatirNadim/getMe/benchmarking/util"
+	"github.com/AatirNadim/getMe/tests/util"
 )
 
 // BenchmarkPut measures the performance of concurrent single-key writes.
