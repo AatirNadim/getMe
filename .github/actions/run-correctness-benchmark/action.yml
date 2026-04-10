@@ -1,0 +1,26 @@
+name: 'Run correctness benchmarks'
+description: 'Runs correctness benchmarks and exports JSON path'
+outputs:
+  bench_json:
+    description: 'Path to benchmark json output'
+    value: ${{ steps.correctness.outputs.bench_json }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Run correctness benchmarks
+      id: correctness
+      shell: bash
+      working-directory: server/tests
+      run: |
+        RESULT_DIR="${GITHUB_WORKSPACE}/server/tests/benchmark-results/correctness"
+        mkdir -p "$RESULT_DIR"
+        TEXT_DIR="$RUNNER_TEMP/getme-bench/correctness"
+        mkdir -p "$TEXT_DIR"
+        TIMESTAMP=$(date -u +"%Y%m%dT%H%M%SZ")
+        BENCH_BASENAME="correctness-${GITHUB_SHA}-${TIMESTAMP}"
+        BENCH_TXT="$TEXT_DIR/${BENCH_BASENAME}.txt"
+        BENCH_JSON="$RESULT_DIR/${BENCH_BASENAME}.json"
+        go test ./correctnessCheck -run=^$ -bench=. -benchmem | tee "$BENCH_TXT"
+        go tool test2json -p github.com/AatirNadim/getMe/server/tests/correctnessCheck < "$BENCH_TXT" > "$BENCH_JSON"
+        echo "bench_json=$BENCH_JSON" >> "$GITHUB_OUTPUT"
+        rm -f "$BENCH_TXT"

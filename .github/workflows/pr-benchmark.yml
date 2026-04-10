@@ -1,0 +1,39 @@
+name: PR Correctness Benchmark
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - assigned
+      - ready_for_review
+
+jobs:
+  correctness-benchmarks:
+    name: Correctness Benchmark Suite
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server/tests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+
+      - name: Run correctness benchmarks
+        id: correctness
+        uses: ./.github/actions/run-correctness-benchmark
+
+      - name: Upload correctness JSON artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: correctness-benchmark-json
+          path: ${{ steps.correctness.outputs.bench_json }}
