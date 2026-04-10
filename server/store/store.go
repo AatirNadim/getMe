@@ -560,6 +560,8 @@ func (s *Store) Close() error {
 	// s.mu.Lock()
 	// defer s.mu.Unlock()
 
+	s.segmentManager.WaitCompactions()
+
 	close(s.doneChannel)
 
 	s.wg.Wait()
