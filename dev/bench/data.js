@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775763660276,
+  "lastUpdate": 1775823221568,
   "repoUrl": "https://github.com/AatirNadim/getMe",
   "entries": {
     "go-stress-benchmarks": [
@@ -3408,6 +3408,150 @@ window.BENCHMARK_DATA = {
             "value": 39,
             "unit": "allocs/op",
             "extra": "220633 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "100563812+AatirNadim@users.noreply.github.com",
+            "name": "collywobble",
+            "username": "AatirNadim"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a19e035cf9ac8ca2a859bf05d5d883091b1ebc45",
+          "message": "Feature/unit tests (#10)\n\n* feat: add unit tests for batch get and put controllers, and edge case handling\n\n* feat: moved benchmarking as a nested module inside the server module",
+          "timestamp": "2026-04-10T17:42:59+05:30",
+          "tree_id": "f6addd01802963a937c960fa66b15746fc93ba3d",
+          "url": "https://github.com/AatirNadim/getMe/commit/a19e035cf9ac8ca2a859bf05d5d883091b1ebc45"
+        },
+        "date": 1775823220969,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkGet/Iteration1",
+            "value": 663.7,
+            "unit": "ns/op\t     143 B/op\t       6 allocs/op",
+            "extra": "1670676 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration1 - ns/op",
+            "value": 663.7,
+            "unit": "ns/op",
+            "extra": "1670676 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration1 - B/op",
+            "value": 143,
+            "unit": "B/op",
+            "extra": "1670676 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration1 - allocs/op",
+            "value": 6,
+            "unit": "allocs/op",
+            "extra": "1670676 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration2",
+            "value": 666.8,
+            "unit": "ns/op\t     143 B/op\t       6 allocs/op",
+            "extra": "1851132 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration2 - ns/op",
+            "value": 666.8,
+            "unit": "ns/op",
+            "extra": "1851132 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration2 - B/op",
+            "value": 143,
+            "unit": "B/op",
+            "extra": "1851132 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration2 - allocs/op",
+            "value": 6,
+            "unit": "allocs/op",
+            "extra": "1851132 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration3",
+            "value": 666.6,
+            "unit": "ns/op\t     143 B/op\t       6 allocs/op",
+            "extra": "1793664 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration3 - ns/op",
+            "value": 666.6,
+            "unit": "ns/op",
+            "extra": "1793664 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration3 - B/op",
+            "value": 143,
+            "unit": "B/op",
+            "extra": "1793664 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration3 - allocs/op",
+            "value": 6,
+            "unit": "allocs/op",
+            "extra": "1793664 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration1",
+            "value": 151148,
+            "unit": "ns/op\t   75431 B/op\t    1423 allocs/op",
+            "extra": "8738 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration1 - ns/op",
+            "value": 151148,
+            "unit": "ns/op",
+            "extra": "8738 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration1 - B/op",
+            "value": 75431,
+            "unit": "B/op",
+            "extra": "8738 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration1 - allocs/op",
+            "value": 1423,
+            "unit": "allocs/op",
+            "extra": "8738 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration2",
+            "value": 152900,
+            "unit": "ns/op\t   75676 B/op\t    1434 allocs/op",
+            "extra": "7952 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration2 - ns/op",
+            "value": 152900,
+            "unit": "ns/op",
+            "extra": "7952 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration2 - B/op",
+            "value": 75676,
+            "unit": "B/op",
+            "extra": "7952 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration2 - allocs/op",
+            "value": 1434,
+            "unit": "allocs/op",
+            "extra": "7952 times\n4 procs"
           }
         ]
       }
