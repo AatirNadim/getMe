@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AatirNadim/getMe/benchmarking/util"
+	"github.com/AatirNadim/getMe/tests/util"
 )
 
 func TestPutController_EdgeCases(t *testing.T) {
