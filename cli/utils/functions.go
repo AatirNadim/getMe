@@ -184,3 +184,33 @@ func StoreJSONInFile(data []byte, outputPath string) error {
 	return nil
 
 }
+
+func ParseCommandLine(s string) []string {
+	var args []string
+	var current strings.Builder
+	inSingleQuote := false
+	inDoubleQuote := false
+	hasChar := false
+
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c == '\'' && !inDoubleQuote {
+			inSingleQuote = !inSingleQuote
+		} else if c == '"' && !inSingleQuote {
+			inDoubleQuote = !inDoubleQuote
+		} else if (c == ' ' || c == '\t') && !inSingleQuote && !inDoubleQuote {
+			if hasChar {
+				args = append(args, current.String())
+				current.Reset()
+				hasChar = false
+			}
+		} else {
+			current.WriteByte(c)
+			hasChar = true
+		}
+	}
+	if hasChar {
+		args = append(args, current.String())
+	}
+	return args
+}
