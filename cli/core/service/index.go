@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/AatirNadim/getMe/cli/utils"
-	"github.com/AatirNadim/getMe/utils/logger"
 	"net/http"
 	"os"
+
+	"github.com/AatirNadim/getMe/cli/utils"
+	"github.com/AatirNadim/getMe/utils/logger"
 )
 
 type ServiceLayer struct {
@@ -55,7 +56,7 @@ func (s *ServiceLayer) GetJsonValueService(key string) ([]byte, error) {
 	}
 
 	resp, err := utils.ExecuteHTTPRequestAndReturnBuffer(s.HttpClient, req)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to perform GET request for key '%s': %w", key, err)
 	}
@@ -63,17 +64,10 @@ func (s *ServiceLayer) GetJsonValueService(key string) ([]byte, error) {
 	return resp, nil
 }
 
-func (s *ServiceLayer) BatchGetService(jsonFilePath string) (string, error) {
-
-	fileContent, err := os.ReadFile(jsonFilePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read file '%s': %w", jsonFilePath, err)
-	}
-
-	// being able to parse the JSON input file in the desired format is important!
+func (s *ServiceLayer) BatchGetServiceFromData(fileContent []byte) (string, error) {
 	var batchGetReq utils.BatchGetRequestBody
 	if err := json.Unmarshal(fileContent, &batchGetReq); err != nil {
-		return "", fmt.Errorf("failed to parse JSON file '%s': %w", jsonFilePath, err)
+		return "", fmt.Errorf("failed to parse JSON data: %w", err)
 	}
 
 	jsonPayload, err := json.Marshal(utils.BatchGetRequestBody{
@@ -106,6 +100,16 @@ func (s *ServiceLayer) BatchGetService(jsonFilePath string) (string, error) {
 	}
 
 	return respStr, nil
+}
+
+func (s *ServiceLayer) BatchGetService(jsonFilePath string) (string, error) {
+
+	fileContent, err := os.ReadFile(jsonFilePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file '%s': %w", jsonFilePath, err)
+	}
+
+	return s.BatchGetServiceFromData(fileContent)
 }
 
 func (s *ServiceLayer) PutService(key, value string) error {
