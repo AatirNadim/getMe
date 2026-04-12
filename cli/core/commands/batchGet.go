@@ -6,6 +6,7 @@ import (
 	"github.com/AatirNadim/getMe/cli/core/service"
 
 	"github.com/AatirNadim/getMe/cli/utils"
+	"github.com/AatirNadim/getMe/utils/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -32,8 +33,20 @@ var BatchGetCmd = &cobra.Command{
 			return fmt.Errorf("failed to perform batch get: %w", err)
 		}
 
+		outPath, _ := cmd.Flags().GetString("out")
+		if outPath != "" {
+			err := utils.StoreJSONInFile([]byte(respStr), outPath)
+			if err != nil {
+				logger.Error("Error occurred while storing JSON value in file:", err)
+			}
+		}
+
 		fmt.Println(respStr)
 
 		return nil
 	},
+}
+
+func init() {
+	BatchGetCmd.Flags().StringP("out", "o", "", "Optional path to write JSON value to")
 }
