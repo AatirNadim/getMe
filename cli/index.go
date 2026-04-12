@@ -14,9 +14,8 @@ import (
 	"github.com/AatirNadim/getMe/utils/logger"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
-
-var getJsonOutputPath string
 
 var rootCmd = &cobra.Command{
 	Use:   "getMe",
@@ -68,6 +67,13 @@ var replCmd = &cobra.Command{
 			cmdName := inputArgs[0]
 			cmdArgs := inputArgs[1:]
 
+			// to clear the interactive terminal screen
+			if cmdName == "clear" || cmdName == "cls" {
+				fmt.Print("\033[H\033[2J")
+				fmt.Printf("getMe> \n")
+				continue
+			}
+
 			// Find target command
 			var targetCmd *cobra.Command
 			for _, c := range rootCmd.Commands() {
@@ -78,7 +84,9 @@ var replCmd = &cobra.Command{
 			}
 
 			if targetCmd == nil || targetCmd.Name() == "getMe_repl" || cmdName == "help" {
-				if cmdName != "help" {
+				if targetCmd != nil && targetCmd.Name() == "getMe_repl" {
+					fmt.Println("you sly mofo, you just tried to run REPL inside REPL. that's cute..!")
+				} else if cmdName != "help" {
 					fmt.Printf("Unknown command: %s\n", cmdName)
 				}
 				// print available commands
@@ -94,39 +102,41 @@ var replCmd = &cobra.Command{
 			// Set the context from our repl command to the target command
 			targetCmd.SetContext(cmd.Context())
 
-			// Special handling for getJson output flag in REPL
-			// To keep it simple, we just parse it if it exists inside cmdArgs
-			if cmdName == "getJson" {
-				var finalArgs []string
-				var outPath string
-				for i := 0; i < len(cmdArgs); i++ {
-					if (cmdArgs[i] == "-o" || cmdArgs[i] == "--out") && i+1 < len(cmdArgs) {
-						outPath = cmdArgs[i+1]
-						i++ // skip next arg
-					} else {
-						finalArgs = append(finalArgs, cmdArgs[i])
-					}
+			// Reset all flags to default values to avoid state bleeding across REPL iterations
+			targetCmd.Flags().VisitAll(func(f *pflag.Flag) {
+				_ = f.Value.Set(f.DefValue)
+				f.Changed = false
+			})
+
+			// Parse flags out of the raw input
+			if err := targetCmd.ParseFlags(cmdArgs); err != nil {
+				if err == pflag.ErrHelp {
+					targetCmd.Help()
+				} else {
+					fmt.Println("Error parsing flags:", err)
 				}
-				getJsonOutputPath = outPath
-				cmdArgs = finalArgs
+				continue
 			}
+
+			// Retrieve the positional arguments (without the flags)
+			cleanArgs := targetCmd.Flags().Args()
 
 			// We bypass standard flag parsing and args validation in Cobra REPL
 			// because Cobra is not designed for continuous re-execution on the same tree.
 			// We will manually validate Args if possible.
 			if targetCmd.Args != nil {
-				if err := targetCmd.Args(targetCmd, cmdArgs); err != nil {
+				if err := targetCmd.Args(targetCmd, cleanArgs); err != nil {
 					fmt.Println("Error:", err)
 					continue
 				}
 			}
 
 			if targetCmd.RunE != nil {
-				if err := targetCmd.RunE(targetCmd, cmdArgs); err != nil {
+				if err := targetCmd.RunE(targetCmd, cleanArgs); err != nil {
 					fmt.Println("Error:", err)
 				}
 			} else if targetCmd.Run != nil {
-				targetCmd.Run(targetCmd, cmdArgs)
+				targetCmd.Run(targetCmd, cleanArgs)
 			}
 		}
 		return nil
@@ -135,7 +145,6 @@ var replCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(commands.GetCmd)
-	commands.GetJsonCmd.Flags().StringVarP(&getJsonOutputPath, "out", "o", "", "Optional path to write JSON value to")
 	rootCmd.AddCommand(commands.GetJsonCmd)
 	rootCmd.AddCommand(commands.BatchGetCmd)
 	rootCmd.AddCommand(commands.PutCmd)

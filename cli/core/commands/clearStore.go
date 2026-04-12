@@ -10,7 +10,7 @@ import (
 )
 
 var ClearCmd = &cobra.Command{
-	Use:   "clear",
+	Use:   "clearStoreConfirm",
 	Short: "Clear all key-value pairs from the store",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
