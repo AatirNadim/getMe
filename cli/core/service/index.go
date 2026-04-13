@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/AatirNadim/getMe/cli/utils"
+	"github.com/AatirNadim/getMe/commons"
 	"github.com/AatirNadim/getMe/utils/logger"
 )
 
@@ -17,10 +17,10 @@ type ServiceLayer struct {
 
 func (s *ServiceLayer) GetService(key string) (string, error) {
 
-	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
+	req, err := commons.CreateHTTPRequest(commons.RequestOptions{
 		Method: http.MethodGet,
-		URL:    utils.BaseUrl,
-		Path:   utils.GetRoute,
+		URL:    commons.BaseUrl,
+		Path:   commons.GetRoute,
 		QueryParams: map[string]string{
 			"key": key,
 		},
@@ -31,7 +31,7 @@ func (s *ServiceLayer) GetService(key string) (string, error) {
 		return "", fmt.Errorf("failed to create GET request for key '%s': %w", key, err)
 	}
 
-	respStr, err := utils.ExecuteHTTPRequest(s.HttpClient, req)
+	respStr, err := commons.ExecuteHTTPRequest(s.HttpClient, req)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to perform GET request for key '%s': %w", key, err)
@@ -41,10 +41,10 @@ func (s *ServiceLayer) GetService(key string) (string, error) {
 }
 
 func (s *ServiceLayer) GetJsonValueService(key string) ([]byte, error) {
-	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
+	req, err := commons.CreateHTTPRequest(commons.RequestOptions{
 		Method: http.MethodGet,
-		URL:    utils.BaseUrl,
-		Path:   utils.GetRoute,
+		URL:    commons.BaseUrl,
+		Path:   commons.GetRoute,
 		QueryParams: map[string]string{
 			"key": key,
 		},
@@ -55,7 +55,7 @@ func (s *ServiceLayer) GetJsonValueService(key string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to create GET request for key '%s': %w", key, err)
 	}
 
-	resp, err := utils.ExecuteHTTPRequestAndReturnBuffer(s.HttpClient, req)
+	resp, err := commons.ExecuteHTTPRequestAndReturnBuffer(s.HttpClient, req)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to perform GET request for key '%s': %w", key, err)
@@ -65,12 +65,12 @@ func (s *ServiceLayer) GetJsonValueService(key string) ([]byte, error) {
 }
 
 func (s *ServiceLayer) BatchGetServiceFromData(fileContent []byte) (string, error) {
-	var batchGetReq utils.BatchGetRequestBody
+	var batchGetReq commons.BatchGetRequestBody
 	if err := json.Unmarshal(fileContent, &batchGetReq); err != nil {
 		return "", fmt.Errorf("failed to parse JSON data: %w", err)
 	}
 
-	jsonPayload, err := json.Marshal(utils.BatchGetRequestBody{
+	jsonPayload, err := json.Marshal(commons.BatchGetRequestBody{
 		Keys: batchGetReq.Keys,
 	})
 	if err != nil {
@@ -79,22 +79,22 @@ func (s *ServiceLayer) BatchGetServiceFromData(fileContent []byte) (string, erro
 
 	readerPayload := bytes.NewReader(jsonPayload)
 
-	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
+	req, err := commons.CreateHTTPRequest(commons.RequestOptions{
 		Method: http.MethodPost,
-		URL:    utils.BaseUrl,
-		Path:   utils.BatchGetRoute,
+		URL:    commons.BaseUrl,
+		Path:   commons.BatchGetRoute,
 		Body:   readerPayload,
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to create batch get request: %w", err)
 	}
 
-	respStr, err := utils.ExecuteHTTPRequest(s.HttpClient, req)
+	respStr, err := commons.ExecuteHTTPRequest(s.HttpClient, req)
 	if err != nil {
 		return "", fmt.Errorf("failed to execute batch get request: %w", err)
 	}
 
-	var result utils.BatchGetResult
+	var result commons.BatchGetResult
 	if err := json.Unmarshal([]byte(respStr), &result); err != nil {
 		return "", fmt.Errorf("failed to unmarshal batch get response: %w", err)
 	}
@@ -115,7 +115,7 @@ func (s *ServiceLayer) BatchGetService(jsonFilePath string) (string, error) {
 func (s *ServiceLayer) PutService(key, value string) error {
 
 	logger.Debug("Preparing JSON payload for PUT request with key:", key, " and value:", value)
-	jsonPayload, err := json.Marshal(utils.PutRequestBody{
+	jsonPayload, err := json.Marshal(commons.PutRequestBody{
 		Key:   key,
 		Value: value,
 	})
@@ -126,10 +126,10 @@ func (s *ServiceLayer) PutService(key, value string) error {
 	logger.Debug("preparing io reader payload with:", jsonPayload)
 	readerPayload := bytes.NewReader(jsonPayload)
 
-	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
+	req, err := commons.CreateHTTPRequest(commons.RequestOptions{
 		Method: http.MethodPost,
-		URL:    utils.BaseUrl,
-		Path:   utils.PutRoute,
+		URL:    commons.BaseUrl,
+		Path:   commons.PutRoute,
 		Body:   readerPayload,
 	})
 
@@ -137,7 +137,7 @@ func (s *ServiceLayer) PutService(key, value string) error {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	_, err = utils.ExecuteHTTPRequest(s.HttpClient, req)
+	_, err = commons.ExecuteHTTPRequest(s.HttpClient, req)
 
 	if err != nil {
 		return fmt.Errorf("failed to perform request: %w", err)
@@ -156,10 +156,10 @@ func (s *ServiceLayer) BatchPutService(keyValuePairs map[string]string) error {
 
 	readerPayload := bytes.NewReader(jsonPayload)
 
-	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
+	req, err := commons.CreateHTTPRequest(commons.RequestOptions{
 		Method: http.MethodPost,
-		URL:    utils.BaseUrl,
-		Path:   utils.BatchPutRoute,
+		URL:    commons.BaseUrl,
+		Path:   commons.BatchPutRoute,
 		Body:   readerPayload,
 	})
 
@@ -167,7 +167,7 @@ func (s *ServiceLayer) BatchPutService(keyValuePairs map[string]string) error {
 		return fmt.Errorf("failed to create batch PUT request: %w", err)
 	}
 
-	_, err = utils.ExecuteHTTPRequest(s.HttpClient, req)
+	_, err = commons.ExecuteHTTPRequest(s.HttpClient, req)
 
 	if err != nil {
 		return fmt.Errorf("failed to perform batch PUT request: %w", err)
@@ -178,10 +178,10 @@ func (s *ServiceLayer) BatchPutService(keyValuePairs map[string]string) error {
 
 func (s *ServiceLayer) DeleteService(key string) error {
 
-	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
+	req, err := commons.CreateHTTPRequest(commons.RequestOptions{
 		Method: http.MethodDelete,
-		URL:    utils.BaseUrl,
-		Path:   utils.DeleteRoute,
+		URL:    commons.BaseUrl,
+		Path:   commons.DeleteRoute,
 		QueryParams: map[string]string{
 			"key": key,
 		},
@@ -192,7 +192,7 @@ func (s *ServiceLayer) DeleteService(key string) error {
 		return fmt.Errorf("failed to create DELETE request for key '%s': %w", key, err)
 	}
 
-	_, err = utils.ExecuteHTTPRequest(s.HttpClient, req)
+	_, err = commons.ExecuteHTTPRequest(s.HttpClient, req)
 
 	if err != nil {
 		logger.Error("Error occurred while executing DELETE request:", err)
@@ -202,7 +202,7 @@ func (s *ServiceLayer) DeleteService(key string) error {
 	return nil
 }
 
-func (s *ServiceLayer) BatchDeleteService(batchDeleteReq utils.BatchGetRequestBody) error {
+func (s *ServiceLayer) BatchDeleteService(batchDeleteReq commons.BatchGetRequestBody) error {
 	jsonPayload, err := json.Marshal(batchDeleteReq)
 	if err != nil {
 		return fmt.Errorf("failed to marshal JSON payload: %w", err)
@@ -210,10 +210,10 @@ func (s *ServiceLayer) BatchDeleteService(batchDeleteReq utils.BatchGetRequestBo
 
 	readerPayload := bytes.NewReader(jsonPayload)
 
-	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
+	req, err := commons.CreateHTTPRequest(commons.RequestOptions{
 		Method: http.MethodDelete,
-		URL:    utils.BaseUrl,
-		Path:   utils.BatchDeleteRoute,
+		URL:    commons.BaseUrl,
+		Path:   commons.BatchDeleteRoute,
 		Body:   readerPayload,
 	})
 	if err != nil {
@@ -222,7 +222,7 @@ func (s *ServiceLayer) BatchDeleteService(batchDeleteReq utils.BatchGetRequestBo
 
 	fmt.Println("request method: ", req.Method, "request url: ", req.URL)
 
-	_, err = utils.ExecuteHTTPRequest(s.HttpClient, req)
+	_, err = commons.ExecuteHTTPRequest(s.HttpClient, req)
 	if err != nil {
 		return fmt.Errorf("failed to execute batch delete request: %w", err)
 	}
@@ -233,10 +233,10 @@ func (s *ServiceLayer) BatchDeleteService(batchDeleteReq utils.BatchGetRequestBo
 
 func (s *ServiceLayer) ClearStoreService() error {
 
-	req, err := utils.CreateHTTPRequest(utils.RequestOptions{
+	req, err := commons.CreateHTTPRequest(commons.RequestOptions{
 		Method: http.MethodDelete,
-		URL:    utils.BaseUrl,
-		Path:   utils.ClearStoreRoute,
+		URL:    commons.BaseUrl,
+		Path:   commons.ClearStoreRoute,
 	})
 
 	if err != nil {
@@ -244,7 +244,7 @@ func (s *ServiceLayer) ClearStoreService() error {
 		return fmt.Errorf("failed to create Clear Store request: %w", err)
 	}
 
-	_, err = utils.ExecuteHTTPRequest(s.HttpClient, req)
+	_, err = commons.ExecuteHTTPRequest(s.HttpClient, req)
 
 	if err != nil {
 		logger.Error("Error occurred while executing Clear Store request:", err)

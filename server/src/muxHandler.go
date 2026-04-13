@@ -5,7 +5,8 @@ import (
 	"net/http"
 
 	"github.com/AatirNadim/getMe/server/store"
-	"github.com/AatirNadim/getMe/server/utils"
+	// "github.com/AatirNadim/getMe/server/utils"
+	"github.com/AatirNadim/getMe/commons"
 )
 
 func muxHandler(storeInstance *store.Store) *http.ServeMux {
@@ -15,18 +16,18 @@ func muxHandler(storeInstance *store.Store) *http.ServeMux {
 		StoreInstance: storeInstance,
 	}
 
-	mux.HandleFunc(fmt.Sprintf("GET %s", utils.GetRoute), c.GetController())
+	mux.HandleFunc(fmt.Sprintf("GET %s", commons.GetRoute), c.GetController())
 
-	mux.HandleFunc(fmt.Sprintf("POST %s", utils.PutRoute), c.PutController())
+	mux.HandleFunc(fmt.Sprintf("POST %s", commons.PutRoute), c.PutController())
 
-	mux.HandleFunc(fmt.Sprintf("DELETE %s", utils.DeleteRoute), c.DeleteController())
+	mux.HandleFunc(fmt.Sprintf("DELETE %s", commons.DeleteRoute), c.DeleteController())
 
-	mux.HandleFunc(fmt.Sprintf("DELETE %s", utils.ClearStoreRoute), c.ClearStoreController())
+	mux.HandleFunc(fmt.Sprintf("DELETE %s", commons.ClearStoreRoute), c.ClearStoreController())
 
-	mux.HandleFunc(fmt.Sprintf("POST %s", utils.BatchPutRoute), c.BatchPutController())
+	mux.HandleFunc(fmt.Sprintf("POST %s", commons.BatchPutRoute), c.BatchPutController())
 
-	mux.HandleFunc(fmt.Sprintf("POST %s", utils.BatchGetRoute), c.BatchGetController())
+	mux.HandleFunc(fmt.Sprintf("POST %s", commons.BatchGetRoute), c.BatchGetController())
 
-	mux.HandleFunc(fmt.Sprintf("DELETE %s", utils.BatchDeleteRoute), c.BatchDeleteController())
+	mux.HandleFunc(fmt.Sprintf("DELETE %s", commons.BatchDeleteRoute), c.BatchDeleteController())
 	return mux
 }

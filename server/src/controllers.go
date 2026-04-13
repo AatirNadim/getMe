@@ -9,7 +9,9 @@ import (
 	"github.com/AatirNadim/getMe/server/store"
 	local "github.com/AatirNadim/getMe/server/store/utils"
 	"github.com/AatirNadim/getMe/server/store/utils/constants"
-	"github.com/AatirNadim/getMe/server/utils"
+
+	// "github.com/AatirNadim/getMe/server/utils"
+	"github.com/AatirNadim/getMe/commons"
 
 	"github.com/AatirNadim/getMe/server/utils/logger"
 )
@@ -62,7 +64,7 @@ func (c *Controllers) PutController() http.HandlerFunc {
 			return
 		}
 
-		var requestPayload utils.PutRequestBody
+		var requestPayload commons.PutRequestBody
 
 		if err := json.Unmarshal(body, &requestPayload); err != nil {
 			logger.Error("Error parsing JSON body:", err)
@@ -192,7 +194,7 @@ func (c *Controllers) BatchGetController() http.HandlerFunc {
 			return
 		}
 
-		var payload utils.BatchGetRequestBody
+		var payload commons.BatchGetRequestBody
 		if err := json.Unmarshal(body, &payload); err != nil {
 			logger.Error("Error parsing batch-get JSON body:", err)
 			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
@@ -243,7 +245,7 @@ func (c *Controllers) BatchDeleteController() http.HandlerFunc {
 			return
 		}
 
-		var payload utils.BatchDeleteRequestBody
+		var payload commons.BatchDeleteRequestBody
 		if err := json.Unmarshal(body, &payload); err != nil {
 			logger.Error("Error parsing batch-delete JSON body:", err)
 			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)

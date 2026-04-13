@@ -6,7 +6,9 @@ import (
 	"os"
 
 	"github.com/AatirNadim/getMe/cli/core/service"
+
 	"github.com/AatirNadim/getMe/cli/utils"
+	"github.com/AatirNadim/getMe/commons"
 	"github.com/AatirNadim/getMe/utils/logger"
 
 	"github.com/spf13/cobra"
@@ -24,7 +26,7 @@ var BatchDeleteCmd = &cobra.Command{
 			return fmt.Errorf("service layer not found in context")
 		}
 
-		var batchDeleteReq utils.BatchGetRequestBody
+		var batchDeleteReq commons.BatchGetRequestBody
 		var sourceName string
 
 		if dataFlag != "" {

@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/AatirNadim/getMe/sdks/goSdk/core"
-	"github.com/AatirNadim/getMe/sdks/goSdk/core/constants"
+	"github.com/AatirNadim/getMe/commons"
 	"github.com/joho/godotenv"
 )
 
@@ -26,7 +26,7 @@ func (client *GetMeClient) Init() error {
 	var socketPath string
 	socketPath = os.Getenv("SOCKET_PATH")
 	if socketPath == "" {
-		socketPath = constants.SocketPath
+		socketPath = commons.SocketPath
 	}
 
 	httpClient, err := core.CreateHttpClient(socketPath)
@@ -38,7 +38,7 @@ func (client *GetMeClient) Init() error {
 }
 
 func (client *GetMeClient) Get(key string) (string, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", constants.BaseUrl, constants.GetRoute), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s%s", commons.BaseUrl, commons.GetRoute), nil)
 	if err != nil {
 		return "", err
 	}
@@ -77,59 +77,95 @@ func (client *GetMeClient) GetJSON(key string, out interface{}) error {
 	return nil
 }
 
-func (client *GetMeClient) BatchGet(jsonPath string) (constants.BatchGetResult, error) {
+func (client *GetMeClient) BatchGet(jsonPath string) (commons.BatchGetResult, error) {
 
 	jsonFile, err := os.Open(jsonPath)
 	if err != nil {
-		return constants.BatchGetResult{}, fmt.Errorf("failed to open JSON file: %w", err)
+		return commons.BatchGetResult{}, fmt.Errorf("failed to open JSON file: %w", err)
 	}
 	defer jsonFile.Close()
 
 	jsonBytes, err := io.ReadAll(jsonFile)
 	if err != nil {
-		return constants.BatchGetResult{}, fmt.Errorf("failed to read JSON file: %w", err)
+		return commons.BatchGetResult{}, fmt.Errorf("failed to read JSON file: %w", err)
 	}
 
-	var payload constants.BatchGetRequestBody
+	var payload commons.BatchGetRequestBody
 
 	// unmarshalling the json file followed by marshalling it again might seem redundant, but it allows us to validate the structure of the JSON file and ensure that it contains the expected "keys" field. It also allows us to easily convert the JSON data into the format required for the batch get request.
 
 	if err := json.Unmarshal(jsonBytes, &payload); err != nil {
-		return constants.BatchGetResult{}, fmt.Errorf("failed to unmarshal JSON file: %w", err)
+		return commons.BatchGetResult{}, fmt.Errorf("failed to unmarshal JSON file: %w", err)
 	}
 
-	jsonPayload, err := json.Marshal(constants.BatchGetRequestBody{
+	jsonPayload, err := json.Marshal(commons.BatchGetRequestBody{
 		Keys: payload.Keys,
 	})
 	if err != nil {
-		return constants.BatchGetResult{}, fmt.Errorf("failed to marshal JSON payload: %w", err)
+		return commons.BatchGetResult{}, fmt.Errorf("failed to marshal JSON payload: %w", err)
 	}
 
 	readerPayload := bytes.NewReader(jsonPayload)
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", constants.BaseUrl, constants.BatchGetRoute), readerPayload)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", commons.BaseUrl, commons.BatchGetRoute), readerPayload)
 	if err != nil {
-		return constants.BatchGetResult{}, err
+		return commons.BatchGetResult{}, err
 	}
 
 	resp, err := client.httpClient.Do(req)
 	if err != nil {
-		return constants.BatchGetResult{}, err
+		return commons.BatchGetResult{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return constants.BatchGetResult{}, fmt.Errorf("failed to batch get keys, status code: %d", resp.StatusCode)
+		return commons.BatchGetResult{}, fmt.Errorf("failed to batch get keys, status code: %d", resp.StatusCode)
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return constants.BatchGetResult{}, err
+		return commons.BatchGetResult{}, err
 	}
 
-	var batchGetResponse constants.BatchGetResult
+	var batchGetResponse commons.BatchGetResult
 
 	if err := json.Unmarshal(bodyBytes, &batchGetResponse); err != nil {
-		return constants.BatchGetResult{}, fmt.Errorf("failed to unmarshal batch get response: %w", err)
+		return commons.BatchGetResult{}, fmt.Errorf("failed to unmarshal batch get response: %w", err)
+	}
+
+	return batchGetResponse, nil
+}
+
+func (client *GetMeClient) BatchGetForPayload(payload commons.BatchGetRequestBody) (commons.BatchGetResult, error) {
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		return commons.BatchGetResult{}, fmt.Errorf("failed to marshal JSON payload: %w", err)
+	}
+
+	readerPayload := bytes.NewReader(jsonPayload)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", commons.BaseUrl, commons.BatchGetRoute), readerPayload)
+	if err != nil {
+		return commons.BatchGetResult{}, err
+	}
+
+	resp, err := client.httpClient.Do(req)
+	if err != nil {
+		return commons.BatchGetResult{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return commons.BatchGetResult{}, fmt.Errorf("failed to batch get keys, status code: %d", resp.StatusCode)
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return commons.BatchGetResult{}, err
+	}
+
+	var batchGetResponse commons.BatchGetResult
+
+	if err := json.Unmarshal(bodyBytes, &batchGetResponse); err != nil {
+		return commons.BatchGetResult{}, fmt.Errorf("failed to unmarshal batch get response: %w", err)
 	}
 
 	return batchGetResponse, nil
@@ -138,7 +174,7 @@ func (client *GetMeClient) BatchGet(jsonPath string) (constants.BatchGetResult, 
 func (client *GetMeClient) Put(key, value string) error {
 
 	fmt.Println("Preparing JSON payload for PUT request with key:", key, " and value:", value)
-	jsonPayload, err := json.Marshal(constants.PutRequestBody{
+	jsonPayload, err := json.Marshal(commons.PutRequestBody{
 		Key:   key,
 		Value: value,
 	})
@@ -149,7 +185,7 @@ func (client *GetMeClient) Put(key, value string) error {
 	fmt.Println("preparing io reader payload with:", jsonPayload)
 	readerPayload := bytes.NewReader(jsonPayload)
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", constants.BaseUrl, constants.PutRoute), readerPayload)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", commons.BaseUrl, commons.PutRoute), readerPayload)
 	if err != nil {
 		return err
 	}
@@ -181,61 +217,97 @@ func (client *GetMeClient) PutJSON(key string, v interface{}) error {
 	return client.Put(key, string(data))
 }
 
-func (client *GetMeClient) BatchPut(jsonPath string) (constants.BatchPutResult, error) {
+func (client *GetMeClient) BatchPut(jsonPath string) (commons.BatchPutResult, error) {
 	jsonFile, err := os.Open(jsonPath)
 	if err != nil {
-		return constants.BatchPutResult{}, fmt.Errorf("failed to open JSON file: %w", err)
+		return commons.BatchPutResult{}, fmt.Errorf("failed to open JSON file: %w", err)
 	}
 	defer jsonFile.Close()
 
 	jsonBytes, err := io.ReadAll(jsonFile)
 	if err != nil {
-		return constants.BatchPutResult{}, fmt.Errorf("failed to read JSON file: %w", err)
+		return commons.BatchPutResult{}, fmt.Errorf("failed to read JSON file: %w", err)
 	}
 
-	var payload []constants.KeyValue
+	var payload []commons.KeyValue
 
 	if err := json.Unmarshal(jsonBytes, &payload); err != nil {
-		return constants.BatchPutResult{}, fmt.Errorf("failed to unmarshal JSON file: %w", err)
+		return commons.BatchPutResult{}, fmt.Errorf("failed to unmarshal JSON file: %w", err)
 	}
 
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		return constants.BatchPutResult{}, fmt.Errorf("failed to marshal JSON payload: %w", err)
+		return commons.BatchPutResult{}, fmt.Errorf("failed to marshal JSON payload: %w", err)
 	}
 
 	readerPayload := bytes.NewReader(jsonPayload)
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", constants.BaseUrl, constants.BatchPutRoute), readerPayload)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", commons.BaseUrl, commons.BatchPutRoute), readerPayload)
 	if err != nil {
-		return constants.BatchPutResult{}, err
+		return commons.BatchPutResult{}, err
 	}
 
 	resp, err := client.httpClient.Do(req)
 	if err != nil {
-		return constants.BatchPutResult{}, err
+		return commons.BatchPutResult{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return constants.BatchPutResult{}, fmt.Errorf("failed to batch put keys, status code: %d", resp.StatusCode)
+		return commons.BatchPutResult{}, fmt.Errorf("failed to batch put keys, status code: %d", resp.StatusCode)
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return constants.BatchPutResult{}, err
+		return commons.BatchPutResult{}, err
 	}
 
-	var batchPutResponse constants.BatchPutResult
+	var batchPutResponse commons.BatchPutResult
 
 	if err := json.Unmarshal(bodyBytes, &batchPutResponse); err != nil {
-		return constants.BatchPutResult{}, fmt.Errorf("failed to unmarshal batch put response: %w", err)
+		return commons.BatchPutResult{}, fmt.Errorf("failed to unmarshal batch put response: %w", err)
+	}
+
+	return batchPutResponse, nil
+}
+
+func (client *GetMeClient) BatchPutForPayload(payload []commons.KeyValue) (commons.BatchPutResult, error) {
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		return commons.BatchPutResult{}, fmt.Errorf("failed to marshal JSON payload: %w", err)
+	}
+
+	readerPayload := bytes.NewReader(jsonPayload)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", commons.BaseUrl, commons.BatchPutRoute), readerPayload)
+	if err != nil {
+		return commons.BatchPutResult{}, err
+	}
+
+	resp, err := client.httpClient.Do(req)
+	if err != nil {
+		return commons.BatchPutResult{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return commons.BatchPutResult{}, fmt.Errorf("failed to batch put keys, status code: %d", resp.StatusCode)
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return commons.BatchPutResult{}, err
+	}
+
+	var batchPutResponse commons.BatchPutResult
+
+	if err := json.Unmarshal(bodyBytes, &batchPutResponse); err != nil {
+		return commons.BatchPutResult{}, fmt.Errorf("failed to unmarshal batch put response: %w", err)
 	}
 
 	return batchPutResponse, nil
 }
 
 func (client *GetMeClient) Delete(key string) error {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s%s", constants.BaseUrl, constants.DeleteRoute), nil)
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s%s", commons.BaseUrl, commons.DeleteRoute), nil)
 	if err != nil {
 		return err
 	}
@@ -257,61 +329,97 @@ func (client *GetMeClient) Delete(key string) error {
 	return nil
 }
 
-func (client *GetMeClient) BatchDelete(jsonPath string) (constants.BatchDeleteResult, error) {
+func (client *GetMeClient) BatchDelete(jsonPath string) (commons.BatchDeleteResult, error) {
 	jsonFile, err := os.Open(jsonPath)
 	if err != nil {
-		return constants.BatchDeleteResult{}, fmt.Errorf("failed to open JSON file: %w", err)
+		return commons.BatchDeleteResult{}, fmt.Errorf("failed to open JSON file: %w", err)
 	}
 	defer jsonFile.Close()
 
 	jsonBytes, err := io.ReadAll(jsonFile)
 	if err != nil {
-		return constants.BatchDeleteResult{}, fmt.Errorf("failed to read JSON file: %w", err)
+		return commons.BatchDeleteResult{}, fmt.Errorf("failed to read JSON file: %w", err)
 	}
 
-	var payload constants.BatchDeleteRequestBody
+	var payload commons.BatchDeleteRequestBody
 
 	if err := json.Unmarshal(jsonBytes, &payload); err != nil {
-		return constants.BatchDeleteResult{}, fmt.Errorf("failed to unmarshal JSON file: %w", err)
+		return commons.BatchDeleteResult{}, fmt.Errorf("failed to unmarshal JSON file: %w", err)
 	}
 
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		return constants.BatchDeleteResult{}, fmt.Errorf("failed to marshal JSON payload: %w", err)
+		return commons.BatchDeleteResult{}, fmt.Errorf("failed to marshal JSON payload: %w", err)
 	}
 
 	readerPayload := bytes.NewReader(jsonPayload)
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", constants.BaseUrl, constants.BatchDeleteRoute), readerPayload)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", commons.BaseUrl, commons.BatchDeleteRoute), readerPayload)
 	if err != nil {
-		return constants.BatchDeleteResult{}, err
+		return commons.BatchDeleteResult{}, err
 	}
 
 	resp, err := client.httpClient.Do(req)
 	if err != nil {
-		return constants.BatchDeleteResult{}, err
+		return commons.BatchDeleteResult{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return constants.BatchDeleteResult{}, fmt.Errorf("failed to batch delete keys, status code: %d", resp.StatusCode)
+		return commons.BatchDeleteResult{}, fmt.Errorf("failed to batch delete keys, status code: %d", resp.StatusCode)
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return constants.BatchDeleteResult{}, err
+		return commons.BatchDeleteResult{}, err
 	}
 
-	var batchDeleteResponse constants.BatchDeleteResult
+	var batchDeleteResponse commons.BatchDeleteResult
 
 	if err := json.Unmarshal(bodyBytes, &batchDeleteResponse); err != nil {
-		return constants.BatchDeleteResult{}, fmt.Errorf("failed to unmarshal batch delete response: %w", err)
+		return commons.BatchDeleteResult{}, fmt.Errorf("failed to unmarshal batch delete response: %w", err)
+	}
+
+	return batchDeleteResponse, nil
+}
+
+func (client *GetMeClient) BatchDeleteForPayload(payload commons.BatchDeleteRequestBody) (commons.BatchDeleteResult, error) {
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		return commons.BatchDeleteResult{}, fmt.Errorf("failed to marshal JSON payload: %w", err)
+	}
+
+	readerPayload := bytes.NewReader(jsonPayload)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", commons.BaseUrl, commons.BatchDeleteRoute), readerPayload)
+	if err != nil {
+		return commons.BatchDeleteResult{}, err
+	}
+
+	resp, err := client.httpClient.Do(req)
+	if err != nil {
+		return commons.BatchDeleteResult{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return commons.BatchDeleteResult{}, fmt.Errorf("failed to batch delete keys, status code: %d", resp.StatusCode)
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return commons.BatchDeleteResult{}, err
+	}
+
+	var batchDeleteResponse commons.BatchDeleteResult
+
+	if err := json.Unmarshal(bodyBytes, &batchDeleteResponse); err != nil {
+		return commons.BatchDeleteResult{}, fmt.Errorf("failed to unmarshal batch delete response: %w", err)
 	}
 
 	return batchDeleteResponse, nil
 }
 
 func (client *GetMeClient) ClearStore() error {
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", constants.BaseUrl, constants.ClearStoreRoute), nil)
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s%s", commons.BaseUrl, commons.ClearStoreRoute), nil)
 	if err != nil {
 		return err
 	}
