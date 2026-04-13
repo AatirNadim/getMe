@@ -3,30 +3,14 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 
+	"github.com/AatirNadim/getMe/commons"
 	gosdk "github.com/AatirNadim/getMe/sdks/goSdk"
 )
 
 type HttpProxy struct {
 	Client *gosdk.GetMeClient
-}
-
-func writeTempFile(data []byte) (string, error) {
-	file, err := os.CreateTemp("", "batch-*.json")
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	_, err = file.Write(data)
-	if err != nil {
-		return "", err
-	}
-
-	return file.Name(), nil
 }
 
 func (h *HttpProxy) GetHandler(w http.ResponseWriter, r *http.Request) {
@@ -108,20 +92,18 @@ func (h *HttpProxy) BatchGetHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "failed to read body", http.StatusBadRequest)
+	var payload commons.BatchGetRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
 		return
 	}
 
-	tmpFile, err := writeTempFile(body)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to create temp file: %v", err), http.StatusInternalServerError)
+	if len(payload.Keys) == 0 {
+		http.Error(w, "empty keys list", http.StatusBadRequest)
 		return
 	}
-	defer os.Remove(tmpFile)
 
-	res, err := h.Client.BatchGet(tmpFile)
+	res, err := h.Client.BatchGetForPayload(payload)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
 		return
@@ -137,20 +119,27 @@ func (h *HttpProxy) BatchPutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "failed to read body", http.StatusBadRequest)
+	var payload []commons.KeyValue
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
 		return
 	}
 
-	tmpFile, err := writeTempFile(body)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to create temp file: %v", err), http.StatusInternalServerError)
+	if len(payload) == 0 {
+		http.Error(w, "empty payload", http.StatusBadRequest)
 		return
 	}
-	defer os.Remove(tmpFile)
 
-	res, err := h.Client.BatchPut(tmpFile)
+	// commented out for now, keeping in mind the sheer potential volume of payload
+
+	// for _, kv := range payload {
+	// 	if kv.Key == "" || kv.Value == "" {
+	// 		http.Error(w, "missing key or value in one or more payload items", http.StatusBadRequest)
+	// 		return
+	// 	}
+	// }
+
+	res, err := h.Client.BatchPutForPayload(payload)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
 		return
@@ -166,20 +155,18 @@ func (h *HttpProxy) BatchDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "failed to read body", http.StatusBadRequest)
+	var payload commons.BatchDeleteRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
 		return
 	}
 
-	tmpFile, err := writeTempFile(body)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to create temp file: %v", err), http.StatusInternalServerError)
+	if len(payload.Keys) == 0 {
+		http.Error(w, "empty keys list", http.StatusBadRequest)
 		return
 	}
-	defer os.Remove(tmpFile)
 
-	res, err := h.Client.BatchDelete(tmpFile)
+	res, err := h.Client.BatchDeleteForPayload(payload)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
 		return
