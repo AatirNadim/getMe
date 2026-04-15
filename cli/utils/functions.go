@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/AatirNadim/getMe/commons"
-	"github.com/AatirNadim/getMe/utils/logger"
+	logger "github.com/AatirNadim/getMe/utils"
 )
 
 func ValidateJSONAndFilePath(jsonFilePath string) error {

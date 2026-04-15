@@ -1,5 +1,12 @@
 #!/bin/bash
 
+#  ========= RECOMMENDATION =========
+# Run this script as a non-root user.
+# Although running `sudo ./init-server-local.sh` will work fine and all
+# components will function correctly, it bypasses the principle of least privilege.
+# The containers will inherit the root user context, reducing security isolation.
+# For local development, a regular user is recommended.
+
 # This script sets up and runs the getMe server in a local development environment.
 # It performs the following steps:
 # 1. Builds the Go project. If the build fails, it exits.

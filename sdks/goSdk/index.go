@@ -8,8 +8,10 @@ import (
 	"os"
 
 	"github.com/AatirNadim/getMe/commons"
-	"github.com/AatirNadim/getMe/sdks/goSdk/core"
+
+	
 	"github.com/joho/godotenv"
+	"github.com/AatirNadim/getMe/sdks/goSdk/core"
 )
 
 type GetMeClient struct {

@@ -5,9 +5,8 @@ import (
 	"fmt"
 
 	"github.com/AatirNadim/getMe/cli/core/service"
-
 	"github.com/AatirNadim/getMe/cli/utils"
-	"github.com/AatirNadim/getMe/utils/logger"
+	logger "github.com/AatirNadim/getMe/utils"
 	"github.com/spf13/cobra"
 )
 

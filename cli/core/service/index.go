@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/AatirNadim/getMe/commons"
-	"github.com/AatirNadim/getMe/utils/logger"
+	logger "github.com/AatirNadim/getMe/utils"
 )
 
 type ServiceLayer struct {
