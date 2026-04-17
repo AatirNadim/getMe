@@ -1,3 +1,8 @@
+# Dockerfile for building and running the GetMe application, which includes a server, CLI, and HTTP proxy.
+# This Dockerfile uses a multi-stage build to first compile the Go applications and then create a lightweight final image.
+# The final image runs as a non-root user for security and includes necessary directories with appropriate permissions. 
+# The entrypoint script is used to start the server and proxy when the container is run.
+
 # Stage 1: Build the Go application
 FROM golang:1.23.1-alpine AS builder
 
@@ -6,13 +11,22 @@ WORKDIR /app
 # Copy the local modules referenced by the replace directives
 COPY commons/ ./commons/
 COPY utils/ ./utils/
+COPY sdks/ ./sdks/
+COPY cli/ ./cli/
+COPY http-proxy-go/ ./http-proxy-go/
 COPY server/ ./server/
 
-# Move into the server module directory to download dependencies and build
+# Build the Server module
 WORKDIR /app/server
-RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/dist/getMe-server .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/dist/getMe .
+# Build the CLI module
+WORKDIR /app/cli
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/dist/getMe-cli .
+
+# Build the HTTP Proxy module
+WORKDIR /app/http-proxy-go
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/dist/getMe-proxy .
 
 FROM alpine:latest AS final
 
@@ -20,20 +34,28 @@ ARG UID=1000
 ARG GID=1000
 
 # --- Running as root ---
-RUN mkdir -p /var/lib/getMeStore/dataDir
+RUN mkdir -p /var/lib/getMeStore/dataDir \
+    && mkdir -p /tmp/getMeStore/dumpDir \
+    && mkdir -p /tmp/getMeStore/sockDir
 
 RUN addgroup -g ${GID} appgroup && \
     adduser -u ${UID} -G appgroup -D appuser
 
-# --- Making the added user the owner of the data directory ---
-RUN chown -R appuser:appgroup /var/lib/getMeStore
+# --- Making the added user the owner of the data and socket directory ---
+RUN chown -R appuser:appgroup /var/lib/getMeStore \
+    && chown -R appuser:appgroup /tmp/getMeStore
+
+# Copy binaries and entrypoint script
+COPY --from=builder /app/dist/getMe-server /usr/local/bin/getMe-server
+COPY --from=builder /app/dist/getMe-cli /usr/local/bin/getMe-cli
+COPY --from=builder /app/dist/getMe-proxy /usr/local/bin/getMe-proxy
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+
+RUN chmod +x /usr/local/bin/getMe-server /usr/local/bin/getMe-cli /usr/local/bin/getMe-proxy /usr/local/bin/docker-entrypoint.sh
 
 USER appuser
 
-# --- Now running as appuser ---
-RUN mkdir -p /tmp/getMeStore/dumpDir && \
-    mkdir -p /tmp/getMeStore/sockDir
+# Expose proxy port
+EXPOSE 8080
 
-COPY --from=builder /app/dist/getMe /getMe
-
-CMD [ "/getMe" ]
+ENTRYPOINT [ "/usr/local/bin/docker-entrypoint.sh" ]
