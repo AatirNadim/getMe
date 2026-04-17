@@ -1,8 +1,8 @@
 services:
-# Main application service
+  # Main application service
   get_me_store:
     build:
-      context: .
+      context: ../
       dockerfile: ContainerFile
       target: final
       # Pass the host's UID/GID to the ContainerFile build process.
@@ -23,7 +23,7 @@ services:
       - getme-wrapper-net
     restart: "on-failure:3"
 
-# loki will serve as the log storage backend
+  # loki will serve as the log storage backend
   grafana-loki:
     image: grafana/loki:3.4.2
     container_name: grafana-loki
@@ -37,7 +37,7 @@ services:
       - getme-wrapper-net
     restart: "on-failure:3"
 
-# grafana-alloy will collect and forward logs to loki
+  # grafana-alloy will collect and forward logs to loki
   grafana-alloy:
     image: grafana/alloy:v1.11.2
     container_name: grafana-alloy
@@ -60,7 +60,7 @@ services:
       - getme-wrapper-net
     restart: "on-failure:3"
 
-# Grafana for log visualization
+  # Grafana for log visualization
   grafana:
     image: grafana/grafana:11.0.0
     container_name: grafana

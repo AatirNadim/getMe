@@ -3,10 +3,14 @@ FROM golang:1.23.1-alpine AS builder
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
-RUN go mod download
+# Copy the local modules referenced by the replace directives
+COPY commons/ ./commons/
+COPY utils/ ./utils/
+COPY server/ ./server/
 
-COPY . .
+# Move into the server module directory to download dependencies and build
+WORKDIR /app/server
+RUN go mod download
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/dist/getMe .
 
