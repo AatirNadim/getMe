@@ -9,6 +9,7 @@ echo "Starting getMe-server in the background..."
 SERVER_PID=$!
 
 # Wait a brief moment to ensure the server starts and creates the socket file
+echo "Waiting for a moment to ensure the server is up..."
 sleep 2
 
 echo "Starting getMe-proxy..."

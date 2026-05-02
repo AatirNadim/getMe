@@ -1,7 +1,7 @@
-# Dockerfile for building and running the GetMe application, which includes a server, CLI, and HTTP proxy.
-# This Dockerfile uses a multi-stage build to first compile the Go applications and then create a lightweight final image.
-# The final image runs as a non-root user for security and includes necessary directories with appropriate permissions. 
-# The entrypoint script is used to start the server and proxy when the container is run.
+# - Dockerfile for building and running the GetMe application, which includes a server, CLI, and HTTP proxy.
+# - This Dockerfile uses a multi-stage build to first compile the Go applications and then create a lightweight final image.
+# - The final image runs as a non-root user for security and includes necessary directories with appropriate permissions. 
+# - The entrypoint script is used to start the server and proxy when the container is run.
 
 # Stage 1: Build the Go application
 FROM golang:1.23.1-alpine AS builder

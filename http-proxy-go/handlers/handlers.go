@@ -119,7 +119,7 @@ func (h *HttpProxy) BatchPutHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var payload []commons.KeyValue
+	var payload map[string]string
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
 		return

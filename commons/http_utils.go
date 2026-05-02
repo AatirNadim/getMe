@@ -80,11 +80,11 @@ func ExecuteHTTPRequestUtil(client *http.Client, req *http.Request) ([]byte, err
 	resp, err := client.Do(req)
 
 	if err != nil {
-		utils.Error("Error occurred while making request:", err)
+		utils.Error("Error occurred while making request: ", err)
 		return nil, fmt.Errorf("failed to perform request: %w", err)
 	}
 
-	utils.Debug("Received response from server for request:", resp)
+	utils.Debug("Received response from server for request: ", resp)
 
 	defer resp.Body.Close()
 

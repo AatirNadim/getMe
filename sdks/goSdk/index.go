@@ -9,9 +9,8 @@ import (
 
 	"github.com/AatirNadim/getMe/commons"
 
-	
-	"github.com/joho/godotenv"
 	"github.com/AatirNadim/getMe/sdks/goSdk/core"
+	"github.com/joho/godotenv"
 )
 
 type GetMeClient struct {
@@ -20,13 +19,17 @@ type GetMeClient struct {
 
 func (client *GetMeClient) Init() error {
 
-	err := godotenv.Load()
-	if err != nil {
-		return err
-	}
 	var socketPath string
-	socketPath = os.Getenv("SOCKET_PATH")
-	if socketPath == "" {
+
+	// First, attempt to load the .env file. If it doesn't exist, we'll fall back to defaults.
+	err := godotenv.Load()
+	if err == nil {
+		socketPath = os.Getenv("SOCKET_PATH")
+	} else {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("error loading .env file: %w", err)
+		}
+		// If the .env file does not exist, we can proceed with defaults.
 		socketPath = commons.SocketPath
 	}
 
@@ -155,7 +158,7 @@ func (client *GetMeClient) BatchPut(jsonPath string) (commons.BatchPutResult, er
 		return commons.BatchPutResult{}, fmt.Errorf("failed to read JSON file: %w", err)
 	}
 
-	var payload []commons.KeyValue
+	var payload map[string]string
 	if err := json.Unmarshal(jsonBytes, &payload); err != nil {
 		return commons.BatchPutResult{}, fmt.Errorf("failed to unmarshal JSON file: %w", err)
 	}
@@ -163,7 +166,7 @@ func (client *GetMeClient) BatchPut(jsonPath string) (commons.BatchPutResult, er
 	return client.BatchPutForPayload(payload)
 }
 
-func (client *GetMeClient) BatchPutForPayload(payload []commons.KeyValue) (commons.BatchPutResult, error) {
+func (client *GetMeClient) BatchPutForPayload(payload map[string]string) (commons.BatchPutResult, error) {
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
 		return commons.BatchPutResult{}, fmt.Errorf("failed to marshal JSON payload: %w", err)
