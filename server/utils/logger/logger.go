@@ -100,13 +100,17 @@ func getLogFile() (*os.File, error) {
 	if loggingDisabled.Load() {
 		return nil, nil
 	}
+
+	fmt.Println("\nlog file returned: ", logFile, "\nlog file error: ", logFileErr, "\n")
 	return logFile, logFileErr
 }
 
 func getOutputWriter() (io.Writer, error) {
 	if logToStdout.Load() {
+		fmt.Println("\nLogging to stdout is enabled; writing log message to stdout\n")
 		return os.Stdout, nil
 	}
+	fmt.Println("\nLogging to stdout is disabled; writing log message to file\n")
 	return getLogFile()
 }
 
@@ -142,7 +146,12 @@ func printMessage(title string, color string, message []any) {
 		return
 	}
 
-	fmt.Fprintf(writer, "level=%s timeStamp=%s msg=%q\n", title, time.Now().Format(time.RFC3339), fmt.Sprint(message...))
+	_, err = fmt.Fprintf(writer, "level=%s timeStamp=%s msg=%q\n", title, time.Now().Format(time.RFC3339), fmt.Sprint(message...))
+
+	if err != nil {
+		// If we can't write to the log file, write error to stderr
+		fmt.Fprintf(os.Stderr, "level=ERROR msg=%q\n", fmt.Sprintf("Logger error: %v", err))
+	}
 }
 
 // Public functions

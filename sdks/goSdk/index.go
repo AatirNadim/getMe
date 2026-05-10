@@ -13,6 +13,17 @@ import (
 	"github.com/joho/godotenv"
 )
 
+
+type GetMeClientInterface interface {
+	Get(key string) (string, error)
+	Put(key, value string) error
+	Delete(key string) error
+	BatchGetForPayload(payload commons.BatchGetRequestBody) (commons.BatchGetResult, error)
+	BatchPutForPayload(payload map[string]string) (commons.BatchPutResult, error)
+	BatchDeleteForPayload(payload commons.BatchDeleteRequestBody) (commons.BatchDeleteResult, error)
+	ClearStore() error
+}
+
 type GetMeClient struct {
 	httpClient *http.Client
 }

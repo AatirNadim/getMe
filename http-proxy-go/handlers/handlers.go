@@ -6,11 +6,12 @@ import (
 	"net/http"
 
 	"github.com/AatirNadim/getMe/commons"
-	gosdk "github.com/AatirNadim/getMe/sdks/goSdk"
+
+	goSdk "github.com/AatirNadim/getMe/sdks/goSdk"
 )
 
 type HttpProxy struct {
-	Client *gosdk.GetMeClient
+	Client goSdk.GetMeClientInterface
 }
 
 func (h *HttpProxy) GetHandler(w http.ResponseWriter, r *http.Request) {
