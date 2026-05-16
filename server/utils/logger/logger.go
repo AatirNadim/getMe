@@ -101,16 +101,13 @@ func getLogFile() (*os.File, error) {
 		return nil, nil
 	}
 
-	fmt.Println("\nlog file returned: ", logFile, "\nlog file error: ", logFileErr, "\n")
 	return logFile, logFileErr
 }
 
 func getOutputWriter() (io.Writer, error) {
 	if logToStdout.Load() {
-		fmt.Println("\nLogging to stdout is enabled; writing log message to stdout\n")
 		return os.Stdout, nil
 	}
-	fmt.Println("\nLogging to stdout is disabled; writing log message to file\n")
 	return getLogFile()
 }
 
