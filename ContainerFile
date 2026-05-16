@@ -11,7 +11,7 @@ WORKDIR /app
 # Copy the local modules referenced by the replace directives
 COPY commons/ ./commons/
 COPY utils/ ./utils/
-# COPY sdks/ ./sdks/
+COPY sdks/goSdk/ ./sdks/goSdk/
 COPY cli/ ./cli/
 COPY http-proxy-go/ ./http-proxy-go/
 COPY server/ ./server/
