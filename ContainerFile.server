@@ -1,0 +1,45 @@
+# This Dockerfile is designed to build and run the GetMe application, which includes a server, CLI, and HTTP proxy. 
+# It uses a multi-stage build to first compile the Go applications and then create a lightweight final image. 
+# The final image runs as a non-root user for security and includes necessary directories with appropriate permissions. 
+# The entrypoint script is used to start the server and proxy when the container is run.
+
+
+# Stage 1: Build the Go application
+FROM golang:1.23.1-alpine AS builder
+
+WORKDIR /app
+
+# Copy the local modules referenced by the replace directives
+COPY commons/ ./commons/
+COPY utils/ ./utils/
+COPY server/ ./server/
+
+# Move into the server module directory to download dependencies and build
+WORKDIR /app/server
+RUN go mod download
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/dist/getMe .
+
+FROM alpine:latest AS final
+
+ARG UID=1000
+ARG GID=1000
+
+# --- Running as root ---
+RUN mkdir -p /var/lib/getMeStore/dataDir
+
+RUN addgroup -g ${GID} appgroup && \
+  adduser -u ${UID} -G appgroup -D appuser
+
+# --- Making the added user the owner of the data directory ---
+RUN chown -R appuser:appgroup /var/lib/getMeStore
+
+USER appuser
+
+# --- Now running as appuser ---
+RUN mkdir -p /tmp/getMeStore/dumpDir && \
+  mkdir -p /tmp/getMeStore/sockDir
+
+COPY --from=builder /app/dist/getMe /getMe
+
+CMD [ "/getMe" ]

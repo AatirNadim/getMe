@@ -11,7 +11,7 @@ import (
 	"github.com/AatirNadim/getMe/server/store/core"
 	"github.com/AatirNadim/getMe/server/store/utils"
 	"github.com/AatirNadim/getMe/server/store/utils/constants"
-	serverUtils "github.com/AatirNadim/getMe/server/utils"
+	commons "github.com/AatirNadim/getMe/commons"
 	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
@@ -117,7 +117,7 @@ func (s *Store) Get(key string) (string, bool, error) {
 	return s.convertBytesToString(data.Value), true, nil
 }
 
-func (s *Store) BatchGet(keys []string) (serverUtils.BatchGetResult, error) {
+func (s *Store) BatchGet(keys []string) (commons.BatchGetResult, error) {
 	// 1. Lock & Lookup
 	hashTableEntries, notFoundList := s.hashTable.GetBatch(keys)
 
@@ -141,14 +141,14 @@ func (s *Store) BatchGet(keys []string) (serverUtils.BatchGetResult, error) {
 
 	// 3. Perform Efficient Disk Reads in Parallel
 	var wg sync.WaitGroup
-	resultsChan := make(chan serverUtils.BatchGetResult, len(segmentMap))
+	resultsChan := make(chan commons.BatchGetResult, len(segmentMap))
 
 	for segmentId, entries := range segmentMap {
 		wg.Add(1)
 		go func(segId uint32, batchEntries []*BatchEntry) {
 			defer wg.Done()
 
-			localResult := serverUtils.BatchGetResult{
+			localResult := commons.BatchGetResult{
 				Found:    make(map[string]string),
 				NotFound: make([]string, 0),
 				Errors:   make(map[string]string),
@@ -216,7 +216,7 @@ func (s *Store) BatchGet(keys []string) (serverUtils.BatchGetResult, error) {
 	close(resultsChan)
 
 	// 5. Assemble and Return
-	finalResult := serverUtils.BatchGetResult{
+	finalResult := commons.BatchGetResult{
 		Found:    make(map[string]string),
 		NotFound: notFoundList,
 		Errors:   make(map[string]string),
@@ -328,8 +328,8 @@ func (s *Store) Keys() []string {
 	return s.hashTable.Keys()
 }
 
-func (s *Store) BatchPut(batch map[string]string) (serverUtils.BatchPutResult, error) {
-	result := serverUtils.BatchPutResult{
+func (s *Store) BatchPut(batch map[string]string) (commons.BatchPutResult, error) {
+	result := commons.BatchPutResult{
 		Successful: 0,
 		Failed:     make(map[string]string),
 	}
@@ -462,8 +462,8 @@ func (s *Store) BatchPut(batch map[string]string) (serverUtils.BatchPutResult, e
 	return result, nil
 }
 
-func (s *Store) BatchDelete(keys []string) (serverUtils.BatchDeleteResult, error) {
-	result := serverUtils.BatchDeleteResult{
+func (s *Store) BatchDelete(keys []string) (commons.BatchDeleteResult, error) {
+	result := commons.BatchDeleteResult{
 		Successful: 0,
 		Failed:     make(map[string]string),
 	}

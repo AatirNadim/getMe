@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/AatirNadim/getMe/utils/logger"
+	logger "github.com/AatirNadim/getMe/utils"
 )
 
 func CreateHttpClient(socketPath string) (*http.Client, error) {

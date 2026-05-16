@@ -24,6 +24,7 @@ func StartServer(socketPath, storePath, compactedStorePath string, loggingDisabl
 	if err != nil {
 		return fmt.Errorf("failed to initialize store: %w", err)
 	}
+	defer logger.Close()
 
 	mux := muxHandler(storeInstance)
 
@@ -51,7 +52,6 @@ func InitializeStore(storePath, compactedStorePath string, loggingDisabled *bool
 			fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
 			os.Exit(1)
 		}
-		defer logger.Close()
 	}
 
 	storeInstance := store.NewStore(storePath, compactedStorePath)

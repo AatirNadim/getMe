@@ -11,9 +11,11 @@ import (
 	"github.com/AatirNadim/getMe/cli/core/commands"
 	"github.com/AatirNadim/getMe/cli/core/service"
 	"github.com/AatirNadim/getMe/cli/utils"
-	"github.com/AatirNadim/getMe/utils/logger"
+	"github.com/AatirNadim/getMe/commons"
+	logger "github.com/AatirNadim/getMe/utils"
 
 	"github.com/spf13/cobra"
+	
 	"github.com/spf13/pflag"
 )
 
@@ -23,13 +25,13 @@ var rootCmd = &cobra.Command{
 	Long: `getMe is a CLI application that provides a persistent key-value store
 backed by an append-only log on your local disk.`,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		httpClient, err := core.CreateHttpClient(utils.SocketPath)
+		httpClient, err := core.CreateHttpClient(commons.SocketPath)
 
 		serviceLayer := &service.ServiceLayer{
 			HttpClient: httpClient,
 		}
 
-		logger.Info("HTTP client created with socket path:", utils.SocketPath)
+		logger.Info("HTTP client created with socket path:", commons.SocketPath)
 
 		logger.Info("Http client set as context to the command")
 		ctx := context.WithValue(cmd.Context(), "serviceLayer", serviceLayer)

@@ -1,0 +1,7 @@
+module github.com/AatirNadim/getMe/commons
+
+go 1.23.1
+
+require github.com/AatirNadim/getMe/utils v0.0.0
+
+replace github.com/AatirNadim/getMe/utils => ../utils

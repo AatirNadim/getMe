@@ -1,5 +1,12 @@
 #!/bin/bash
 
+#  ========= RECOMMENDATION =========
+# Run this script as a non-root user.
+# Although running `sudo ./init-server-docker.sh` will work fine and all
+# components will function correctly, it bypasses the principle of least privilege.
+# The containers will inherit the root user context, reducing security isolation.
+# For local development, a regular user is recommended.
+
 # This script prepares the host environment and launches the complete,
 # containerized getMe application stack using Docker Compose.
 #
@@ -31,7 +38,6 @@ run_teardown() {
 	else
 		echo "[WARN] Teardown script not found at: $TEARDOWN_SCRIPT"
 	fi
-}
 
 # NOTE: We intentionally do NOT trap EXIT here, because this init script starts
 # the stack in detached mode and then exits normally.

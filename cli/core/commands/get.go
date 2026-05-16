@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/AatirNadim/getMe/cli/core/service"
-
 	"github.com/spf13/cobra"
 )
 
