@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
+	commons "github.com/AatirNadim/getMe/commons"
 	"github.com/AatirNadim/getMe/server/store/core"
 	"github.com/AatirNadim/getMe/server/store/utils"
 	"github.com/AatirNadim/getMe/server/store/utils/constants"
-	commons "github.com/AatirNadim/getMe/commons"
 	"github.com/AatirNadim/getMe/server/utils/logger"
 )
 
@@ -269,7 +269,11 @@ func (s *Store) Put(key string, value string) error {
 
 	// logger.Info("updating hash table with key:", key, " segmentId:", segmentId, " offset:", offset)
 
-	s.hashTable.Put(key, segmentId, offset, timeStamp, entry.ValueSize)
+	err = s.hashTable.Put(key, segmentId, offset, timeStamp, entry.ValueSize)
+	if err != nil {
+		logger.Error("Failed to put entry in hash table: %v", err)
+		return err
+	}
 	logger.Info("key has been added and hashtable has been updated, key = ", key)
 
 	return nil

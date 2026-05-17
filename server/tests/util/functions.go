@@ -34,8 +34,8 @@ func SetupStoreForBenchMarking(b *testing.B) (*store.Store, func()) {
 
 	// Return the store and a cleanup function to be called deferred
 	return kvStore, func() {
-		kvStore.Close()
-		os.RemoveAll(baseDir)
+		_ = kvStore.Close()
+		_ = os.RemoveAll(baseDir)
 	}
 }
 
@@ -65,8 +65,8 @@ func SetupStoreForCorrectnessCheck(t *testing.T) (*src.Controllers, func()) {
 
 	// Return the store and a cleanup function to be called deferred
 	return controllers, func() {
-		kvStore.Close()
-		os.RemoveAll(baseDir)
+		_ = kvStore.Close()
+		_ = os.RemoveAll(baseDir)
 	}
 }
 

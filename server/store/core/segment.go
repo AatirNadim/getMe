@@ -190,7 +190,10 @@ func (segment *Segment) ReadAllEntries() (*HashTable, error) {
 		entryKey := utils.ConvertBytesToString(entry.Key)
 
 		// for now we will keep the deletion entries in the hash table as well to keep track of the latest entries
-		ht.Put(entryKey, segment.id, offset, entry.TimeStamp, entry.ValueSize)
+		err = ht.Put(entryKey, segment.id, offset, entry.TimeStamp, entry.ValueSize)
+		if err != nil {
+			logger.Error("Failed to put entry in hash table: %v", err)
+		}
 		// }
 
 		// updating the offset to point to the next entry

@@ -347,8 +347,14 @@ func (sm *SegmentManager) Clear() error {
 	logger.Info("Clearing all segments from the segment manager")
 
 	for id, segment := range sm.segmentMap {
-		segment.file.Close()
-		os.Remove(segment.path)
+		err := segment.file.Close()
+		if err != nil {
+			logger.Error("Failed to close segment file: %v", err)
+		}
+		err = os.Remove(segment.path)
+		if err != nil {
+			logger.Error("Failed to remove segment file: %v", err)
+		}
 		delete(sm.segmentMap, id)
 	}
 
@@ -566,8 +572,12 @@ func (sm *SegmentManager) DeleteOldSegments(oldSegmentIds []uint32) {
 	for _, segmentId := range oldSegmentIds {
 		if segment, exists := sm.segmentMap[segmentId]; exists {
 			logger.Info("Deleting old segment with id:", segmentId)
-			segment.file.Close()
-			err := os.Remove(segment.path)
+			err := segment.file.Close()
+			if err != nil {
+				logger.Error(fmt.Errorf("DeleteOldSegments: failed to close old segment file %s: %w", segment.path, err))
+				continue
+			}
+			err = os.Remove(segment.path)
 			if err != nil {
 				logger.Error(fmt.Errorf("DeleteOldSegments: failed to delete old segment file %s: %w", segment.path, err))
 				continue

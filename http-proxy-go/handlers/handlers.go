@@ -33,7 +33,11 @@ func (h *HttpProxy) GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "%s", val)
+	_, err = fmt.Fprintf(w, "%s", val)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *HttpProxy) PutHandler(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +67,11 @@ func (h *HttpProxy) PutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Successfully set value for key '%s'\n", req.Key)
+	_, err := fmt.Fprintf(w, "Successfully set value for key '%s'\n", req.Key)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *HttpProxy) DeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +92,11 @@ func (h *HttpProxy) DeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Successfully deleted key '%s'\n", key)
+	_, err := fmt.Fprintf(w, "Successfully deleted key '%s'\n", key)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *HttpProxy) BatchGetHandler(w http.ResponseWriter, r *http.Request) {
@@ -111,7 +123,11 @@ func (h *HttpProxy) BatchGetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *HttpProxy) BatchPutHandler(w http.ResponseWriter, r *http.Request) {
@@ -147,7 +163,11 @@ func (h *HttpProxy) BatchPutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *HttpProxy) BatchDeleteHandler(w http.ResponseWriter, r *http.Request) {
@@ -174,7 +194,11 @@ func (h *HttpProxy) BatchDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
+	err = json.NewEncoder(w).Encode(res)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h *HttpProxy) ClearStoreHandler(w http.ResponseWriter, r *http.Request) {
@@ -189,5 +213,9 @@ func (h *HttpProxy) ClearStoreHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Successfully cleared the store\n")
+	_, err := fmt.Fprintf(w, "Successfully cleared the store\n")
+	if err != nil {
+		http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+		return
+	}
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-
 type GetMeClientInterface interface {
 	Get(key string) (string, error)
 	Put(key, value string) error

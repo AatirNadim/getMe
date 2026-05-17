@@ -44,7 +44,11 @@ func (c *Controllers) GetController() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "%s", value)
+		_, err = fmt.Fprintf(w, "%s", value)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -66,9 +70,9 @@ func (c *Controllers) PutController() http.HandlerFunc {
 
 		var requestPayload commons.PutRequestBody
 
-		if err := json.Unmarshal(body, &requestPayload); err != nil {
-			logger.Error("Error parsing JSON body:", err)
-			http.Error(w, fmt.Sprintf("failed to parse JSON body: %v", err), http.StatusBadRequest)
+		if unmarshalErr := json.Unmarshal(body, &requestPayload); unmarshalErr != nil {
+			logger.Error("Error parsing JSON body:", unmarshalErr)
+			http.Error(w, fmt.Sprintf("failed to parse JSON body: %v", unmarshalErr), http.StatusBadRequest)
 			return
 		}
 
@@ -82,14 +86,18 @@ func (c *Controllers) PutController() http.HandlerFunc {
 			http.Error(w, "missing key or value parameter", http.StatusBadRequest)
 			return
 		}
-		if err := c.StoreInstance.Put(key, value); err != nil {
-			logger.Error("Error putting value in store:", err)
-			http.Error(w, fmt.Sprintf("error putting value for key '%s': %v", key, err), http.StatusInternalServerError)
+		if putErr := c.StoreInstance.Put(key, value); putErr != nil {
+			logger.Error("Error putting value in store:", putErr)
+			http.Error(w, fmt.Sprintf("error putting value for key '%s': %v", key, putErr), http.StatusInternalServerError)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Successfully set value for key '%s'\n", key)
+		_, err = fmt.Fprintf(w, "Successfully set value for key '%s'\n", key)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -111,7 +119,11 @@ func (c *Controllers) DeleteController() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Successfully deleted key '%s'\n", key)
+		_, err := fmt.Fprintf(w, "Successfully deleted key '%s'\n", key)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+			return
+		}
 	}
 }
 
@@ -128,7 +140,11 @@ func (c *Controllers) ClearStoreController() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Successfully cleared the store\n")
+		_, err := fmt.Fprintf(w, "Successfully cleared the store\n")
+		if err != nil {
+			http.Error(w, fmt.Sprintf("error: %v", err), http.StatusInternalServerError)
+			return
+		}
 
 	}
 }
@@ -150,8 +166,8 @@ func (c *Controllers) BatchPutController() http.HandlerFunc {
 		}
 
 		var batch map[string]string
-		if err := json.Unmarshal(body, &batch); err != nil {
-			logger.Error("Error parsing batch-put JSON body:", err)
+		if unmarshalErr := json.Unmarshal(body, &batch); unmarshalErr != nil {
+			logger.Error("Error parsing batch-put JSON body:", unmarshalErr)
 			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
 			return
 		}
@@ -195,8 +211,8 @@ func (c *Controllers) BatchGetController() http.HandlerFunc {
 		}
 
 		var payload commons.BatchGetRequestBody
-		if err := json.Unmarshal(body, &payload); err != nil {
-			logger.Error("Error parsing batch-get JSON body:", err)
+		if unmarshalErr := json.Unmarshal(body, &payload); unmarshalErr != nil {
+			logger.Error("Error parsing batch-get JSON body:", unmarshalErr)
 			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
 			return
 		}
@@ -246,8 +262,8 @@ func (c *Controllers) BatchDeleteController() http.HandlerFunc {
 		}
 
 		var payload commons.BatchDeleteRequestBody
-		if err := json.Unmarshal(body, &payload); err != nil {
-			logger.Error("Error parsing batch-delete JSON body:", err)
+		if unmarshalErr := json.Unmarshal(body, &payload); unmarshalErr != nil {
+			logger.Error("Error parsing batch-delete JSON body:", unmarshalErr)
 			http.Error(w, "failed to parse JSON body", http.StatusBadRequest)
 			return
 		}

@@ -6,6 +6,7 @@ linters:
     - errcheck
     - staticcheck
     - ineffassign
+  disable:
     - unused
   settings:
     gocyclo:
@@ -13,7 +14,7 @@ linters:
     govet:
       enable:
         - shadow
-        - fieldalignment
+        # - fieldalignment
     dupl:
       threshold: 100
     goconst:

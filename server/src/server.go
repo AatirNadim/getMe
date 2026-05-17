@@ -15,7 +15,11 @@ func StartServer(socketPath, storePath, compactedStorePath string, loggingDisabl
 	if err != nil {
 		return err
 	}
-	defer l.Close()
+	defer func() {
+		if closeErr := l.Close(); closeErr != nil {
+			fmt.Fprintf(os.Stderr, "Failed to close listener: %v\n", closeErr)
+		}
+	}()
 
 	fmt.Println("Store is being initialized")
 
@@ -24,7 +28,11 @@ func StartServer(socketPath, storePath, compactedStorePath string, loggingDisabl
 	if err != nil {
 		return fmt.Errorf("failed to initialize store: %w", err)
 	}
-	defer logger.Close()
+	defer func() {
+		if err := logger.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to close logger: %v\n", err)
+		}
+	}()
 
 	mux := muxHandler(storeInstance)
 
