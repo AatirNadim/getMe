@@ -27,6 +27,6 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: 2.12.2
+          version: v2.12.2
           working-directory: ${{ matrix.module }}
           args: --timeout=5m --out-format=colored-line-number
