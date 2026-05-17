@@ -84,3 +84,8 @@ The repository ships with helper scripts that bootstrap everything you need for 
     ```
 
 For more detailed information, please refer to the `README.md` file within each respective directory.
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 (AGPLv3) - see the [LICENSE](LICENSE) file for details.
+
