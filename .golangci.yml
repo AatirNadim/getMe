@@ -2,27 +2,28 @@ version: "2"
 
 linters:
   enable:
-    - gofmt
-    - goimports
     - govet
     - errcheck
     - staticcheck
     - ineffassign
-    - typecheck
-    - gosimple
     - unused
   settings:
     gocyclo:
       min-complexity: 15
     govet:
       enable:
-        - shadow          # Replaces check-shadowing
-        - fieldalignment  # Replaces maligned
+        - shadow
+        - fieldalignment
     dupl:
       threshold: 100
     goconst:
       min-len: 2
       min-occurrences: 2
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
 
 run:
   timeout: 5m

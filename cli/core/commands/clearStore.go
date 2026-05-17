@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/AatirNadim/getMe/cli/core/service"
+	"github.com/AatirNadim/getMe/cli/utils"
 	logger "github.com/AatirNadim/getMe/utils"
 
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var ClearCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
+		serviceLayer, ok := cmd.Context().Value(utils.ServiceLayerKey).(*service.ServiceLayer)
 
 		if !ok {
 			return fmt.Errorf("service layer not found in context")

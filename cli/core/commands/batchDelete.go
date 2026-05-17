@@ -20,7 +20,7 @@ var BatchDeleteCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		dataFlag, _ := cmd.Flags().GetString("data")
 
-		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
+		serviceLayer, ok := cmd.Context().Value(utils.ServiceLayerKey).(*service.ServiceLayer)
 		if !ok {
 			return fmt.Errorf("service layer not found in context")
 		}
