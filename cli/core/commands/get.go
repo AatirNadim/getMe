@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/AatirNadim/getMe/cli/core/service"
+	"github.com/AatirNadim/getMe/cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +19,7 @@ var GetCmd = &cobra.Command{
 		if key == "" {
 			return fmt.Errorf("invalid key: %s", key)
 		}
-		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
+		serviceLayer, ok := cmd.Context().Value(utils.ServiceLayerKey).(*service.ServiceLayer)
 
 		if !ok {
 			return fmt.Errorf("service layer not found in context")

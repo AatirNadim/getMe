@@ -23,9 +23,12 @@ const (
 // core printer - outputs in logfmt format for Loki/Alloy parsing
 func printMessage(title string, color string, message []any) {
 	// Print colored output to stdout for human readability
-	fmt.Fprintf(os.Stdout, "%s%s[%s]%s %s%s%s\n",
+	_, err := fmt.Fprintf(os.Stdout, "%s%s[%s]%s %s%s%s\n",
 		color, bold, title, reset, color, fmt.Sprint(message...), reset,
 	)
+	if err != nil {
+		panic(err)
+	}
 }
 
 // Public functions
@@ -49,4 +52,3 @@ func Success(msg ...any) {
 func Debug(msg ...any) {
 	printMessage("DEBUG", cyan, msg)
 }
-

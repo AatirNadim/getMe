@@ -15,7 +15,7 @@ import (
 	logger "github.com/AatirNadim/getMe/utils"
 
 	"github.com/spf13/cobra"
-	
+
 	"github.com/spf13/pflag"
 )
 
@@ -34,7 +34,7 @@ backed by an append-only log on your local disk.`,
 		logger.Info("HTTP client created with socket path:", commons.SocketPath)
 
 		logger.Info("Http client set as context to the command")
-		ctx := context.WithValue(cmd.Context(), "serviceLayer", serviceLayer)
+		ctx := context.WithValue(cmd.Context(), utils.ServiceLayerKey, serviceLayer)
 		cmd.SetContext(ctx)
 
 		return err
@@ -113,7 +113,7 @@ var replCmd = &cobra.Command{
 			// Parse flags out of the raw input
 			if err := targetCmd.ParseFlags(cmdArgs); err != nil {
 				if err == pflag.ErrHelp {
-					targetCmd.Help()
+					_ = targetCmd.Help()
 				} else {
 					fmt.Println("Error parsing flags:", err)
 				}

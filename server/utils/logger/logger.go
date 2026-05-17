@@ -108,7 +108,11 @@ func getOutputWriter() (io.Writer, error) {
 	if logToStdout.Load() {
 		return os.Stdout, nil
 	}
-	return getLogFile()
+	f, err := getLogFile()
+	if f == nil {
+		return nil, err
+	}
+	return f, err
 }
 
 // Close closes the log file (call this on application shutdown)

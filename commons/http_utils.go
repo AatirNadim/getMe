@@ -86,7 +86,9 @@ func ExecuteHTTPRequestUtil(client *http.Client, req *http.Request) ([]byte, err
 
 	utils.Debug("Received response from server for request: ", resp)
 
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

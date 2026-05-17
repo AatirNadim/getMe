@@ -16,7 +16,7 @@ var PutJsonCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 
-		serviceLayer, ok := cmd.Context().Value("serviceLayer").(*service.ServiceLayer)
+		serviceLayer, ok := cmd.Context().Value(utils.ServiceLayerKey).(*service.ServiceLayer)
 		if !ok {
 			return fmt.Errorf("service layer not found in context")
 		}
@@ -34,7 +34,7 @@ var PutJsonCmd = &cobra.Command{
 		value, err := utils.GetStringFromJSONFile(jsonFilePath)
 
 		if err != nil {
-			return fmt.Errorf("Failed to extract value from JSON file '%s': %w", jsonFilePath, err)
+			return fmt.Errorf("failed to extract value from JSON file '%s': %w", jsonFilePath, err)
 		}
 
 		err = serviceLayer.PutService(key, value)
