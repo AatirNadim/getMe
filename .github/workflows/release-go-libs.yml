@@ -113,19 +113,19 @@ jobs:
           git push origin commons/${{ env.commons_ver }}
           git push origin sdks/goSdk/${{ env.gosdk_ver }}
 
-  draft-utils:
-    needs: release
-    uses: ./.github/workflows/reusable-release-drafter.yml
-    with:
-      tag_name: ${{ needs.release.outputs.utils_tag }}
-      sdk_path: utils
+  # draft-utils:
+  #   needs: release
+  #   uses: ./.github/workflows/reusable-release-drafter.yml
+  #   with:
+  #     tag_name: ${{ needs.release.outputs.utils_tag }}
+  #     sdk_path: utils
 
-  draft-commons:
-    needs: release
-    uses: ./.github/workflows/reusable-release-drafter.yml
-    with:
-      tag_name: ${{ needs.release.outputs.commons_tag }}
-      sdk_path: commons
+  # draft-commons:
+  #   needs: release
+  #   uses: ./.github/workflows/reusable-release-drafter.yml
+  #   with:
+  #     tag_name: ${{ needs.release.outputs.commons_tag }}
+  #     sdk_path: commons
 
   draft-gosdk:
     needs: release

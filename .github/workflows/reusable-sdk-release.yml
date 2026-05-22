@@ -1,0 +1,97 @@
+name: Reusable SDK Tag and Release
+
+on:
+  workflow_call:
+    inputs:
+      release_type:
+        description: "Release type (major, minor, patch)"
+        required: true
+        type: string
+      sdk_path:
+        description: "Path to the SDK (e.g., sdks/pythonSdk)"
+        required: true
+        type: string
+    outputs:
+      new_tag:
+        description: "The newly created tag"
+        value: ${{ jobs.tag.outputs.new_tag }}
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new_tag: ${{ steps.version.outputs.new_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate new version
+        id: version
+        run: |
+          bump="${{ inputs.release_type }}"
+          prefix="${{ inputs.sdk_path }}/"
+          
+          # Find latest tag
+          latest_tag=$(git describe --tags --match "${prefix}v*" --abbrev=0 2>/dev/null || echo "${prefix}v0.0.0")
+          version=${latest_tag#"${prefix}v"}
+          IFS='.' read -r major minor patch <<< "$version"
+          
+          # Calculate next version based on bump type
+          if [ "$bump" == "major" ]; then
+            NEW_VER="v$((major+1)).0.0"
+          elif [ "$bump" == "minor" ]; then
+            NEW_VER="v${major}.$((minor+1)).0"
+          else
+            NEW_VER="v${major}.${minor}.$((patch+1))"
+          fi
+          
+          echo "new_ver=$NEW_VER" >> $GITHUB_ENV
+          echo "new_tag=${prefix}${NEW_VER}" >> $GITHUB_ENV
+          echo "new_tag=${prefix}${NEW_VER}" >> $GITHUB_OUTPUT
+          echo "Calculated New Version: $NEW_VER (Tag: ${prefix}${NEW_VER})"
+
+      - name: Bump version in config files
+        run: |
+          cd ${{ inputs.sdk_path }}
+          CLEAN_VER="${new_ver#v}"
+          
+          # Python
+          if [ -f "pyproject.toml" ]; then
+            sed -i 's/^version = ".*"/version = "'"$CLEAN_VER"'"/' pyproject.toml
+            git add pyproject.toml
+          fi
+          
+          # JS / TS
+          if [ -f "package.json" ]; then
+            sed -i 's/"version": ".*"/"version": "'"$CLEAN_VER"'"/' package.json
+            git add package.json
+          fi
+          
+          # Navigate back to root
+          cd -
+
+      - name: Commit and Push Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Detach head to avoid modifying the main branch directly
+          git checkout --detach
+          
+          # Commit (allowing empty in case no files were bumped)
+          git commit --allow-empty -m "chore(release): prepare ${{ inputs.sdk_path }} for release ${{ env.new_tag }}"
+          
+          # Tag the detached commit and push
+          git tag ${{ env.new_tag }}
+          git push origin ${{ env.new_tag }}
+
+  draft-release:
+    needs: tag
+    uses: ./.github/workflows/reusable-release-drafter.yml
+    with:
+      tag_name: ${{ needs.tag.outputs.new_tag }}
+      sdk_path: ${{ inputs.sdk_path }}
