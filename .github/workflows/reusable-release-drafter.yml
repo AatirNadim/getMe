@@ -1,0 +1,69 @@
+name: Reusable Release Drafter
+
+on:
+  workflow_call:
+    inputs:
+      tag_name:
+        description: "The tag to create a release draft for (e.g., sdks/goSdk/v1.1.0)"
+        required: true
+        type: string
+      sdk_path:
+        description: "The directory path to scope the changelog (e.g., sdks/goSdk)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  draft-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Changelog and Create Draft Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_TAG: ${{ inputs.tag_name }}
+          SDK_PATH: ${{ inputs.sdk_path }}
+        run: |
+          # Extract prefix (e.g. "sdks/goSdk/v1.1.0" -> "sdks/goSdk/")
+          PREFIX="${CURRENT_TAG%v*}"
+
+          # Find the previous tag matching the same prefix, sorted by version number
+          PREV_TAG=$(git tag -l "${PREFIX}v*" --sort=-v:refname | grep -A 1 "^${CURRENT_TAG}$" | tail -n 1)
+
+          if [ "$PREV_TAG" = "$CURRENT_TAG" ] || [ -z "$PREV_TAG" ]; then
+              echo "This is the first release! No previous tag found."
+              PREV_TAG=""
+          fi
+
+          # Get the commits for the specific directory.
+          if [ -n "$PREV_TAG" ]; then
+              CHANGELOG=$(git log ${PREV_TAG}..${CURRENT_TAG} --format="* %s (%an)" -- "$SDK_PATH")
+          else
+              CHANGELOG=$(git log ${CURRENT_TAG} --format="* %s (%an)" -- "$SDK_PATH")
+          fi
+
+          # Remove the automated "ghost" commits from the changelog (using || true to prevent exit 1)
+          CHANGELOG=$(echo "$CHANGELOG" | grep -v "chore(release):" || true)
+
+          # Write the changelog to a markdown file
+          echo "### Changes in this Release" > release_notes.md
+          echo "" >> release_notes.md
+          if [ -z "$CHANGELOG" ]; then
+            echo "* No relevant codebase changes detected for this path." >> release_notes.md
+          else
+            echo "$CHANGELOG" >> release_notes.md
+          fi
+
+          # Use the GitHub CLI to create a DRAFT release
+          gh release create "$CURRENT_TAG" \
+              --title "$CURRENT_TAG" \
+              --notes-file release_notes.md \
+              --draft

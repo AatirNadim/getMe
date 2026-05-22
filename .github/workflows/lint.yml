@@ -8,20 +8,23 @@ on:
   pull_request:
     branches:
       - main
+      - feature/*
+      - release
 
 jobs:
   golangci-lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        module: [cli, commons, http-proxy-go, sdks/goSdk, server, server/tests, utils]
+        module:
+          [cli, commons, http-proxy-go, sdks/goSdk, server, server/tests, utils]
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23.1'
+          go-version: "1.23.1"
           cache: false
 
       - name: Run golangci-lint
