@@ -1,0 +1,73 @@
+name: Release Python SDK
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release type (major, minor, patch)"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate new version
+        id: version
+        run: |
+          bump="${{ github.event.inputs.release_type }}"
+          prefix="sdks/pythonSdk/"
+          
+          # Find latest tag
+          latest_tag=$(git describe --tags --match "${prefix}v*" --abbrev=0 2>/dev/null || echo "${prefix}v0.0.0")
+          version=${latest_tag#"${prefix}v"}
+          IFS='.' read -r major minor patch <<< "$version"
+          
+          # Calculate next version based on bump type
+          if [ "$bump" == "major" ]; then
+            NEW_VER="v$((major+1)).0.0"
+          elif [ "$bump" == "minor" ]; then
+            NEW_VER="v${major}.$((minor+1)).0"
+          else
+            NEW_VER="v${major}.${minor}.$((patch+1))"
+          fi
+          
+          echo "pythonsdk_ver=$NEW_VER" >> $GITHUB_ENV
+          echo "Calculated Python SDK Version: $NEW_VER (Tag: ${prefix}${NEW_VER})"
+
+      - name: Bump version in pyproject.toml
+        run: |
+          cd sdks/pythonSdk
+          # Strip the 'v' prefix for the pyproject.toml version field
+          CLEAN_VER="${pythonsdk_ver#v}"
+          # Update the version line in pyproject.toml
+          sed -i 's/^version = ".*"/version = "'"$CLEAN_VER"'"/' pyproject.toml
+
+      - name: Commit and Push Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # Detach head to avoid modifying the main branch directly
+          git checkout --detach
+          
+          # Add pyproject.toml
+          git add sdks/pythonSdk/pyproject.toml
+          
+          # Commit (allowing empty in case the version hasn't changed)
+          git commit --allow-empty -m "chore(release): prepare Python SDK for release sdks/pythonSdk/${{ env.pythonsdk_ver }}"
+          
+          # Tag the detached commit and push
+          git tag sdks/pythonSdk/${{ env.pythonsdk_ver }}
+          git push origin sdks/pythonSdk/${{ env.pythonsdk_ver }}

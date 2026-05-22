@@ -1,10 +1,11 @@
 import os
+
 import requests_unixsocket
 from dotenv import load_dotenv
 import json
 from urllib.parse import quote_plus
 
-from constants import Constants
+from .constants import Constants
 
 
 class GetMeClient:
