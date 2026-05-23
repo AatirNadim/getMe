@@ -70,6 +70,12 @@ jobs:
             sed -i 's/"version": ".*"/"version": "'"$CLEAN_VER"'"/' package.json
             git add package.json
           fi
+
+          # Java
+          if [ -f "build.gradle.kts" ]; then
+            sed -i 's/^version = ".*"/version = "'"$CLEAN_VER"'"/' build.gradle.kts
+            git add build.gradle.kts
+          fi
           
           # Navigate back to root
           cd -

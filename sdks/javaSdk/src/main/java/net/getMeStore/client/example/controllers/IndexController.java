@@ -1,4 +1,4 @@
-package net.getMeStore.client.controllers;
+package net.getMeStore.client.example.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import net.getMeStore.client.service.GetMeService;

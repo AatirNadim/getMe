@@ -1,0 +1,55 @@
+name: Publish Java SDK to Maven Central
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release type (major, minor, patch)"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  tag-and-release:
+    uses: ./.github/workflows/reusable-sdk-release.yml
+    with:
+      release_type: ${{ github.event.inputs.release_type }}
+      sdk_path: "sdks/javaSdk"
+
+  publish-maven-central:
+    needs: tag-and-release
+    name: Build and Publish Java SDK
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./sdks/javaSdk
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.tag-and-release.outputs.new_tag }}
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Decode GPG Key
+        run: echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode > gpg_private.key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Publish to Maven Central
+        run: ./gradlew publish
+        env:
+          GPG_PRIVATE_KEY: $(cat gpg_private.key)
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}

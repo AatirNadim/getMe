@@ -6,14 +6,13 @@ import net.getMeStore.client.config.Env;
 import net.getMeStore.client.config.UdsHandler;
 import net.getMeStore.client.models.AppendRequestPayload;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import net.getMeStore.client.models.BatchGetResult;
 import net.getMeStore.client.models.BatchPutResult;
+import net.getMeStore.client.models.BatchDeleteResult;
 
-@Service
 public class GetMeService {
 
     WebClient udsWebClient;
@@ -73,7 +72,7 @@ public class GetMeService {
 
     public Mono<BatchDeleteResult> batchDelete(String jsonPayload) {
         return udsWebClient
-                .delete()
+                .method(org.springframework.http.HttpMethod.DELETE)
                 .uri(uriBuilder -> uriBuilder.path("/batch-delete").build())
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(jsonPayload)
