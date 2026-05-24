@@ -36,7 +36,7 @@ jobs:
           prefix="${{ inputs.sdk_path }}/"
 
           # Find latest tag
-          local latest_tag=$(git tag --list "${prefix}v*" --sort=-v:refname | head -n 1)
+          latest_tag=$(git tag --list "${prefix}v*" --sort=-v:refname | head -n 1)
             
           # Fallback if no tag exists
           if [ -z "$latest_tag" ]; then
