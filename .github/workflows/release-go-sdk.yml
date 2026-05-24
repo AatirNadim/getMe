@@ -123,7 +123,7 @@ jobs:
 
           git add commons/go.mod sdks/goSdk/go.mod
 
-          if ! git diff --cached --quiet; then
+          if ! git diff --staged --quiet; then
             echo "Changes detected in go.mod files. Creating release commit..."
             git commit -m "chore(release): prepare Go libs for release utils/${{ env.utils_ver }}, commons/${{ env.commons_ver }}, sdks/goSdk/${{ env.gosdk_ver }}"
           else
