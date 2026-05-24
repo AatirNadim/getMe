@@ -97,8 +97,13 @@ jobs:
           # Detach head to avoid modifying the main branch directly
           git checkout --detach
 
-          # Commit (allowing empty in case no files were bumped)
-          git commit --allow-empty -m "chore(release): prepare ${{ inputs.sdk_path }} for release ${{ env.new_tag }}"
+
+          if ! git diff --staged --quiet; then
+            echo "Changes detected in scoped files. Creating release commit..."
+            git commit -m "chore(release): prepare ${{ inputs.sdk_path }} for release ${{ env.new_tag }}"
+          else
+            echo "No changes detected in scoped files. Skipping commit, tagging current HEAD."
+          fi
 
           # Tag the detached commit and push
           git tag ${{ env.new_tag }}
