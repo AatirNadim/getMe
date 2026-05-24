@@ -13,7 +13,11 @@ on:
           - major
 
 jobs:
+  check-main-branch:
+    uses: ./.github/workflows/enforce-main-branch.yml
+
   tag-and-release:
+    needs: check-main-branch
     uses: ./.github/workflows/reusable-sdk-release.yml
     with:
       release_type: ${{ github.event.inputs.release_type }}

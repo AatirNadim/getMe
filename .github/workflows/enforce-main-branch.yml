@@ -1,0 +1,16 @@
+name: Enforce Main Branch
+
+on:
+  workflow_call:
+
+jobs:
+  check-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if running on main branch
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "::error::Release workflows can only be triggered from the main branch. Current ref: ${{ github.ref }}"
+            exit 1
+          fi
+          echo "Branch/Ref check passed. Proceeding with release."

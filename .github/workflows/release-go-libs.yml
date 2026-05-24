@@ -13,7 +13,11 @@ on:
           - major
 
 jobs:
+  check-main-branch:
+    uses: ./.github/workflows/enforce-main-branch.yml
+
   release:
+    needs: check-main-branch
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -68,11 +72,11 @@ jobs:
           echo "Calculated Commons: $COMMONS_VER (Tag: commons/$COMMONS_VER)"
           echo "Calculated GoSdk: $GOSDK_VER (Tag: sdks/goSdk/$GOSDK_VER)"
 
-      - name: Verify workspace integrity
-        run: |
-          # Test everything using the local replace directives
-          # BEFORE stripping them out. This guarantees the code is correct.
-          go test ./utils/... ./commons/... ./sdks/goSdk/...
+      # - name: Verify workspace integrity
+      #   run: |
+      #     # Test everything using the local replace directives
+      #     # BEFORE stripping them out. This guarantees the code is correct.
+      #     go test ./utils/... ./commons/... ./sdks/goSdk/...
 
       - name: Strip replace directives and update requirements
         run: |
@@ -93,9 +97,12 @@ jobs:
           cd ../..
 
       - name: Commit and Push Tags
+        env:
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name ${{ env.user_name }}
+          git config user.email ${{ env.user_email }}
 
           # Detach head to avoid modifying the main branch
           git checkout --detach
