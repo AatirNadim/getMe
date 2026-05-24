@@ -25,6 +25,9 @@ jobs:
       utils_tag: ${{ steps.versions.outputs.utils_tag }}
       commons_tag: ${{ steps.versions.outputs.commons_tag }}
       gosdk_tag: ${{ steps.versions.outputs.gosdk_tag }}
+      utils_ver: ${{ steps.versions.outputs.utils_ver }}
+      commons_ver: ${{ steps.versions.outputs.commons_ver }}
+      gosdk_ver: ${{ steps.versions.outputs.gosdk_ver }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -67,6 +70,9 @@ jobs:
           echo "utils_tag=utils/$UTILS_VER" >> $GITHUB_OUTPUT
           echo "commons_tag=commons/$COMMONS_VER" >> $GITHUB_OUTPUT
           echo "gosdk_tag=sdks/goSdk/$GOSDK_VER" >> $GITHUB_OUTPUT
+          echo "utils_ver=$UTILS_VER" >> $GITHUB_OUTPUT
+          echo "commons_ver=$COMMONS_VER" >> $GITHUB_OUTPUT
+          echo "gosdk_ver=$GOSDK_VER" >> $GITHUB_OUTPUT
 
           echo "Calculated Utils: $UTILS_VER (Tag: utils/$UTILS_VER)"
           echo "Calculated Commons: $COMMONS_VER (Tag: commons/$COMMONS_VER)"
@@ -140,8 +146,28 @@ jobs:
   #     tag_name: ${{ needs.release.outputs.commons_tag }}
   #     sdk_path: commons
 
-  draft-gosdk:
+
+  verify-go-resolution:
     needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.1"
+      - name: Verify module resolution
+        env:
+          # fetch module directly from the remote repository rather than waiting for the Go module mirror to cache the new versions
+          GOPROXY: direct
+        run: |
+          echo "Verifying resolution of freshly tagged Go modules..."
+          go list -m github.com/AatirNadim/getMe/utils@${{ needs.release.outputs.utils_ver }}
+          go list -m github.com/AatirNadim/getMe/commons@${{ needs.release.outputs.commons_ver }}
+          go list -m github.com/AatirNadim/getMe/sdks/goSdk@${{ needs.release.outputs.gosdk_ver }}
+
+
+  draft-gosdk:
+    needs: [release, verify-go-resolution]
     uses: ./.github/workflows/reusable-release-drafter.yml
     with:
       tag_name: ${{ needs.release.outputs.gosdk_tag }}
