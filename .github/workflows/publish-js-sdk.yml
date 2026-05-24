@@ -15,7 +15,7 @@ on:
 
 jobs:
   check-main-branch:
-    uses: ./.github/workflows/enforce-main-branch.yml
+    uses: ./.github/workflows/reusable-enforce-main-branch.yml
 
   release-tag-and-draft:
     needs: check-main-branch
