@@ -1,12 +1,10 @@
 package net.getMeStore.client.config;
 
 import io.netty.channel.unix.DomainSocketAddress;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
-@Configuration
 public class UdsHandler {
 
     public WebClient webClient(String socketPath) {

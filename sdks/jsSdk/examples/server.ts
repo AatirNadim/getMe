@@ -2,7 +2,7 @@ import express from 'express';
 
 
 import 'dotenv/config';
-import { GetMeClient } from './client';
+import { GetMeClient } from '../src/index';
 
 
 
@@ -85,5 +85,8 @@ app.delete('/clearStore', async (req, res) => {
   res.send({ success: true });
 })
 
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 
-export { app as server }
+export { app as server };

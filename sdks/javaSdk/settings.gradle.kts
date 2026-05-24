@@ -1,1 +1,1 @@
-rootProject.name = "getMeStoreJavaClient"
+rootProject.name = "getme-javasdk"

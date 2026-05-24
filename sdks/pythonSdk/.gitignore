@@ -1,0 +1,17 @@
+# --- uv & Python Environments ---
+.venv/
+.python-version
+
+# --- Python Build & Distribution Artifacts ---
+dist/
+build/
+*.egg-info/
+
+# --- Python Caches & Bytecode ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

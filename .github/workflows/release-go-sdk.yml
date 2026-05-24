@@ -1,0 +1,142 @@
+name: Release Go SDK & Libs
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release type (major, minor, patch)"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  check-main-branch:
+    uses: ./.github/workflows/reusable-enforce-main-branch.yml
+
+  release:
+    needs: check-main-branch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      utils_tag: ${{ steps.versions.outputs.utils_tag }}
+      commons_tag: ${{ steps.versions.outputs.commons_tag }}
+      gosdk_tag: ${{ steps.versions.outputs.gosdk_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.1"
+
+      - name: Calculate new versions
+        id: versions
+        run: |
+          bump="${{ github.event.inputs.release_type }}"
+
+          calc_next_ver() {
+            local prefix=$1
+            local latest_tag=$(git describe --tags --match "${prefix}v*" --abbrev=0 2>/dev/null || echo "${prefix}v0.0.0")
+            local version=${latest_tag#"${prefix}v"}
+            IFS='.' read -r major minor patch <<< "$version"
+            
+            if [ "$bump" == "major" ]; then
+              echo "v$((major+1)).0.0"
+            elif [ "$bump" == "minor" ]; then
+              echo "v${major}.$((minor+1)).0"
+            else
+              echo "v${major}.${minor}.$((patch+1))"
+            fi
+          }
+
+          UTILS_VER=$(calc_next_ver "utils/")
+          COMMONS_VER=$(calc_next_ver "commons/")
+          GOSDK_VER=$(calc_next_ver "sdks/goSdk/")
+
+          echo "utils_ver=$UTILS_VER" >> $GITHUB_ENV
+          echo "commons_ver=$COMMONS_VER" >> $GITHUB_ENV
+          echo "gosdk_ver=$GOSDK_VER" >> $GITHUB_ENV
+
+          echo "utils_tag=utils/$UTILS_VER" >> $GITHUB_OUTPUT
+          echo "commons_tag=commons/$COMMONS_VER" >> $GITHUB_OUTPUT
+          echo "gosdk_tag=sdks/goSdk/$GOSDK_VER" >> $GITHUB_OUTPUT
+
+          echo "Calculated Utils: $UTILS_VER (Tag: utils/$UTILS_VER)"
+          echo "Calculated Commons: $COMMONS_VER (Tag: commons/$COMMONS_VER)"
+          echo "Calculated GoSdk: $GOSDK_VER (Tag: sdks/goSdk/$GOSDK_VER)"
+
+      # - name: Verify workspace integrity
+      #   run: |
+      #     # Test everything using the local replace directives
+      #     # BEFORE stripping them out. This guarantees the code is correct.
+      #     go test ./utils/... ./commons/... ./sdks/goSdk/...
+
+      - name: Strip replace directives and update requirements
+        run: |
+          # 1. Update commons
+          cd commons
+          go mod edit -dropreplace github.com/AatirNadim/getMe/utils
+          go mod edit -require github.com/AatirNadim/getMe/utils@${{ env.utils_ver }}
+          cd ..
+
+          # 2. Update sdks/goSdk
+          cd sdks/goSdk
+          go mod edit -dropreplace github.com/AatirNadim/getMe/commons
+          go mod edit -dropreplace github.com/AatirNadim/getMe/utils
+          go mod edit -require github.com/AatirNadim/getMe/commons@${{ env.commons_ver }}
+          # Assuming utils is an indirect dependency that might not strictly need updating in requiring, 
+          # but we update it to match the newly resolving version.
+          go mod edit -require github.com/AatirNadim/getMe/utils@${{ env.utils_ver }}
+          cd ../..
+
+      - name: Commit and Push Tags
+        env:
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply
+        run: |
+          git config user.name ${{ env.user_name }}
+          git config user.email ${{ env.user_email }}
+
+          # Detach head to avoid modifying the main branch
+          git checkout --detach
+
+          git add commons/go.mod sdks/goSdk/go.mod
+          git commit -m "chore(release): prepare Go libs for release utils/${{ env.utils_ver }}, commons/${{ env.commons_ver }}, sdks/goSdk/${{ env.gosdk_ver }}"
+
+          # Tag the detached commit
+          git tag utils/${{ env.utils_ver }}
+          git tag commons/${{ env.commons_ver }}
+          git tag sdks/goSdk/${{ env.gosdk_ver }}
+
+          # Push only the tags
+          git push origin utils/${{ env.utils_ver }}
+          git push origin commons/${{ env.commons_ver }}
+          git push origin sdks/goSdk/${{ env.gosdk_ver }}
+
+  # draft-utils:
+  #   needs: release
+  #   uses: ./.github/workflows/reusable-release-drafter.yml
+  #   with:
+  #     tag_name: ${{ needs.release.outputs.utils_tag }}
+  #     sdk_path: utils
+
+  # draft-commons:
+  #   needs: release
+  #   uses: ./.github/workflows/reusable-release-drafter.yml
+  #   with:
+  #     tag_name: ${{ needs.release.outputs.commons_tag }}
+  #     sdk_path: commons
+
+  draft-gosdk:
+    needs: release
+    uses: ./.github/workflows/reusable-release-drafter.yml
+    with:
+      tag_name: ${{ needs.release.outputs.gosdk_tag }}
+      sdk_path: sdks/goSdk

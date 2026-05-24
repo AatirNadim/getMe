@@ -1,25 +1,34 @@
 {
-  "name": "getme-js-sdk",
+  "name": "getme-sdk",
   "version": "1.0.0",
-  "description": "JavaScript SDK for GetMe",
+  "description": "Official JavaScript/TypeScript client for the getMe Key-Value Store",
   "main": "dist/index.js",
-  "type": "module",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch index.ts",
+    "dev": "tsx watch examples/server.ts",
     "build": "rm -rf dist && tsc"
   },
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AatirNadim/getMe.git",
+    "directory": "sdks/jsSdk"
+  },
+  "author": "AatirNadim",
+  "license": "AGPL-3.0",
+  "packageManager": "pnpm@9.1.3",
   "dependencies": {
-    "axios": "^1.12.2",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "tsx": "^4.20.6"    
+    "axios": "^1.12.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/node": "^24.6.2",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }

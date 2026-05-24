@@ -1,10 +1,11 @@
 import os
+
 import requests_unixsocket
 from dotenv import load_dotenv
 import json
 from urllib.parse import quote_plus
 
-from constants import Constants
+from .constants import Constants
 
 
 class GetMeClient:
@@ -72,9 +73,7 @@ class GetMeClient:
         try:
             return json.loads(raw)
         except json.JSONDecodeError as exc:
-            raise Exception(
-                f"value for key '{key}' is not valid JSON: {exc}"
-            ) from exc
+            raise Exception(f"value for key '{key}' is not valid JSON: {exc}") from exc
 
     def delete(self, key):
         """
@@ -98,3 +97,58 @@ class GetMeClient:
         response = self.unix_session.delete(url)
         if response.status_code != 200:
             raise Exception(f"Failed to clear store: {response.text}")
+
+    def batch_put(self, batch: dict):
+        """
+        Puts multiple key-value pairs into the store.
+
+        :param batch: A dict of key-value pairs to store.
+        :raises Exception: If the server returns a non-200 status code.
+        """
+        url = f"{Constants.BaseUrl}{self.sock_path}/batchPut"
+        headers = {"Content-Type": "application/json"}
+
+        response = self.unix_session.post(url, data=json.dumps(batch), headers=headers)
+        if response.status_code != 200:
+            raise Exception(f"Failed to batch put key-value pairs: {response.text}")
+
+        return response.json()
+
+    def batch_get(self, keys: list):
+        """
+        Gets multiple values for given keys from the store.
+
+        :param keys: A list of keys to retrieve.
+        :return: A dictionary mapping the requested keys to their retrieved values.
+        :raises Exception: If the server returns a non-200 status code.
+        """
+        url = f"{Constants.BaseUrl}{self.sock_path}/batchGet"
+        payload = {"keys": keys}
+        headers = {"Content-Type": "application/json"}
+
+        response = self.unix_session.post(
+            url, data=json.dumps(payload), headers=headers
+        )
+        if response.status_code != 200:
+            raise Exception(f"Failed to batch get keys: {response.text}")
+
+        return response.json()
+
+    def batch_delete(self, keys: list):
+        """
+        Deletes multiple keys from the store.
+
+        :param keys: A list of keys to delete.
+        :raises Exception: If the server returns a non-200 status code.
+        """
+        url = f"{Constants.BaseUrl}{self.sock_path}/batchDelete"
+        payload = {"keys": keys}
+        headers = {"Content-Type": "application/json"}
+
+        response = self.unix_session.delete(
+            url, data=json.dumps(payload), headers=headers
+        )
+        if response.status_code != 200:
+            raise Exception(f"Failed to batch delete keys: {response.text}")
+
+        return response.json()

@@ -1,0 +1,66 @@
+name: Publish JS SDK to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        type: choice
+        default: 'patch'
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  check-main-branch:
+    uses: ./.github/workflows/reusable-enforce-main-branch.yml
+
+  release-tag-and-draft:
+    needs: check-main-branch
+    uses: ./.github/workflows/reusable-sdk-release.yml
+    with:
+      release_type: ${{ github.event.inputs.release_type }}
+      sdk_path: 'sdks/jsSdk'
+
+  publish-to-npm:
+    needs: release-tag-and-draft
+    runs-on: ubuntu-latest
+    
+    # These permissions are REQUIRED for npm Provenance
+    permissions:
+      contents: read
+      id-token: write 
+
+    defaults:
+      run:
+        working-directory: ./sdks/jsSdk
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-tag-and-draft.outputs.new_tag }}
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build SDK
+        run: pnpm run build
+
+      - name: Publish to npm
+        run: pnpm publish --provenance --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
