@@ -46,7 +46,15 @@ jobs:
 
           calc_next_ver() {
             local prefix=$1
-            local latest_tag=$(git describe --tags --match "${prefix}v*" --abbrev=0 2>/dev/null || echo "${prefix}v0.0.0")
+
+            local latest_tag=$(git tag --list "${prefix}v*" --sort=-v:refname | head -n 1)
+            
+            # Fallback if no tag exists
+            if [ -z "$latest_tag" ]; then
+              latest_tag="${prefix}v0.0.0"
+            fi
+
+
             local version=${latest_tag#"${prefix}v"}
             IFS='.' read -r major minor patch <<< "$version"
             
