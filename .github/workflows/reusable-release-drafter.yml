@@ -62,8 +62,7 @@ jobs:
             echo "$CHANGELOG" >> release_notes.md
           fi
 
-          # Use the GitHub CLI to create a DRAFT release
+          # Use the GitHub CLI to create a release
           gh release create "$CURRENT_TAG" \
               --title "$CURRENT_TAG" \
-              --notes-file release_notes.md \
-              --draft
+              --notes-file release_notes.md
