@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1779049026435,
+  "lastUpdate": 1779638691548,
   "repoUrl": "https://github.com/AatirNadim/getMe",
   "entries": {
     "go-stress-benchmarks": [
@@ -8304,6 +8304,534 @@ window.BENCHMARK_DATA = {
             "value": 0,
             "unit": "allocs/op",
             "extra": "29440546 times\n4 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "100563812+AatirNadim@users.noreply.github.com",
+            "name": "collywobble",
+            "username": "AatirNadim"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9e10bd0609b093b35ae55e04e727c0c8f00928b2",
+          "message": "Feature/shipping sdks (#21)\n\n* feat: add release workflow for Go SDKs and reusable release drafter\n\n* Refactor Python SDK: Restructure project layout, remove old client implementation, and add GitHub Actions for versioning\n\n- Deleted old client implementation and constants.\n- Moved client code to a new structure under `src/getme_python_sdk`.\n- Added a new GitHub Actions workflow for releasing the Python SDK.\n- Created `.gitignore` to exclude unnecessary files.\n- Added `README.md` and `pyproject.toml` for project metadata and dependencies.\n- Introduced `uv.lock` for dependency management.\n\n* feat: add batch operations for key-value store (put, get, delete)\n\n* feat: implement reusable SDK tag and release workflow; add publish workflow for Python SDK\n\n* feat: enhance Java SDK with publishing workflow, update project structure, and implement new client configuration\n\n* feat: refactor JavaScript SDK structure, remove server implementation, and add publishing workflow\n\n* feat: add main branch enforcement workflow and update SDK publish workflows to depend on it\n\n* feat: replace enforce-main-branch workflow with reusable version and update SDK publish workflows accordingly",
+          "timestamp": "2026-05-24T21:33:25+05:30",
+          "tree_id": "c9ede6ce2633f578aad38c2e35b52bdb96c0465b",
+          "url": "https://github.com/AatirNadim/getMe/commit/9e10bd0609b093b35ae55e04e727c0c8f00928b2"
+        },
+        "date": 1779638690568,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkGet/Iteration1",
+            "value": 654.6,
+            "unit": "ns/op\t     143 B/op\t       6 allocs/op",
+            "extra": "1817596 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration1 - ns/op",
+            "value": 654.6,
+            "unit": "ns/op",
+            "extra": "1817596 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration1 - B/op",
+            "value": 143,
+            "unit": "B/op",
+            "extra": "1817596 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration1 - allocs/op",
+            "value": 6,
+            "unit": "allocs/op",
+            "extra": "1817596 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration2",
+            "value": 653.2,
+            "unit": "ns/op\t     143 B/op\t       6 allocs/op",
+            "extra": "1670850 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration2 - ns/op",
+            "value": 653.2,
+            "unit": "ns/op",
+            "extra": "1670850 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration2 - B/op",
+            "value": 143,
+            "unit": "B/op",
+            "extra": "1670850 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration2 - allocs/op",
+            "value": 6,
+            "unit": "allocs/op",
+            "extra": "1670850 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration3",
+            "value": 668.8,
+            "unit": "ns/op\t     143 B/op\t       6 allocs/op",
+            "extra": "1828279 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration3 - ns/op",
+            "value": 668.8,
+            "unit": "ns/op",
+            "extra": "1828279 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration3 - B/op",
+            "value": 143,
+            "unit": "B/op",
+            "extra": "1828279 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkGet/Iteration3 - allocs/op",
+            "value": 6,
+            "unit": "allocs/op",
+            "extra": "1828279 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration1",
+            "value": 158440,
+            "unit": "ns/op\t   75604 B/op\t    1435 allocs/op",
+            "extra": "7525 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration1 - ns/op",
+            "value": 158440,
+            "unit": "ns/op",
+            "extra": "7525 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration1 - B/op",
+            "value": 75604,
+            "unit": "B/op",
+            "extra": "7525 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration1 - allocs/op",
+            "value": 1435,
+            "unit": "allocs/op",
+            "extra": "7525 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration2",
+            "value": 159057,
+            "unit": "ns/op\t   75980 B/op\t    1439 allocs/op",
+            "extra": "7628 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration2 - ns/op",
+            "value": 159057,
+            "unit": "ns/op",
+            "extra": "7628 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration2 - B/op",
+            "value": 75980,
+            "unit": "B/op",
+            "extra": "7628 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration2 - allocs/op",
+            "value": 1439,
+            "unit": "allocs/op",
+            "extra": "7628 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration3",
+            "value": 157777,
+            "unit": "ns/op\t   75415 B/op\t    1426 allocs/op",
+            "extra": "7224 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration3 - ns/op",
+            "value": 157777,
+            "unit": "ns/op",
+            "extra": "7224 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration3 - B/op",
+            "value": 75415,
+            "unit": "B/op",
+            "extra": "7224 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchGet/Iteration3 - allocs/op",
+            "value": 1426,
+            "unit": "allocs/op",
+            "extra": "7224 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration1",
+            "value": 6909,
+            "unit": "ns/op\t    1740 B/op\t      39 allocs/op",
+            "extra": "175026 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration1 - ns/op",
+            "value": 6909,
+            "unit": "ns/op",
+            "extra": "175026 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration1 - B/op",
+            "value": 1740,
+            "unit": "B/op",
+            "extra": "175026 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration1 - allocs/op",
+            "value": 39,
+            "unit": "allocs/op",
+            "extra": "175026 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration2",
+            "value": 6857,
+            "unit": "ns/op\t    1750 B/op\t      39 allocs/op",
+            "extra": "193029 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration2 - ns/op",
+            "value": 6857,
+            "unit": "ns/op",
+            "extra": "193029 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration2 - B/op",
+            "value": 1750,
+            "unit": "B/op",
+            "extra": "193029 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration2 - allocs/op",
+            "value": 39,
+            "unit": "allocs/op",
+            "extra": "193029 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration3",
+            "value": 6801,
+            "unit": "ns/op\t    1744 B/op\t      39 allocs/op",
+            "extra": "192638 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration3 - ns/op",
+            "value": 6801,
+            "unit": "ns/op",
+            "extra": "192638 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration3 - B/op",
+            "value": 1744,
+            "unit": "B/op",
+            "extra": "192638 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkPut/Iteration3 - allocs/op",
+            "value": 39,
+            "unit": "allocs/op",
+            "extra": "192638 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration1",
+            "value": 512590,
+            "unit": "ns/op\t  167160 B/op\t    2421 allocs/op",
+            "extra": "2613 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration1 - ns/op",
+            "value": 512590,
+            "unit": "ns/op",
+            "extra": "2613 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration1 - B/op",
+            "value": 167160,
+            "unit": "B/op",
+            "extra": "2613 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration1 - allocs/op",
+            "value": 2421,
+            "unit": "allocs/op",
+            "extra": "2613 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration2",
+            "value": 497351,
+            "unit": "ns/op\t  165017 B/op\t    2405 allocs/op",
+            "extra": "2814 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration2 - ns/op",
+            "value": 497351,
+            "unit": "ns/op",
+            "extra": "2814 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration2 - B/op",
+            "value": 165017,
+            "unit": "B/op",
+            "extra": "2814 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration2 - allocs/op",
+            "value": 2405,
+            "unit": "allocs/op",
+            "extra": "2814 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration3",
+            "value": 505101,
+            "unit": "ns/op\t  168842 B/op\t    2431 allocs/op",
+            "extra": "2427 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration3 - ns/op",
+            "value": 505101,
+            "unit": "ns/op",
+            "extra": "2427 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration3 - B/op",
+            "value": 168842,
+            "unit": "B/op",
+            "extra": "2427 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkBatchPut/Iteration3 - allocs/op",
+            "value": 2431,
+            "unit": "allocs/op",
+            "extra": "2427 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration1",
+            "value": 3091,
+            "unit": "ns/op\t     556 B/op\t      14 allocs/op",
+            "extra": "452050 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration1 - ns/op",
+            "value": 3091,
+            "unit": "ns/op",
+            "extra": "452050 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration1 - B/op",
+            "value": 556,
+            "unit": "B/op",
+            "extra": "452050 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration1 - allocs/op",
+            "value": 14,
+            "unit": "allocs/op",
+            "extra": "452050 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration2",
+            "value": 3041,
+            "unit": "ns/op\t     540 B/op\t      14 allocs/op",
+            "extra": "451790 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration2 - ns/op",
+            "value": 3041,
+            "unit": "ns/op",
+            "extra": "451790 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration2 - B/op",
+            "value": 540,
+            "unit": "B/op",
+            "extra": "451790 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration2 - allocs/op",
+            "value": 14,
+            "unit": "allocs/op",
+            "extra": "451790 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration3",
+            "value": 3082,
+            "unit": "ns/op\t     564 B/op\t      14 allocs/op",
+            "extra": "448212 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration3 - ns/op",
+            "value": 3082,
+            "unit": "ns/op",
+            "extra": "448212 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration3 - B/op",
+            "value": 564,
+            "unit": "B/op",
+            "extra": "448212 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_90_10/Iteration3 - allocs/op",
+            "value": 14,
+            "unit": "allocs/op",
+            "extra": "448212 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration1",
+            "value": 3938,
+            "unit": "ns/op\t     758 B/op\t      18 allocs/op",
+            "extra": "381714 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration1 - ns/op",
+            "value": 3938,
+            "unit": "ns/op",
+            "extra": "381714 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration1 - B/op",
+            "value": 758,
+            "unit": "B/op",
+            "extra": "381714 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration1 - allocs/op",
+            "value": 18,
+            "unit": "allocs/op",
+            "extra": "381714 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration2",
+            "value": 3971,
+            "unit": "ns/op\t     754 B/op\t      19 allocs/op",
+            "extra": "368149 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration2 - ns/op",
+            "value": 3971,
+            "unit": "ns/op",
+            "extra": "368149 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration2 - B/op",
+            "value": 754,
+            "unit": "B/op",
+            "extra": "368149 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration2 - allocs/op",
+            "value": 19,
+            "unit": "allocs/op",
+            "extra": "368149 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration3",
+            "value": 3910,
+            "unit": "ns/op\t     756 B/op\t      19 allocs/op",
+            "extra": "369622 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration3 - ns/op",
+            "value": 3910,
+            "unit": "ns/op",
+            "extra": "369622 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration3 - B/op",
+            "value": 756,
+            "unit": "B/op",
+            "extra": "369622 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkReadWriteMixed_80_20/Iteration3 - allocs/op",
+            "value": 19,
+            "unit": "allocs/op",
+            "extra": "369622 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration1",
+            "value": 40.9,
+            "unit": "ns/op\t       1 B/op\t       0 allocs/op",
+            "extra": "25340488 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration1 - ns/op",
+            "value": 40.9,
+            "unit": "ns/op",
+            "extra": "25340488 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration1 - B/op",
+            "value": 1,
+            "unit": "B/op",
+            "extra": "25340488 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration1 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "25340488 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration2",
+            "value": 43.22,
+            "unit": "ns/op\t       1 B/op\t       0 allocs/op",
+            "extra": "26652104 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration2 - ns/op",
+            "value": 43.22,
+            "unit": "ns/op",
+            "extra": "26652104 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration2 - B/op",
+            "value": 1,
+            "unit": "B/op",
+            "extra": "26652104 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration2 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "26652104 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration3",
+            "value": 40.55,
+            "unit": "ns/op\t       1 B/op\t       0 allocs/op",
+            "extra": "26246880 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration3 - ns/op",
+            "value": 40.55,
+            "unit": "ns/op",
+            "extra": "26246880 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration3 - B/op",
+            "value": 1,
+            "unit": "B/op",
+            "extra": "26246880 times\n4 procs"
+          },
+          {
+            "name": "BenchmarkDelete/Iteration3 - allocs/op",
+            "value": 0,
+            "unit": "allocs/op",
+            "extra": "26246880 times\n4 procs"
           }
         ]
       }
