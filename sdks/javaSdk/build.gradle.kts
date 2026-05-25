@@ -2,10 +2,9 @@ import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
 	`java-library`
-	`maven-publish`
-	signing
 	id("org.springframework.boot") version "3.5.6"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("com.vanniktech.maven.publish") version "0.30.0"
 }
 
 group = "io.github.aatirnadim" // Update with namespace if available
@@ -13,8 +12,6 @@ version = "0.0.1"
 description = "Official Java client for the getMe Key-Value Store"
 
 java {
-	withJavadocJar()
-	withSourcesJar()
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
@@ -32,51 +29,31 @@ tasks.withType<Jar> {
     enabled = true
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            pom {
-                name.set("getMe Java SDK")
-                description.set("Official Java client for the getMe Key-Value Store")
-                url.set("https://github.com/AatirNadim/getMe")
-                licenses {
-                    license {
-                        name.set("AGPLv3")
-                        url.set("https://www.gnu.org/licenses/agpl.txt")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("aatirnadim")
-                        name.set("Aatir Nadim")
-                    }
-                }
-                scm {
-                    connection.set("scm:git:git://github.com/AatirNadim/getMe.git")
-                    url.set("https://github.com/AatirNadim/getMe")
-                }
+mavenPublishing {
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+    pom {
+        name.set("getMe Java SDK")
+        description.set("Official Java client for the getMe Key-Value Store")
+        inceptionYear.set("2026")
+        url.set("https://github.com/AatirNadim/getMe")
+        licenses {
+            license {
+                name.set("AGPLv3")
+                url.set("https://www.gnu.org/licenses/agpl-3.0.txt")
             }
         }
-    }
-    repositories {
-        maven {
-            name = "OSSRH"
-            url = uri("https://central.sonatype.com/api/v1/publisher")
-            credentials {
-                username = System.getenv("OSSRH_USERNAME")
-                password = System.getenv("OSSRH_PASSWORD")
+        developers {
+            developer {
+                id.set("aatirnadim")
+                name.set("Aatir Nadim")
             }
         }
-    }
-}
-
-signing {
-    val signingKey = System.getenv("GPG_PRIVATE_KEY")
-    val signingPassword = System.getenv("GPG_PASSPHRASE")
-    if (signingKey != null && signingPassword != null) {
-        useInMemoryPgpKeys(signingKey, signingPassword)
-        sign(publishing.publications["mavenJava"])
+        scm {
+            connection.set("scm:git:git://github.com/AatirNadim/getMe.git")
+            developerConnection.set("scm:git:ssh://git@github.com/AatirNadim/getMe.git")
+            url.set("https://github.com/AatirNadim/getMe")
+        }
     }
 }
 
