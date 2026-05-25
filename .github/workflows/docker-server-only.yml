@@ -65,4 +65,4 @@ jobs:
           # true if push to main, false if PR
           push: ${{ github.event_name == 'push' }}
           # Creates tags like: <user>/<image>-server:<sha> and <user>/<image>-server:latest
-          tags: ${{ vars.DOCKER_USERNAME }}/${{ vars.SERVER_ONLY_IMAGE_NAME }}-server:${{ steps.vars.outputs.sha_short }},${{ vars.DOCKER_USERNAME }}/${{ vars.SERVER_ONLY_IMAGE_NAME }}-server:latest
+          tags: ${{ vars.DOCKER_USERNAME }}/${{ vars.SERVER_ONLY_IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }},${{ vars.DOCKER_USERNAME }}/${{ vars.SERVER_ONLY_IMAGE_NAME }}:latest
