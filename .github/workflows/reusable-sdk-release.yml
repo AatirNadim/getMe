@@ -73,7 +73,7 @@ jobs:
 
           # JS / TS
           if [ -f "package.json" ]; then
-            sed -i 's/"version": ".*"/"version": "'"$CLEAN_VER"'"/' package.json
+            jq --arg v "$CLEAN_VER" '.version = $v' package.json > tmp.json && mv tmp.json package.json
             git add package.json
           fi
 

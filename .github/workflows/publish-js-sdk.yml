@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       release_type:
-        description: 'Release type'
+        description: "Release type"
         required: true
         type: choice
-        default: 'patch'
+        default: "patch"
         options:
           - patch
           - minor
@@ -30,8 +30,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "22"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -39,7 +38,7 @@ jobs:
           version: 9
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Build SDK
         run: pnpm run build
@@ -49,16 +48,16 @@ jobs:
     uses: ./.github/workflows/reusable-sdk-release.yml
     with:
       release_type: ${{ github.event.inputs.release_type }}
-      sdk_path: 'sdks/jsSdk'
+      sdk_path: "sdks/jsSdk"
 
   publish-to-npm:
     needs: release-tag-and-draft
     runs-on: ubuntu-latest
-    
+
     # These permissions are REQUIRED for npm Provenance
     permissions:
       contents: read
-      id-token: write 
+      id-token: write
 
     defaults:
       run:
@@ -73,8 +72,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: "22"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -89,5 +87,3 @@ jobs:
 
       - name: Publish to npm
         run: pnpm publish --provenance --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
