@@ -1,7 +1,7 @@
 [project]
 name = "getme-python-sdk"
 version = "0.1.0"
-description = "Add your description here"
+description = "Official Python SDK for getMe."
 readme = "README.md"
 authors = [
     { name = "AatirNadim", email = "aatir.nadim@gmail.com" }
