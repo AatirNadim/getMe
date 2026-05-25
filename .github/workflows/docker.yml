@@ -27,7 +27,7 @@ jobs:
           go-version: "1.23.1"
 
       - name: Run server tests
-        working-directory: ./server
+        working-directory: ./server/tests
         run: go test -v ./...
 
   test-http-proxy:
@@ -42,7 +42,7 @@ jobs:
           go-version: "1.23.1"
 
       - name: Run http-proxy-go tests
-        working-directory: ./http-proxy-go
+        working-directory: ./http-proxy-go/tests
         run: go test -v ./...
 
   build-and-push:
