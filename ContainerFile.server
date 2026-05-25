@@ -39,6 +39,12 @@ USER appuser
 RUN mkdir -p /tmp/getMeStore/dumpDir && \
   mkdir -p /tmp/getMeStore/sockDir
 
+# IMPORTANT (sockDir): The core engine listens for incoming requests on a Unix domain socket.
+# For the host machine (ext. CLI or Proxy) to communicate with this containerized engine,
+# /tmp/getMeStore/sockDir MUST be bind-mounted to the host. This maps the engine's internal
+# sock file to the outside, allowing external processes to send requests successfully.
+VOLUME ["/tmp/getMeStore/sockDir"]
+
 COPY --from=builder /app/dist/getMe /getMe
 
 CMD [ "/getMe" ]
