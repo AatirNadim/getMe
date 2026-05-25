@@ -16,8 +16,28 @@ jobs:
   check-main-branch:
     uses: ./.github/workflows/reusable-enforce-main-branch.yml
 
-  tag-and-release:
+  verify-build:
     needs: check-main-branch
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./sdks/javaSdk
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Build and Test
+        run: ./gradlew build --no-daemon
+
+  tag-and-release:
+    needs: [check-main-branch, verify-build]
     uses: ./.github/workflows/reusable-sdk-release.yml
     with:
       release_type: ${{ github.event.inputs.release_type }}
