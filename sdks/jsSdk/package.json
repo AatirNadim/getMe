@@ -1,5 +1,5 @@
 {
-  "name": "getme-sdk",
+  "name": "getme-js-sdk",
   "version": "1.0.0",
   "description": "Official JavaScript/TypeScript client for the getMe Key-Value Store",
   "main": "dist/index.js",
