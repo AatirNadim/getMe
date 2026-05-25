@@ -45,15 +45,10 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Decode GPG Key
-        run: echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode > gpg_private.key
+      - name: Publish to Central Portal
+        run: ./gradlew publishAndReleaseToMavenCentral --no-daemon
         env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-
-      - name: Publish to Maven Central
-        run: ./gradlew publish
-        env:
-          GPG_PRIVATE_KEY: $(cat gpg_private.key)
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
