@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.github.aatirnadim" // Update with namespace if available
-version = "0.0.1"
+version = "1.0.0"
 description = "Official Java client for the getMe Key-Value Store"
 
 java {
