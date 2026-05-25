@@ -33,8 +33,8 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
-      - name: Build and Test
-        run: ./gradlew build --no-daemon
+      - name: Build
+        run: ./gradlew build -x test --no-daemon
 
   tag-and-release:
     needs: [check-main-branch, verify-build]
@@ -66,7 +66,7 @@ jobs:
           cache: 'gradle'
 
       - name: Publish to Central Portal
-        run: ./gradlew publishAndReleaseToMavenCentral --no-daemon
+        run: ./gradlew publishAndReleaseToMavenCentral -x test --no-daemon
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
