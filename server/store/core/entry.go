@@ -128,7 +128,7 @@ func deserializeEntry(bytarr []byte) (*Entry, error) {
 	return e, nil
 }
 
-func getEntrySizeFromHeader(header []byte) (uint32, error) {
+func getEntrySizeFromHeader(header [16]byte) (uint32, error) {
 	if len(header) < int(getEntryHeaderSize()) {
 		fmt.Println("entry.go: 130: Invalid header: header size is less than expected size:", len(header), " expected at least:", getEntryHeaderSize())
 		return 0, utils.ErrInvalidEntry

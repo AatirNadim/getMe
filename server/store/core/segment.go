@@ -221,8 +221,9 @@ func (sg *Segment) getSerializedEntryFromOffset(offset uint32) ([]byte, uint32, 
 	}
 
 	// maxSize:  DefaultMaxSegmentSize,
-	header := make([]byte, getEntryHeaderSize())
-	_, err := sg.file.ReadAt(header, int64(offset))
+	// header := make([]byte, getEntryHeaderSize())
+	var header [16]byte
+	_, err := sg.file.ReadAt(header[:], int64(offset))
 	if err != nil {
 		if err == io.EOF {
 			return nil, offset, io.EOF // Reached the end of the file
