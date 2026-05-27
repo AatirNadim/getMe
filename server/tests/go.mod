@@ -7,6 +7,7 @@ require github.com/AatirNadim/getMe/server v0.0.0
 require (
 	github.com/AatirNadim/getMe/commons v0.0.0 // indirect
 	github.com/AatirNadim/getMe/utils v0.0.0 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
 )
 
 replace (
