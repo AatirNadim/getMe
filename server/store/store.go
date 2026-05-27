@@ -466,7 +466,15 @@ func (s *Store) BatchPut(batch map[string]string) (commons.BatchPutResult, error
 			flushAndReset()
 		}
 
-		writeBuffer.Write(serializedEntry)
+		_, err = writeBuffer.Write(serializedEntry)
+
+		if err != nil {
+			errStr := fmt.Sprintf("failed to write serialized entry to buffer: %v", err)
+			logger.Error("BatchPut: Failed to write serialized entry for key", key, "to buffer:", err)
+			result.Failed[key] = errStr
+			entryPool.Put(entry)
+			continue
+		}
 		// chunkEntries have the order of entries same as they are added to the writeBuffer
 		chunkEntries = append(chunkEntries, entry)
 	}
