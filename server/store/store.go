@@ -7,12 +7,14 @@ import (
 	"sort"
 	"sync"
 	"time"
+	"unsafe"
 
 	commons "github.com/AatirNadim/getMe/commons"
 	"github.com/AatirNadim/getMe/server/store/core"
 	"github.com/AatirNadim/getMe/server/store/utils"
 	"github.com/AatirNadim/getMe/server/store/utils/constants"
 	"github.com/AatirNadim/getMe/server/utils/logger"
+	"github.com/valyala/bytebufferpool"
 )
 
 // Pools for reusing byte buffers to reduce allocations for keys and values.
@@ -238,15 +240,18 @@ func (s *Store) Put(key string, value string) error {
 	logger.Info("Putting key:", key, "with value: ", value)
 
 	// create a buffer for key and value to avoid multiple allocations
-	keyBuffer := keyBufferPool.Get().(*bytes.Buffer)
-	defer keyBufferPool.Put(keyBuffer)
-	keyBuffer.Reset()
-	keyBuffer.WriteString(key)
+	// keyBuffer := keyBufferPool.Get().(*bytes.Buffer)
+	// defer keyBufferPool.Put(keyBuffer)
+	// keyBuffer.Reset()
+	// keyBuffer.WriteString(key)
 
-	valueBuffer := valueBufferPool.Get().(*bytes.Buffer)
-	defer valueBufferPool.Put(valueBuffer)
-	valueBuffer.Reset()
-	valueBuffer.WriteString(value)
+	// valueBuffer := valueBufferPool.Get().(*bytes.Buffer)
+	// defer valueBufferPool.Put(valueBuffer)
+	// valueBuffer.Reset()
+	// valueBuffer.WriteString(value)
+
+	keyBytes := s.unsafeStringToBytes(key)
+	valueBytes := s.unsafeStringToBytes(value)
 
 	// commented out to use the buffer pools instead
 
@@ -255,7 +260,7 @@ func (s *Store) Put(key string, value string) error {
 
 	timeStamp := time.Now().UnixNano()
 
-	entry, err := core.CreateEntry(keyBuffer.Bytes(), valueBuffer.Bytes(), timeStamp)
+	entry, err := core.CreateEntry(keyBytes, valueBytes, timeStamp)
 	if err != nil {
 		return err
 	}
@@ -292,7 +297,7 @@ func (s *Store) Delete(key string) error {
 
 	timeStamp := time.Now().UnixNano()
 
-	deletionEntry, deletionEntryCreationErr := core.CreateDeletionEntry(s.convertStringToBytes(key), timeStamp)
+	deletionEntry, deletionEntryCreationErr := core.CreateDeletionEntry(s.unsafeStringToBytes(key), timeStamp)
 
 	if deletionEntryCreationErr != nil {
 		logger.Error("store: failed to create deletion entry:", deletionEntryCreationErr)
@@ -349,9 +354,13 @@ func (s *Store) BatchPut(batch map[string]string) (commons.BatchPutResult, error
 	// In-memory buffer to hold serialized entries
 
 	// Note: we are using a buffer pool to fetch a buffer from, which reduces the number of allocations and GC overhead for large batches, since we reuse the same buffer for multiple batch put operations
-	writeBuffer := batchBufferPool.Get().(*bytes.Buffer)
-	defer batchBufferPool.Put(writeBuffer)
-	writeBuffer.Reset()
+	// writeBuffer := batchBufferPool.Get().(*bytes.Buffer)
+	// defer batchBufferPool.Put(writeBuffer)
+	// writeBuffer.Reset()
+
+	// 1. Grab ONE buffer from the pool to hold the entire batch of serialized disk data
+	writeBuffer := bytebufferpool.Get()
+	defer bytebufferpool.Put(writeBuffer)
 
 	// Start with MaxChunkSize capacity
 	// Map to hold entries for the current chunk
@@ -370,7 +379,7 @@ func (s *Store) BatchPut(batch map[string]string) (commons.BatchPutResult, error
 			errStr := fmt.Sprintf("failed to flush write buffer: %v", err)
 			logger.Error("BatchPut: " + errStr)
 			for _, entry := range chunkEntries {
-				keyStr := s.convertBytesToString(entry.Key)
+				keyStr := s.unsafeBytesToString(entry.Key)
 				result.Failed[keyStr] = errStr
 				entryPool.Put(entry)
 			}
@@ -385,7 +394,7 @@ func (s *Store) BatchPut(batch map[string]string) (commons.BatchPutResult, error
 					TimeStamp: originalEntry.TimeStamp,
 					ValueSize: originalEntry.ValueSize,
 				}
-				keyStr := s.convertBytesToString(originalEntry.Key)
+				keyStr := s.unsafeBytesToString(originalEntry.Key)
 				newIndexPointers[keyStr] = indexEntry
 			}
 
@@ -409,19 +418,22 @@ func (s *Store) BatchPut(batch map[string]string) (commons.BatchPutResult, error
 
 	// Process each key-value pair in the batch
 	for key, value := range batch {
-		keyBuffer := keyBufferPool.Get().(*bytes.Buffer) // fetch a buffer from the pool
-		keyBuffer.Reset()
-		keyBuffer.WriteString(key)
+		// keyBuffer := keyBufferPool.Get().(*bytes.Buffer) // fetch a buffer from the pool
+		// keyBuffer.Reset()
+		// keyBuffer.WriteString(key)
 
-		valueBuffer := valueBufferPool.Get().(*bytes.Buffer) // fetch a buffer from the pool
-		valueBuffer.Reset()
-		valueBuffer.WriteString(value)
+		// valueBuffer := valueBufferPool.Get().(*bytes.Buffer) // fetch a buffer from the pool
+		// valueBuffer.Reset()
+		// valueBuffer.WriteString(value)
 
-		keyBytes := make([]byte, keyBuffer.Len())
-		copy(keyBytes, keyBuffer.Bytes())
+		// keyBytes := make([]byte, keyBuffer.Len())
+		// copy(keyBytes, keyBuffer.Bytes())
 
-		valueBytes := make([]byte, valueBuffer.Len())
-		copy(valueBytes, valueBuffer.Bytes())
+		// valueBytes := make([]byte, valueBuffer.Len())
+		// copy(valueBytes, valueBuffer.Bytes())
+
+		keyBytes := s.unsafeStringToBytes(key)
+		valueBytes := s.unsafeStringToBytes(value)
 
 		timeStamp := time.Now().UnixNano()
 
@@ -435,8 +447,8 @@ func (s *Store) BatchPut(batch map[string]string) (commons.BatchPutResult, error
 		entry.ValueSize = uint32(len(valueBytes))
 		entry.TimeStamp = timeStamp
 
-		keyBufferPool.Put(keyBuffer)
-		valueBufferPool.Put(valueBuffer)
+		// keyBufferPool.Put(keyBuffer)
+		// valueBufferPool.Put(valueBuffer)
 
 		serializedEntry, err := entry.Serialize()
 		if err != nil {
@@ -583,6 +595,21 @@ func (s *Store) convertStringToBytes(str string) []byte {
 func (s *Store) convertBytesToString(b []byte) string {
 	return string(b)
 
+}
+
+func (s *Store) unsafeStringToBytes(str string) []byte {
+	if str == "" {
+		return nil
+	}
+	return unsafe.Slice(unsafe.StringData(str), len(str))
+}
+
+// Zero-allocation conversion from []byte to string
+func (s *Store) unsafeBytesToString(b []byte) string {
+	if len(b) == 0 {
+		return ""
+	}
+	return unsafe.String(unsafe.SliceData(b), len(b))
 }
 
 func (s *Store) applyCompactionResult(compactionResult *core.CompactionResult) {
