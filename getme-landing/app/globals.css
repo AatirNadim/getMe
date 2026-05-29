@@ -1,0 +1,64 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+:root {
+  --blue-950: #020b18;
+  --blue-900: #040e20;
+  --blue-850: #061428;
+  --blue-800: #0a1f3d;
+  --blue-700: #102a52;
+  --blue-600: #1a3f78;
+  --blue-500: #2056a8;
+  --blue-400: #3477d4;
+  --blue-300: #5b9ee8;
+  --blue-200: #93c0f4;
+  --blue-100: #c8dff9;
+  --blue-50: #e8f2fd;
+  --cyan-400: #22d3ee;
+  --cyan-300: #67e8f9;
+  --white: #ffffff;
+  --text-primary: #e8f2fd;
+  --text-secondary: #93c0f4;
+  --text-muted: #5b9ee8;
+  --border-subtle: rgba(52, 119, 212, 0.15);
+  --border-medium: rgba(52, 119, 212, 0.3);
+  --border-bright: rgba(52, 119, 212, 0.5);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --glow-sm: 0 0 20px rgba(52, 119, 212, 0.2);
+  --glow-md: 0 0 40px rgba(52, 119, 212, 0.25);
+  --glow-lg: 0 0 80px rgba(32, 86, 168, 0.4);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-blue-950 text-blue-50 antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+  }
+}
+
+@layer components {
+  .noise::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glass {
+    @apply bg-blue-950/80 backdrop-blur-xl border border-blue-400/15;
+  }
+  .btn-primary {
+    @apply bg-blue-300 text-blue-950 font-semibold px-5 py-2 rounded-xl hover:bg-blue-200 transition-all duration-200 shadow-glow-sm hover:shadow-glow-md hover:-translate-y-0.5;
+  }
+  .btn-ghost {
+    @apply border border-blue-400/30 text-blue-200 px-4 py-2 rounded-xl hover:bg-blue-400/10 hover:border-blue-400/50 hover:text-white transition-all;
+  }
+}
