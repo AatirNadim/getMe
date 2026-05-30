@@ -33,7 +33,7 @@ export default function Hero() {
   return (
     <section
       ref={ref}
-      className="relative min-h-screen flex items-center pt-[120px] pb-20 px-[5vw] overflow-hidden"
+      className="relative min-h-screen flex items-center pt-30 pb-20 px-[5vw] overflow-hidden"
     >
       {/* Antigravity-inspired background */}
       <div className="absolute inset-0">
@@ -53,14 +53,14 @@ export default function Hero() {
       </div>
 
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0 opacity-3"
         style={{
           backgroundImage: `linear-gradient(rgba(91,158,232,1) 1px, transparent 1px), linear-gradient(90deg, rgba(91,158,232,1) 1px, transparent 1px)`,
           backgroundSize: "48px 48px",
         }}
       />
 
-      <div className="relative z-10 max-w-[1200px] mx-auto w-full grid lg:grid-cols-2 gap-15 items-center">
+      <div className="relative z-10 max-w-300 mx-auto w-full grid lg:grid-cols-2 gap-15 items-center">
         <div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -89,7 +89,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-[1.05rem] text-blue-200/80 leading-relaxed max-w-[520px] mb-9"
+            className="text-[1.05rem] text-blue-200/80 leading-relaxed max-w-130 mb-9"
           >
             getMe is a{" "}
             <strong className="text-blue-200 font-medium">
@@ -167,7 +167,7 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative"
         >
-          <div className="relative bg-blue-850/90 border border-blue-400/30 rounded-[24px] overflow-hidden shadow-glow-md backdrop-blur-xl">
+          <div className="relative bg-blue-850/90 border border-blue-400/30 rounded-3xl overflow-hidden shadow-glow-md backdrop-blur-xl">
             <div className="bg-blue-800/80 px-4 py-3 flex items-center gap-2 border-b border-blue-400/15">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
@@ -242,7 +242,7 @@ export default function Hero() {
           <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-5 -right-5 w-[100px] h-[100px] rounded-2xl overflow-hidden border border-blue-400/30 shadow-glow-lg"
+            className="absolute -top-5 -right-5 w-25 h-25 rounded-2xl overflow-hidden border border-blue-400/30 shadow-glow-lg"
           >
             {/* <div className="w-full h-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-3xl font-bold text-blue-950">
               g

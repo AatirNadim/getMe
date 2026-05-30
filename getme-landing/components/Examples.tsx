@@ -75,9 +75,9 @@ export default function Examples() {
   return (
     <section
       id="examples"
-      className="relative py-[100px] px-[5vw] bg-gradient-to-b from-blue-950 to-blue-900/30"
+      className="relative py-25 px-[5vw] bg-gradient-to-b from-blue-950 to-blue-900/30"
     >
-      <div className="max-w-[1200px] mx-auto">
+      <div className="max-w-300 mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -93,7 +93,7 @@ export default function Examples() {
           <h2 className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-tight text-white mb-4">
             Show, <span className="text-blue-300">{"Don't Tell."}</span>
           </h2>
-          <p className="text-lg text-blue-200/80 max-w-[580px]">
+          <p className="text-lg text-blue-200/80 max-w-145">
             {
               "From single-key operations to batch ingests across multiple language SDKs — getMe's API is intuitive from day one."
             }
@@ -122,7 +122,7 @@ export default function Examples() {
               ))}
             </div>
 
-            <div className="relative bg-blue-850/95 border border-blue-400/15 rounded-2xl p-5 font-mono text-[0.8rem] leading-relaxed min-h-[280px] overflow-hidden">
+            <div className="relative bg-blue-850/95 border border-blue-400/15 rounded-2xl p-5 font-mono text-[0.8rem] leading-relaxed min-h-70 overflow-hidden">
               <pre className="text-blue-200/90 whitespace-pre-wrap">
                 {tabs.find((t) => t.id === active)?.content}
               </pre>
@@ -142,7 +142,7 @@ export default function Examples() {
                 live • store.log
               </span>
             </div>
-            <div className="p-4 h-[280px] overflow-y-auto font-mono text-xs space-y-1.5">
+            <div className="p-4 h-70 overflow-y-auto font-mono text-xs space-y-1.5">
               {logs.map((log, i) => (
                 <motion.p
                   key={i}

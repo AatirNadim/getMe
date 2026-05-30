@@ -42,8 +42,8 @@ const items = [
 
 export default function Availability() {
   return (
-    <section className="py-[100px] px-[5vw] bg-blue-900/50">
-      <div className="max-w-[1200px] mx-auto">
+    <section className="py-25 px-[5vw] bg-blue-900/50">
+      <div className="max-w-300 mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

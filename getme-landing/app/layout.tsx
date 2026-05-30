@@ -12,7 +12,7 @@ const monaSans = Mona_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "getMe — High-Performance Embeddable Key-Value Store",
+  title: "made my monkey",
   description:
     "getMe is a high-performance, embeddable key-value store built in Go.",
   metadataBase: new URL("https://getme.dev"),

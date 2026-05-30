@@ -18,16 +18,16 @@ export default function Navbar() {
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className={`fixed top-0 inset-x-0 z-50 h-[64px] transition-all duration-300 ${
+      className={`fixed top-0 inset-x-0 z-50 h-16 transition-all duration-300 ${
         scrolled
           ? "bg-blue-950/90 backdrop-blur-xl border-b border-blue-400/15"
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-[1200px] mx-auto h-full px-[5vw] flex items-center justify-between">
+      <div className="max-w-300 mx-auto h-full px-[5vw] flex items-center justify-between">
         <a
           href="#"
-          className="flex items-center gap-2.5 font-display font-extrabold text-[1.25rem] tracking-tight text-white"
+          className="flex items-center gap-2.5 font-display font-extrabold text-xl tracking-tight text-white"
         >
           {/* <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center font-mono text-blue-950">
             g
