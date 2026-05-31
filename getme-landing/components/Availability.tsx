@@ -1,33 +1,58 @@
 "use client";
 import { motion } from "framer-motion";
+import GoIcon from "./icons/go";
+import JavaIcon from "./icons/java";
+import TSIcon from "./icons/typescript";
+import PythonIcon from "./icons/python";
+import DockerIcon from "./icons/docker";
 
 const items = [
   {
-    icon: "🐳",
+    icon: (
+      <div className="w-6 h-6 flex items-center justify-center">
+        <DockerIcon />
+      </div>
+    ),
     title: "Docker",
     desc: "Single container with persistence",
     tags: ["x86", "ARM64"],
   },
   {
-    icon: "Go",
+    icon: (
+      <div className="w-6 h-6 flex items-center justify-center">
+        <GoIcon />
+      </div>
+    ),
     title: "Go SDK",
     desc: "Native client with connection pooling",
     tags: ["v1.21+"],
   },
   {
-    icon: "☕",
+    icon: (
+      <div className="w-6 h-6 flex items-center justify-center">
+        <JavaIcon />
+      </div>
+    ),
     title: "Java SDK",
     desc: "Async client for JVM ecosystems",
     tags: ["17+"],
   },
   {
-    icon: "JS",
+    icon: (
+      <div className="w-6 h-6 flex items-center justify-center">
+        <TSIcon />
+      </div>
+    ),
     title: "TypeScript",
     desc: "Browser and Node.js support",
     tags: ["ESM"],
   },
   {
-    icon: "🐍",
+    icon: (
+      <div className="w-6 h-6 flex items-center justify-center">
+        <PythonIcon />
+      </div>
+    ),
     title: "Python",
     desc: "Sync and async clients",
     tags: ["3.9+"],
@@ -60,6 +85,9 @@ export default function Availability() {
             <span>Anywhere you need it.</span>
             <span className="text-blue-300">Any way you build it.</span>
           </h2>
+          <p className="text-xl text-blue-200/80 mt-6 font-semibold">
+            Built for the community, with ❤️.
+          </p>
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

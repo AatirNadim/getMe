@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { JetBrains_Mono, Mona_Sans } from "next/font/google";
+import { JetBrains_Mono, Mona_Sans, Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
@@ -12,7 +15,7 @@ const monaSans = Mona_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "made my monkey",
+  title: "getMe",
   description:
     "getMe is a high-performance, embeddable key-value store built in Go.",
   metadataBase: new URL("https://getme.dev"),
@@ -37,7 +40,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${jetbrains.variable} ${monaSans.variable}`}>
+    <html
+      lang="en"
+      className={cn(
+        jetbrains.variable,
+        monaSans.variable,
+        "font-sans",
+        geist.variable,
+      )}
+    >
       <body className={`${monaSans.className} noise`}>{children}</body>
     </html>
   );

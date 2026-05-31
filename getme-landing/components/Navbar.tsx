@@ -36,7 +36,7 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-300 mx-auto h-full px-[5vw] flex items-center justify-between">
-          <section className="flex items-center gap-2.5 font-display font-extrabold text-xl tracking-tight text-white">
+          <section className="flex items-center gap-2.5 font-display font-extrabold text-2xl tracking-tight text-white">
             <Link href="/">
               <Image
                 src="/icon.png"
@@ -55,7 +55,7 @@ export default function Navbar() {
               <a
                 key={item}
                 href={`#${item.toLowerCase()}`}
-                className="text-blue-200/80 hover:text-white px-3.5 py-2 rounded-lg text-sm transition-colors hover:bg-blue-400/10"
+                className="text-blue-200/80 hover:text-white px-3.5 py-2 rounded-lg text-md transition-colors hover:bg-blue-400/10 font-semibold"
               >
                 {item}
               </a>
@@ -93,7 +93,11 @@ export default function Navbar() {
             >
               <div className="px-[5vw] py-4 flex flex-col gap-2">
                 {["Docs", "SDKs", "Benchmarks", "GitHub"].map((item) => (
-                  <a key={item} href="#" className="text-blue-200 py-2">
+                  <a
+                    key={item}
+                    href="#"
+                    className="text-blue-200 py-2 font-bold"
+                  >
                     {item}
                   </a>
                 ))}

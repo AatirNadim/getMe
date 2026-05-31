@@ -3,6 +3,8 @@ import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
+import { NumberTicker } from "./ui/number-ticker";
+import { MagneticButton } from "./lightswind/magnetic-button";
 
 export default function Hero() {
   const ref = useRef<HTMLDivElement>(null);
@@ -24,10 +26,38 @@ export default function Hero() {
   }, [mouseX, mouseY]);
 
   const stats = [
-    { val: "~182ns", label: "Write Latency" },
-    { val: "~94ns", label: "Read Latency" },
-    { val: "4 SDKs", label: "Official Clients" },
-    { val: "AGPLv3", label: "Open Source" },
+    {
+      isNumber: true,
+      prefix: "~",
+      value: 6290,
+      suffix: "ns",
+      text: "",
+      label: "Write Latency",
+    },
+    {
+      isNumber: true,
+      prefix: "~",
+      value: 643,
+      suffix: "ns",
+      text: "",
+      label: "Read Latency",
+    },
+    {
+      isNumber: true,
+      prefix: "",
+      value: 4,
+      suffix: " SDKs",
+      text: "",
+      label: "Official Clients",
+    },
+    {
+      isNumber: false,
+      prefix: "",
+      value: 0,
+      suffix: "",
+      text: "AGPLv3",
+      label: "Open Source",
+    },
   ];
 
   return (
@@ -91,23 +121,34 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-[1.05rem] text-blue-200/80 leading-relaxed max-w-130 mb-9"
           >
-            getMe is a{" "}
+            {/* getMe is a{" "}
             <strong className="text-blue-200 font-medium">
               sub-microsecond
             </strong>{" "}
             key-value store built in Go. Zero dependencies, CRC-checked
-            durability, and atomic compaction.
+            durability, and atomic compaction.  */}
+            The pure Go key-value store built for <strong>speed</strong>.{" "}
+            <strong>sub-microsecond</strong> latency,{" "}
+            <strong>thread-safe</strong> embeddability, atomic compaction, and
+            robust data integrity—accessible via Unix sockets, HTTP proxies, or
+            directly in your Go binary.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-wrap gap-3 mb-12"
+            className="flex flex-wrap items-center gap-1 mb-12 -ml-2"
           >
-            <a
-              href="#examples"
-              className="group relative inline-flex items-center gap-2 bg-blue-400 text-white px-7 py-3.5 rounded-2xl font-semibold shadow-[0_4px_24px_rgba(52,119,212,0.35)] hover:shadow-[0_8px_32px_rgba(52,119,212,0.45)] transition-all hover:-translate-y-0.5"
+            <MagneticButton
+              variant="primary"
+              size="md"
+              radius={60}
+              strength={0.3}
+              onClick={() => {
+                window.location.href = "#examples";
+              }}
+              className="group bg-blue-400 text-white !rounded-2xl shadow-[0_4px_24px_rgba(52,119,212,0.35)] hover:shadow-[0_8px_32px_rgba(52,119,212,0.45)] !border-none hover:bg-blue-600"
             >
               Get Started
               <svg
@@ -121,10 +162,16 @@ export default function Hero() {
               >
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
-            </a>
-            <a
-              href="#"
-              className="inline-flex items-center gap-2 bg-blue-400/10 border border-blue-400/30 text-blue-50 px-7 py-3.5 rounded-2xl font-medium hover:bg-blue-400/15 hover:border-blue-400/50 transition-all hover:-translate-y-0.5 backdrop-blur-sm"
+            </MagneticButton>
+            <MagneticButton
+              variant="outline"
+              size="md"
+              radius={60}
+              strength={0.3}
+              onClick={() => {
+                window.open("https://github.com/AatirNadim/getMe", "_blank");
+              }}
+              className="bg-blue-400/10 !border-blue-400/30 text-blue-50 !rounded-2xl hover:!border-blue-400/50 hover:rounded-4xl"
             >
               <svg
                 width="16"
@@ -135,7 +182,7 @@ export default function Hero() {
                 <path d="M48.9 1a48.1 48.1 0 0 0-15.2 93.8c2.4.4 3.3-1 3.3-2.3v-8.3c-13.5 3-16.4-6.5-16.4-6.5-2.2-5.6-5.4-7.1-5.4-7.1-4.4-3 .3-3 .3-3 4.9.4 7.5 5 7.5 5 4.3 7.4 11.3 5.3 14 4 .4-3.1 1.7-5.2 3-6.4-10.7-1.2-22-5.4-22-24a18.8 18.8 0 0 1 5-13c-.5-1.2-2.2-6.2.5-12.9 0 0 4-1.3 13.3 5a45.8 45.8 0 0 1 24.3 0C67 13.8 71 15 71 15c2.7 6.7 1 11.7.5 12.9A18.8 18.8 0 0 1 76.5 41c0 18.6-11.3 22.7-22.1 23.9 1.7 1.5 3.3 4.4 3.3 9v13.3c0 1.3.8 2.8 3.3 2.3A48.1 48.1 0 0 0 49 1z" />
               </svg>
               View on GitHub
-            </a>
+            </MagneticButton>
           </motion.div>
 
           <div className="flex flex-wrap gap-8">
@@ -146,8 +193,20 @@ export default function Hero() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 + i * 0.05 }}
               >
-                <div className="font-display text-[1.6rem] font-extrabold text-white">
-                  {stat.val}
+                <div className="font-display text-[1.6rem] font-extrabold text-white flex items-baseline">
+                  {stat.isNumber ? (
+                    <>
+                      {stat.prefix}
+                      <NumberTicker
+                        value={stat.value}
+                        className="text-white dark:text-white"
+                        duration={1.5}
+                      />
+                      {stat.suffix}
+                    </>
+                  ) : (
+                    stat.text
+                  )}
                 </div>
                 <div className="text-[0.78rem] text-blue-300/70 uppercase tracking-wider">
                   {stat.label}
