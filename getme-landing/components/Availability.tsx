@@ -5,6 +5,7 @@ import JavaIcon from "./icons/java";
 import TSIcon from "./icons/typescript";
 import PythonIcon from "./icons/python";
 import DockerIcon from "./icons/docker";
+import Link from "next/link";
 
 const items = [
   {
@@ -16,6 +17,7 @@ const items = [
     title: "Docker",
     desc: "Single container with persistence",
     tags: ["x86", "ARM64"],
+    link: "https://hub.docker.com/r/aatir0docking/getme",
   },
   {
     icon: (
@@ -26,6 +28,7 @@ const items = [
     title: "Go SDK",
     desc: "Native client with connection pooling",
     tags: ["v1.21+"],
+    link: "https://github.com/AatirNadim/getMe/releases?q=gosdk&expanded=true",
   },
   {
     icon: (
@@ -36,6 +39,7 @@ const items = [
     title: "Java SDK",
     desc: "Async client for JVM ecosystems",
     tags: ["17+"],
+    link: "https://search.maven.org/artifact/io.getme/getme-java-sdk",
   },
   {
     icon: (
@@ -46,6 +50,7 @@ const items = [
     title: "TypeScript",
     desc: "Browser and Node.js support",
     tags: ["ESM"],
+    link: "https://www.npmjs.com/package/getme-js-sdk",
   },
   {
     icon: (
@@ -56,12 +61,14 @@ const items = [
     title: "Python",
     desc: "Sync and async clients",
     tags: ["3.9+"],
+    link: "https://pypi.org/p/getme-python-sdk",
   },
   {
     icon: "📊",
     title: "Observability",
     desc: "Grafana, Loki, Prometheus ready",
     tags: ["OTEL"],
+    link: "https://github.com/AatirNadim/getMe/blob/main/server/utils/logger/README.md",
   },
 ];
 
@@ -99,30 +106,32 @@ export default function Availability() {
               viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="group relative bg-blue-800/50 border border-blue-400/15 rounded-2xl p-7 hover:bg-blue-700/70 hover:border-blue-400/30 transition-all cursor-default backdrop-blur-sm"
+              className="group relative bg-blue-800/50 border border-blue-400/15 rounded-2xl hover:bg-blue-700/70 hover:border-blue-400/30 transition-all cursor-pointer backdrop-blur-sm"
             >
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-400/0 to-cyan-400/0 group-hover:from-blue-400/10 group-hover:to-cyan-400/5 transition-all" />
-              <div className="relative">
-                <div className="w-11 h-11 rounded-xl bg-blue-500/20 border border-blue-400/20 flex items-center justify-center mb-4 text-xl group-hover:scale-110 transition-transform">
-                  {item.icon}
+              <Link href={item.link} target="_blank" className="block w-full h-full p-7">
+                <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-blue-400/0 to-cyan-400/0 group-hover:from-blue-400/10 group-hover:to-cyan-400/5 transition-all pointer-events-none" />
+                <div className="relative">
+                  <div className="w-11 h-11 rounded-xl bg-blue-500/20 border border-blue-400/20 flex items-center justify-center mb-4 text-xl group-hover:scale-110 transition-transform">
+                    {item.icon}
+                  </div>
+                  <h3 className="font-display font-bold text-white mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-blue-200/70 leading-relaxed">
+                    {item.desc}
+                  </p>
+                  <div className="flex gap-1.5 mt-3.5">
+                    {item.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="font-mono text-[0.7rem] px-2.5 py-1 rounded-full bg-blue-400/10 text-blue-200 border border-blue-400/20"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <h3 className="font-display font-bold text-white mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-sm text-blue-200/70 leading-relaxed">
-                  {item.desc}
-                </p>
-                <div className="flex gap-1.5 mt-3.5">
-                  {item.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="font-mono text-[0.7rem] px-2.5 py-1 rounded-full bg-blue-400/10 text-blue-200 border border-blue-400/20"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              </Link>
             </motion.div>
           ))}
         </div>

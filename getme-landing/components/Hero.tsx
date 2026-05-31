@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { NumberTicker } from "./ui/number-ticker";
 import { MagneticButton } from "./lightswind/magnetic-button";
+import GithubIcon from "./icons/github";
 
 export default function Hero() {
   const ref = useRef<HTMLDivElement>(null);
@@ -140,49 +141,43 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="flex flex-wrap items-center gap-1 mb-12 -ml-2"
           >
-            <MagneticButton
-              variant="primary"
-              size="md"
-              radius={60}
-              strength={0.3}
-              onClick={() => {
-                window.location.href = "#examples";
-              }}
-              className="group bg-blue-400 text-white !rounded-2xl shadow-[0_4px_24px_rgba(52,119,212,0.35)] hover:shadow-[0_8px_32px_rgba(52,119,212,0.45)] !border-none hover:bg-blue-600"
-            >
-              Get Started
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                className="transition-transform group-hover:translate-x-0.5"
+            <Link href="#examples">
+              <MagneticButton
+                variant="primary"
+                size="md"
+                radius={60}
+                strength={0.3}
+                className="group bg-blue-400 text-white !rounded-2xl shadow-[0_4px_24px_rgba(52,119,212,0.35)] hover:shadow-[0_8px_32px_rgba(52,119,212,0.45)] !border-none hover:bg-blue-600"
               >
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </MagneticButton>
-            <MagneticButton
-              variant="outline"
-              size="md"
-              radius={60}
-              strength={0.3}
-              onClick={() => {
-                window.open("https://github.com/AatirNadim/getMe", "_blank");
-              }}
-              className="bg-blue-400/10 !border-blue-400/30 text-blue-50 !rounded-2xl hover:!border-blue-400/50 hover:rounded-4xl"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 98 96"
-                fill="currentColor"
+                Get Started
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  className="transition-transform group-hover:translate-x-0.5"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </MagneticButton>
+            </Link>
+            
+            <Link href="https://github.com/AatirNadim/getMe" target="_blank">
+              <MagneticButton
+                variant="outline"
+                size="md"
+                radius={60}
+                strength={0.3}
+                className="bg-blue-400/10 !border-blue-400/30 text-blue-50 !rounded-2xl hover:!border-blue-400/50 hover:rounded-4xl"
               >
-                <path d="M48.9 1a48.1 48.1 0 0 0-15.2 93.8c2.4.4 3.3-1 3.3-2.3v-8.3c-13.5 3-16.4-6.5-16.4-6.5-2.2-5.6-5.4-7.1-5.4-7.1-4.4-3 .3-3 .3-3 4.9.4 7.5 5 7.5 5 4.3 7.4 11.3 5.3 14 4 .4-3.1 1.7-5.2 3-6.4-10.7-1.2-22-5.4-22-24a18.8 18.8 0 0 1 5-13c-.5-1.2-2.2-6.2.5-12.9 0 0 4-1.3 13.3 5a45.8 45.8 0 0 1 24.3 0C67 13.8 71 15 71 15c2.7 6.7 1 11.7.5 12.9A18.8 18.8 0 0 1 76.5 41c0 18.6-11.3 22.7-22.1 23.9 1.7 1.5 3.3 4.4 3.3 9v13.3c0 1.3.8 2.8 3.3 2.3A48.1 48.1 0 0 0 49 1z" />
-              </svg>
-              View on GitHub
-            </MagneticButton>
+                <span className="w-4 h-4 flex">
+                  <GithubIcon color="currentColor" />
+                </span>
+                View on GitHub
+              </MagneticButton>
+            </Link>
           </motion.div>
 
           <div className="flex flex-wrap gap-8">

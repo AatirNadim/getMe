@@ -24,6 +24,19 @@ export default function Navbar() {
     return () => observer.disconnect();
   }, []);
 
+  const navItems = [
+    {
+      name: "Docs",
+      href: "https://github.com/AatirNadim/getMe/blob/main/README.md",
+    },
+    {
+      name: "SDKs",
+      href: "https://github.com/AatirNadim/getMe/tree/main/sdks",
+    },
+    { name: "Benchmarks", href: "#performance" },
+    { name: "GitHub", href: "https://github.com/AatirNadim/getMe/" },
+  ];
+
   return (
     <>
       <motion.nav
@@ -51,21 +64,26 @@ export default function Navbar() {
           </section>
 
           <div className="hidden md:flex items-center gap-1">
-            {["Docs", "SDKs", "Benchmarks", "GitHub"].map((item) => (
-              <a
-                key={item}
-                href={`#${item.toLowerCase()}`}
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                target={item.href.startsWith("http") ? "_blank" : undefined}
                 className="text-blue-200/80 hover:text-white px-3.5 py-2 rounded-lg text-md transition-colors hover:bg-blue-400/10 font-semibold"
               >
-                {item}
-              </a>
+                {item.name}
+              </Link>
             ))}
           </div>
 
           <div className="hidden md:flex items-center gap-2">
-            <a href="#" className="btn-primary text-sm">
+            <Link
+              href="https://github.com/AatirNadim/getMe/releases"
+              target="_blank"
+              className="btn-primary text-sm"
+            >
               Download
-            </a>
+            </Link>
           </div>
 
           <button onClick={() => setOpen(!open)} className="md:hidden p-2">
@@ -92,14 +110,15 @@ export default function Navbar() {
               className="md:hidden bg-blue-900/95 backdrop-blur-xl border-b border-blue-400/15"
             >
               <div className="px-[5vw] py-4 flex flex-col gap-2">
-                {["Docs", "SDKs", "Benchmarks", "GitHub"].map((item) => (
-                  <a
-                    key={item}
-                    href="#"
+                {navItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    target={item.href.startsWith("http") ? "_blank" : undefined}
                     className="text-blue-200 py-2 font-bold"
                   >
-                    {item}
-                  </a>
+                    {item.name}
+                  </Link>
                 ))}
               </div>
             </motion.div>

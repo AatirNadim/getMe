@@ -45,7 +45,7 @@ export default function Home() {
 
       <Navbar />
       <Hero />
-      <div className="h-px w-full bg-gradient-to-r from-transparent via-blue-400/20 to-transparent" />
+      <div className="h-px w-full bg-linear-to-r from-transparent via-blue-400/20 to-transparent" />
       <Examples />
       <Availability />
       <Architecture />

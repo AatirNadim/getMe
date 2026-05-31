@@ -1,4 +1,6 @@
 "use client";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -7,9 +9,16 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           <div className="col-span-2">
             <div className="flex items-center gap-2.5 font-display font-extrabold text-xl text-white mb-3">
-              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-400 to-cyan-400 flex items-center justify-center font-mono text-blue-950">
-                g
-              </div>
+              <Link href="/">
+                <Image
+                  src="/icon.png"
+                  alt="getMe"
+                  width={32}
+                  height={32}
+                  priority
+                  className="rounded-sm"
+                />
+              </Link>
               getMe
             </div>
             <p className="text-sm text-blue-200/60 mb-4 max-w-70">
@@ -17,9 +26,54 @@ export default function Footer() {
             </p>
           </div>
           {[
-            { title: "Product", links: ["Download", "SDKs", "CLI"] },
-            { title: "Developers", links: ["Docs", "GitHub", "Changelog"] },
-            { title: "Company", links: ["About", "License", "Contact"] },
+            {
+              title: "Product",
+              links: [
+                {
+                  name: "Download",
+                  href: "https://github.com/AatirNadim/getMe/releases",
+                },
+                {
+                  name: "SDKs",
+                  href: "https://github.com/AatirNadim/getMe/tree/main/sdks",
+                },
+                {
+                  name: "CLI",
+                  href: "https://github.com/AatirNadim/getMe/tree/main/cli",
+                },
+              ],
+            },
+            {
+              title: "Developers",
+              links: [
+                {
+                  name: "Docs",
+                  href: "https://github.com/AatirNadim/getMe/blob/main/README.md",
+                },
+                {
+                  name: "GitHub",
+                  href: "https://github.com/AatirNadim/getMe/",
+                },
+                {
+                  name: "Changelog",
+                  href: "https://github.com/AatirNadim/getMe/releases",
+                },
+              ],
+            },
+            {
+              title: "Company",
+              links: [
+                { name: "About", href: "https://github.com/AatirNadim/getMe/" },
+                {
+                  name: "License",
+                  href: "https://www.gnu.org/licenses/agpl-3.0.en.html",
+                },
+                {
+                  name: "Contact",
+                  href: "https://github.com/AatirNadim/getMe/issues",
+                },
+              ],
+            },
           ].map((col) => (
             <div key={col.title}>
               <div className="font-semibold text-white mb-3 text-sm">
@@ -27,13 +81,14 @@ export default function Footer() {
               </div>
               <ul className="space-y-2">
                 {col.links.map((l) => (
-                  <li key={l}>
-                    <a
-                      href="#"
+                  <li key={l.name}>
+                    <Link
+                      href={l.href}
+                      target={l.href.startsWith("http") ? "_blank" : undefined}
                       className="text-sm text-blue-200/60 hover:text-blue-200 transition-colors"
                     >
-                      {l}
-                    </a>
+                      {l.name}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -45,14 +100,21 @@ export default function Footer() {
             © 2026 getMe. Released under AGPLv3.
           </div>
           <div className="flex gap-4">
-            {["GitHub", "HashNode"].map((s) => (
-              <a
-                key={s}
-                href="#"
+            {[
+              { name: "GitHub", href: "https://github.com/AatirNadim/getMe/" },
+              {
+                name: "HashNode",
+                href: "https://techtom.hashnode.dev/series/getme",
+              },
+            ].map((s) => (
+              <Link
+                key={s.name}
+                href={s.href}
+                target="_blank"
                 className="text-blue-300/50 hover:text-blue-200 transition-colors text-sm"
               >
-                {s}
-              </a>
+                {s.name}
+              </Link>
             ))}
           </div>
         </div>
