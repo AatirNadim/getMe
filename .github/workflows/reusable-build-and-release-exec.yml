@@ -1,0 +1,124 @@
+name: Reusable Build and Release Executable
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        description: "Directory containing the main package (e.g., server, cli)"
+        required: true
+        type: string
+      binary_name:
+        description: "Name of the output binary (e.g., getMe-server, getme-cli)"
+        required: true
+        type: string
+      tag_prefix:
+        description: "Prefix for the git tag (e.g., getme-server/)"
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.1"
+
+      - name: Calculate New Version and Tag
+        id: versioning
+        run: |
+          PREFIX="${{ inputs.tag_prefix }}"
+          LATEST_TAG=$(git tag -l "${PREFIX}v*" --sort=-v:refname | head -n 1)
+          
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="${PREFIX}v0.0.0"
+            PREV_TAG=""
+          else
+            PREV_TAG="$LATEST_TAG"
+          fi
+          
+          VERSION=${LATEST_TAG#"${PREFIX}v"}
+          IFS='.' read -r major minor patch <<< "$VERSION"
+          
+          COMMIT_MSG=$(git log -1 --format=%B)
+          if echo "$COMMIT_MSG" | grep -qE 'BREAKING CHANGE|!:'; then
+            major=$((major + 1))
+            minor=0
+            patch=0
+          elif echo "$COMMIT_MSG" | grep -qE '^feat(\([^)]+\))?:'; then
+            minor=$((minor + 1))
+            patch=0
+          else
+            patch=$((patch + 1))
+          fi
+          
+          NEW_TAG="${PREFIX}v${major}.${minor}.${patch}"
+          
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+          echo "PREV_TAG=$PREV_TAG" >> $GITHUB_ENV
+          
+          # Tag and push immediately so changelog can reference it
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git tag "$NEW_TAG"
+          git push origin "$NEW_TAG"
+
+      - name: Build and Compress Binaries
+        run: |
+          mkdir -p release-assets
+          cd ${{ inputs.working_directory }}
+          
+          # Cross-compile for Linux and macOS (amd64 and arm64)
+          OS_ARCHS=("linux amd64" "linux arm64" "darwin amd64" "darwin arm64")
+          
+          for combo in "${OS_ARCHS[@]}"; do
+            set -- $combo
+            GOOS=$1
+            GOARCH=$2
+            
+            echo "Building for $GOOS $GOARCH..."
+            GOOS=$GOOS GOARCH=$GOARCH go build -o "../release-assets/${{ inputs.binary_name }}" .
+            
+            # Compress it
+            cd ../release-assets
+            TAR_NAME="${{ inputs.binary_name }}-$GOOS-$GOARCH.tar.gz"
+            tar -czvf "$TAR_NAME" "${{ inputs.binary_name }}"
+            rm "${{ inputs.binary_name }}" # Remove raw binary after compression
+            cd ../${{ inputs.working_directory }}
+          done
+
+      - name: Generate Changelog
+        run: |
+          if [ -n "${{ env.PREV_TAG }}" ]; then
+              CHANGELOG=$(git log ${{ env.PREV_TAG }}..${{ env.NEW_TAG }} --format="* %s (%an)" -- "${{ inputs.working_directory }}")
+          else
+              CHANGELOG=$(git log ${{ env.NEW_TAG }} --format="* %s (%an)" -- "${{ inputs.working_directory }}")
+          fi
+
+          CHANGELOG=$(echo "$CHANGELOG" | grep -v "chore(release):" || true)
+
+          echo "### Changes in this Release" > release_notes.md
+          echo "" >> release_notes.md
+          if [ -z "$CHANGELOG" ]; then
+            echo "* No relevant codebase changes detected for this component." >> release_notes.md
+          else
+            echo "$CHANGELOG" >> release_notes.md
+          fi
+
+      - name: Create Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd release-assets
+          gh release create "${{ env.NEW_TAG }}" \
+            *.tar.gz \
+            --title "${{ env.NEW_TAG }}" \
+            --notes-file ../release_notes.md
