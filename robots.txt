@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /get
+Disallow: /put
+Disallow: /delete
+Disallow: /clearStore
+Disallow: /batch-put
+Disallow: /batch-get
+Disallow: /batch-delete
