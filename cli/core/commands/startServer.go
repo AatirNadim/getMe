@@ -91,7 +91,10 @@ var StartServerCmd = &cobra.Command{
 		}
 
 		// Clean up a stale PID file if it exists but the process is dead
-		os.Remove(PidFile)
+		err := os.Remove(PidFile)
+		if err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("failed to remove stale PID file: %w", err)
+		}
 
 		// 5. Start the server daemon
 		execCmd := exec.Command(execPath)
