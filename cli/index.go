@@ -155,6 +155,8 @@ func init() {
 	rootCmd.AddCommand(commands.DeleteCmd)
 	rootCmd.AddCommand(commands.BatchDeleteCmd)
 	rootCmd.AddCommand(commands.ClearCmd)
+	rootCmd.AddCommand(commands.StartServerCmd)
+	rootCmd.AddCommand(commands.StopServerCmd)
 	rootCmd.AddCommand(replCmd)
 }
 
