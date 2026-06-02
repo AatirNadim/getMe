@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths:
-      - 'cli/**'
-      - 'commons/**'
-      - 'utils/**'
+      - "cli/**"
+      - "commons/**"
+      - "utils/**"
 
 permissions:
   contents: write
@@ -16,6 +16,6 @@ jobs:
   release-cli:
     uses: ./.github/workflows/reusable-build-and-release-exec.yml
     with:
-      working_directory: 'cli'
-      binary_name: 'getme'
-      tag_prefix: 'getme-cli/'
+      working_directory: "cli"
+      binary_name: "getme-cli"
+      tag_prefix: "getme-cli/"
