@@ -151,7 +151,7 @@ export default function Hero() {
             className="mb-10 max-w-130"
           >
             <div className="flex items-center justify-between bg-blue-900/20 border border-blue-400/20 hover:border-blue-400/40 transition-colors rounded-xl p-1.5 pl-4 shadow-sm backdrop-blur-sm relative group">
-              <code className="font-mono text-[0.8rem] text-blue-100/90 truncate mr-2 select-all">
+              <code className="flex-1 min-w-0 font-mono text-[0.8rem] md:text-[0.85rem] text-blue-100/90 truncate mr-2 select-all">
                 <span className="text-blue-400/60 mr-2 select-none">$</span>
                 {installCmd}
               </code>

@@ -255,16 +255,16 @@ export default function Performance() {
             </div>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-(--border-subtle) flex flex-col min-[480px]:flex-row items-center justify-between gap-3">
+          <div className="mt-6 pt-6 border-t border-(--border-subtle) flex flex-col min-[480px]:flex-row items-center justify-between gap-3 text-center min-[480px]:text-left">
             <div className="text-[0.85rem] text-(--text-secondary)">
               Reproducible — run on your own hardware:
             </div>
-            <div className="font-mono text-[0.78rem] bg-blue-400/12 border border-(--border-subtle) text-blue-200 py-2 px-3.5 rounded-md">
+            <div className="font-mono text-[0.78rem] bg-blue-400/12 border border-(--border-subtle) text-blue-200 py-2 px-3.5 rounded-md w-full min-[480px]:w-auto overflow-x-auto whitespace-nowrap scrollbar-hide">
               go test -bench . ./server/tests/...
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-(--border-subtle) flex flex-col min-[480px]:flex-row items-center justify-between gap-3">
+          <div className="mt-4 pt-4 border-t border-(--border-subtle) flex flex-col min-[480px]:flex-row items-center justify-between gap-3 text-center min-[480px]:text-left">
             <div className="text-[0.85rem] text-(--text-secondary)">
               Detailed continuous benchmarking reports from our CI:
             </div>
@@ -274,7 +274,7 @@ export default function Performance() {
               href="https://aatirnadim.github.io/getMe/dev/bench/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[0.85rem] bg-blue-50 text-blue-900 hover:bg-blue-600 hover:text-white py-2 px-4 rounded-md transition-colors font-bold shadow-sm inline-flex items-center gap-2 whitespace-nowrap"
+              className="text-[0.85rem] bg-white text-blue-900 hover:bg-blue-50 py-2 px-4 rounded-md transition-colors font-semibold shadow-sm inline-flex items-center justify-center gap-2 whitespace-nowrap w-full min-[480px]:w-auto"
             >
               View Full Reports
               <svg
