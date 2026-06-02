@@ -4,6 +4,68 @@ import { motion, Variants } from "framer-motion";
 import GithubIcon from "./icons/github";
 import Link from "next/link";
 
+const communityLinks = [
+  {
+    label: "CONTRIBUTING.md",
+    href: "https://github.com/AatirNadim/getMe/blob/main/CONTRIBUTING.md",
+    icon: (
+      <svg
+        fill="none"
+        height="16"
+        stroke="currentColor"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+        width="16"
+      >
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+      </svg>
+    ),
+  },
+  {
+    label: "AGPLv3 License",
+    href: "https://www.gnu.org/licenses/agpl-3.0.en.html",
+    icon: (
+      <svg
+        fill="none"
+        height="16"
+        stroke="currentColor"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+        width="16"
+      >
+        <rect height="11" rx="2" ry="2" width="18" x="3" y="11" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    ),
+  },
+  {
+    label: "CI Benchmarks",
+    href: "https://aatirnadim.github.io/getMe/dev/bench/",
+    icon: (
+      <svg
+        fill="none"
+        height="16"
+        stroke="currentColor"
+        strokeWidth="2"
+        viewBox="0 0 24 24"
+        width="16"
+      >
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    ),
+  },
+  {
+    label: "GitHub",
+    href: "https://github.com/AatirNadim/getMe/",
+    icon: (
+      <span className="w-4 h-4 flex">
+        <GithubIcon color="currentColor" />
+      </span>
+    ),
+  },
+];
+
 export default function Community() {
   // Shared animation config for the main elements
   const fadeUpVariant: Variants = {
@@ -31,8 +93,8 @@ export default function Community() {
       id="community"
       className="relative px-[4vw] md:px-[5vw] py-18 md:py-25 bg-linear-to-b from-blue-950 via-blue-700/15 to-blue-950"
     >
-      <div className="max-w-300 mx-auto">
-        <div className="text-center max-w-175 mx-auto">
+      <div className="mx-auto">
+        <div className="text-center mx-auto">
           <motion.div
             variants={fadeUpVariant}
             initial="hidden"
@@ -60,11 +122,18 @@ export default function Community() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
-            className="text-(--text-secondary) mt-4 leading-[1.7] text-[1.05rem]"
+            className="text-(--text-secondary) mt-4 leading-[1.7] text-[1.05rem] flex flex-col items-center gap-2 "
           >
-            getMe is licensed under AGPLv3. We welcome contributions — from
-            reporting bugs and improving documentation to optimizing the core
-            storage engine.
+            <span>getMe is licensed under AGPLv3. </span>
+            <span className="text-center flex flex-col items-center ">
+              <strong>Contributions are welcome ❤️!</strong>
+              <span className="italic">
+                ..from reporting bugs and improving documentation to optimizing the core storage engine..
+              </span>
+              <span className="italic">
+                
+              </span>
+            </span>
           </motion.p>
 
           <motion.div
@@ -72,82 +141,20 @@ export default function Community() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
-            className="flex justify-center gap-4 flex-wrap mt-9"
+            className="flex justify-center gap-4 flex-wrap mt-9 font-semibold"
           >
-            <motion.div variants={fadeUpVariant}>
-              <Link
-                href="https://github.com/AatirNadim/getMe/blob/main/CONTRIBUTING.md"
-                target="_blank"
-                className="inline-flex items-center gap-2 bg-blue-400/8 hover:bg-blue-400/18 text-(--text-primary) border border-(--border-medium) hover:border-(--border-bright) px-5.5 py-2.75 rounded-md text-sm cursor-pointer no-underline transition-all duration-200 font-sans hover:-translate-y-px"
-              >
-                <svg
-                  fill="none"
-                  height="16"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  width="16"
+            {communityLinks.map((link, idx) => (
+              <motion.div key={idx} variants={fadeUpVariant}>
+                <Link
+                  href={link.href}
+                  target="_blank"
+                  className="inline-flex items-center gap-2 bg-blue-400/8 hover:bg-blue-400/18 text-(--text-primary) border-2 border-(--border-medium) hover:border-(--border-bright) px-5.5 py-2.75 rounded-md text-md cursor-pointer no-underline transition-all duration-200 font-sans hover:-translate-y-px"
                 >
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                </svg>
-                CONTRIBUTING.md
-              </Link>
-            </motion.div>
-
-            <motion.div variants={fadeUpVariant}>
-              <Link
-                href="https://www.gnu.org/licenses/agpl-3.0.en.html"
-                target="_blank"
-                className="inline-flex items-center gap-2 bg-blue-400/8 hover:bg-blue-400/18 text-(--text-primary) border border-(--border-medium) hover:border-(--border-bright) px-5.5 py-2.75 rounded-md text-sm cursor-pointer no-underline transition-all duration-200 font-sans hover:-translate-y-px"
-              >
-                <svg
-                  fill="none"
-                  height="16"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  width="16"
-                >
-                  <rect height="11" rx="2" ry="2" width="18" x="3" y="11" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                AGPLv3 License
-              </Link>
-            </motion.div>
-
-            <motion.div variants={fadeUpVariant}>
-              <Link
-                href="https://aatirnadim.github.io/getMe/dev/bench/"
-                target="_blank"
-                className="inline-flex items-center gap-2 bg-blue-400/8 hover:bg-blue-400/18 text-(--text-primary) border border-(--border-medium) hover:border-(--border-bright) px-5.5 py-2.75 rounded-md text-sm cursor-pointer no-underline transition-all duration-200 font-sans hover:-translate-y-px"
-              >
-                <svg
-                  fill="none"
-                  height="16"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  width="16"
-                >
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-                CI Benchmarks
-              </Link>
-            </motion.div>
-
-            <motion.div variants={fadeUpVariant}>
-              <Link
-                href="https://github.com/AatirNadim/getMe/"
-                target="_blank"
-                className="inline-flex items-center gap-2 bg-blue-400/8 hover:bg-blue-400/18 text-(--text-primary) border border-(--border-medium) hover:border-(--border-bright) px-5.5 py-2.75 rounded-md text-sm cursor-pointer no-underline transition-all duration-200 font-sans hover:-translate-y-px"
-              >
-                <span className="w-4 h-4 flex">
-                  <GithubIcon color="currentColor" />
-                </span>
-                GitHub
-              </Link>
-            </motion.div>
+                  {link.icon}
+                  {link.label}
+                </Link>
+              </motion.div>
+            ))}
           </motion.div>
         </div>
       </div>

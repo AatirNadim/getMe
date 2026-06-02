@@ -81,7 +81,11 @@ export default function Performance() {
             className="bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center"
           >
             <div className="font-display text-[2rem] font-extrabold text-white">
-              <NumberTicker value={6261} duration={1.5} className="text-white dark:text-white" />
+              <NumberTicker
+                value={6261}
+                duration={1.5}
+                className="text-white dark:text-white"
+              />
             </div>
             <div className="text-xs text-blue-400 font-mono mt-0.5">ns/op</div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
@@ -95,7 +99,11 @@ export default function Performance() {
             className="bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center"
           >
             <div className="font-display text-[2rem] font-extrabold text-white">
-              <NumberTicker value={643} duration={1.5} className="text-white dark:text-white" />
+              <NumberTicker
+                value={643}
+                duration={1.5}
+                className="text-white dark:text-white"
+              />
             </div>
             <div className="text-xs text-blue-400 font-mono mt-0.5">ns/op</div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
@@ -109,7 +117,11 @@ export default function Performance() {
             className="bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center"
           >
             <div className="font-display text-[2rem] font-extrabold text-white">
-              <NumberTicker value={2759} duration={1.5} className="text-white dark:text-white" />
+              <NumberTicker
+                value={2759}
+                duration={1.5}
+                className="text-white dark:text-white"
+              />
             </div>
             <div className="text-xs text-blue-400 font-mono mt-0.5">ns/op</div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
@@ -123,7 +135,11 @@ export default function Performance() {
             className="bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center"
           >
             <div className="font-display text-[2rem] font-extrabold text-white">
-              <NumberTicker value={40} duration={1.5} className="text-white dark:text-white" />
+              <NumberTicker
+                value={40}
+                duration={1.5}
+                className="text-white dark:text-white"
+              />
             </div>
             <div className="text-xs text-blue-400 font-mono mt-0.5">ns/op</div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
@@ -246,6 +262,37 @@ export default function Performance() {
             <div className="font-mono text-[0.78rem] bg-blue-400/12 border border-(--border-subtle) text-blue-200 py-2 px-3.5 rounded-md">
               go test -bench . ./server/tests/...
             </div>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-(--border-subtle) flex flex-col min-[480px]:flex-row items-center justify-between gap-3">
+            <div className="text-[0.85rem] text-(--text-secondary)">
+              Detailed continuous benchmarking reports from our CI:
+            </div>
+            <motion.a
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              href="https://aatirnadim.github.io/getMe/dev/bench/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[0.85rem] bg-blue-50 text-blue-900 hover:bg-blue-600 hover:text-white py-2 px-4 rounded-md transition-colors font-bold shadow-sm inline-flex items-center gap-2 whitespace-nowrap"
+            >
+              View Full Reports
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1 11L11 1M11 1H3M11 1V9"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </motion.a>
           </div>
         </motion.div>
       </div>
