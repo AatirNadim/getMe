@@ -1,0 +1,21 @@
+name: Release Server Executable
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "server/**"
+      - "commons/**"
+      - "utils/**"
+
+permissions:
+  contents: write
+
+jobs:
+  release-server:
+    uses: ./.github/workflows/reusable-build-and-release-exec.yml
+    with:
+      working_directory: "server"
+      binary_name: "getMe-server"
+      tag_prefix: "getme-server/"

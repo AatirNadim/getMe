@@ -1,0 +1,21 @@
+name: Release CLI Executable
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "cli/**"
+      - "commons/**"
+      - "utils/**"
+
+permissions:
+  contents: write
+
+jobs:
+  release-cli:
+    uses: ./.github/workflows/reusable-build-and-release-exec.yml
+    with:
+      working_directory: "cli"
+      binary_name: "getme-cli"
+      tag_prefix: "getme-cli/"

@@ -85,16 +85,20 @@ var replCmd = &cobra.Command{
 				}
 			}
 
-			if targetCmd == nil || targetCmd.Name() == "getMe_repl" || cmdName == "help" {
+			isLifecycleCmd := targetCmd != nil && (targetCmd.Name() == "start-server" || targetCmd.Name() == "stop-server")
+
+			if targetCmd == nil || targetCmd.Name() == "getMe_repl" || isLifecycleCmd || cmdName == "help" {
 				if targetCmd != nil && targetCmd.Name() == "getMe_repl" {
 					fmt.Println("you sly mofo, you just tried to run REPL inside REPL. that's cute..!")
+				} else if isLifecycleCmd {
+					fmt.Printf("Command '%s' cannot be executed from within the REPL.\n", targetCmd.Name())
 				} else if cmdName != "help" {
 					fmt.Printf("Unknown command: %s\n", cmdName)
 				}
 				// print available commands
 				fmt.Println("Available commands:")
 				for _, c := range rootCmd.Commands() {
-					if c.Name() != "getMe_repl" {
+					if c.Name() != "getMe_repl" && c.Name() != "start-server" && c.Name() != "stop-server" {
 						fmt.Printf("  %-15s %s\n", c.Name(), c.Short)
 					}
 				}
@@ -155,6 +159,8 @@ func init() {
 	rootCmd.AddCommand(commands.DeleteCmd)
 	rootCmd.AddCommand(commands.BatchDeleteCmd)
 	rootCmd.AddCommand(commands.ClearCmd)
+	rootCmd.AddCommand(commands.StartServerCmd)
+	rootCmd.AddCommand(commands.StopServerCmd)
 	rootCmd.AddCommand(replCmd)
 }
 
