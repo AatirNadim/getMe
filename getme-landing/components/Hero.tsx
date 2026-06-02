@@ -2,15 +2,24 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NumberTicker } from "./ui/number-ticker";
 import { MagneticButton } from "./lightswind/magnetic-button";
 import GithubIcon from "./icons/github";
 
 export default function Hero() {
   const ref = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+
+  const installCmd = "curl -sSL https://raw.githubusercontent.com/AatirNadim/getMe/main/install.sh | bash";
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(installCmd);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const smoothX = useSpring(mouseX, { stiffness: 50, damping: 20 });
   const smoothY = useSpring(mouseY, { stiffness: 50, damping: 20 });
@@ -101,7 +110,7 @@ export default function Hero() {
           >
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
             <span className="font-mono text-xs text-blue-200">
-              v1.0 • production ready • Built in Go • Bitcask-inspired
+              live • production ready • built in Go • bitcask-inspired
             </span>
           </motion.div>
 
@@ -120,7 +129,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-[1.05rem] text-blue-200/80 leading-relaxed max-w-130 mb-9"
+            className="text-[1.05rem] text-blue-200/80 leading-relaxed max-w-130 mb-7"
           >
             {/* getMe is a{" "}
             <strong className="text-blue-200 font-medium">
@@ -134,6 +143,41 @@ export default function Hero() {
             robust data integrity—accessible via Unix sockets, HTTP proxies, or
             directly in your Go binary.
           </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="mb-10 max-w-130"
+          >
+            <div className="flex items-center justify-between bg-blue-900/20 border border-blue-400/20 hover:border-blue-400/40 transition-colors rounded-xl p-1.5 pl-4 shadow-sm backdrop-blur-sm relative group">
+              <code className="font-mono text-[0.8rem] text-blue-100/90 truncate mr-2 select-all">
+                <span className="text-blue-400/60 mr-2 select-none">$</span>
+                {installCmd}
+              </code>
+              <button
+                onClick={copyToClipboard}
+                className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/30 text-blue-300 transition-colors border border-transparent cursor-pointer"
+                title="Copy install script"
+              >
+                {copied ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            <div className="flex items-center gap-2 mt-2 ml-1">
+              <span className="text-[0.75rem] text-blue-300/60 font-mono">
+                Automated installation for Linux & macOS (amd64/arm64)
+              </span>
+            </div>
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -229,7 +273,7 @@ export default function Hero() {
                 <div className="w-3 h-3 rounded-full bg-[#28c840]" />
               </div>
               <div className="flex-1 text-center font-mono text-xs text-blue-300/60">
-                docker-compose up
+                getme-bundle
               </div>
             </div>
             <div className="p-5 font-mono text-[0.8rem] leading-[1.9]">
