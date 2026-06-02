@@ -21,7 +21,7 @@ func SetupStoreForBenchMarking(b *testing.B) (*store.Store, func()) {
 
 	mainPath := filepath.Join(baseDir, "main")
 	compactedPath := filepath.Join(baseDir, "compacted")
-	loggingDisabled := true
+	loggingDisabled := false
 	loggingToStdout := false
 
 	// Initialize the store

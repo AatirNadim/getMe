@@ -55,7 +55,7 @@ export default function Architecture() {
             </div>
 
             {/* Client Interfaces Row  */}
-            <div className="flex gap-3 justify-center my-2">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center my-2">
               <div className="flex-[0.8] bg-blue-700/80 hover:bg-blue-600/80 border border-(--border-medium) hover:border-(--border-bright) rounded-md px-4 py-3 text-center transition-all duration-200 cursor-default hover:shadow-glow-sm">
                 <div className="font-mono text-[0.8rem] text-blue-200 font-semibold">
                   CLI / REPL
@@ -119,7 +119,7 @@ export default function Architecture() {
             </div>
 
             {/* Storage Layers  */}
-            <div className="flex gap-3 justify-center my-2">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center my-2">
               <div className="flex-1 bg-blue-700/80 hover:bg-blue-600/80 border border-(--border-medium) hover:border-(--border-bright) rounded-md px-4 py-3 text-center transition-all duration-200 cursor-default hover:shadow-glow-sm">
                 <div className="font-mono text-[0.8rem] text-blue-200 font-semibold">
                   HashTable

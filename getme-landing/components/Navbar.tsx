@@ -35,6 +35,7 @@ export default function Navbar() {
     },
     { name: "Benchmarks", href: "#performance" },
     { name: "GitHub", href: "https://github.com/AatirNadim/getMe/" },
+    { name: "Blog", href: "https://techtom.hashnode.dev/series/getme" },
   ];
 
   return (
