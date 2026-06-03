@@ -4,11 +4,11 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-blue-400/10 py-12 px-[5vw] bg-blue-950/50 backdrop-blur-sm">
+    <footer className="border-t border-blue-200/50 dark:border-blue-400/10 py-12 px-[5vw] bg-white/50 dark:bg-blue-950/50 backdrop-blur-sm">
       <div className="max-w-300 mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           <div className="col-span-2">
-            <div className="flex items-center gap-2.5 font-display font-extrabold text-xl text-white mb-3">
+            <div className="flex items-center gap-2.5 font-display font-extrabold text-xl text-blue-950 dark:text-white mb-3">
               <Link href="/">
                 <Image
                   src="/icon.png"
@@ -21,7 +21,7 @@ export default function Footer() {
               </Link>
               getMe
             </div>
-            <p className="text-sm text-blue-200/60 mb-4 max-w-70">
+            <p className="text-sm text-blue-800/60 dark:text-blue-200/60 mb-4 max-w-70">
               The high-performance embeddable key-value store built in Go.
             </p>
           </div>
@@ -76,7 +76,7 @@ export default function Footer() {
             },
           ].map((col) => (
             <div key={col.title}>
-              <div className="font-semibold text-white mb-3 text-sm">
+              <div className="font-semibold text-blue-950 dark:text-white mb-3 text-sm">
                 {col.title}
               </div>
               <ul className="space-y-2">
@@ -85,7 +85,7 @@ export default function Footer() {
                     <Link
                       href={l.href}
                       target={l.href.startsWith("http") ? "_blank" : undefined}
-                      className="text-sm text-blue-200/60 hover:text-blue-200 transition-colors"
+                      className="text-sm text-blue-800/60 dark:text-blue-200/60 hover:text-blue-950 dark:hover:text-blue-200 transition-colors"
                     >
                       {l.name}
                     </Link>
@@ -95,8 +95,8 @@ export default function Footer() {
             </div>
           ))}
         </div>
-        <div className="pt-6 border-t border-blue-400/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-blue-300/50">
+        <div className="pt-6 border-t border-blue-200/50 dark:border-blue-400/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-sm text-blue-600/60 dark:text-blue-300/50">
             © 2026 getMe. Released under AGPLv3.
           </div>
           <div className="flex gap-4">
@@ -111,7 +111,7 @@ export default function Footer() {
                 key={s.name}
                 href={s.href}
                 target="_blank"
-                className="text-blue-300/50 hover:text-blue-200 transition-colors text-sm"
+                className="text-blue-600/60 dark:text-blue-300/50 hover:text-blue-950 dark:hover:text-blue-200 transition-colors text-sm"
               >
                 {s.name}
               </Link>

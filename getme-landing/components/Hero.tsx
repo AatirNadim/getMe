@@ -2,13 +2,12 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { NumberTicker } from "./ui/number-ticker";
 import { MagneticButton } from "./lightswind/magnetic-button";
 import GithubIcon from "./icons/github";
 
 export default function Hero() {
-  const ref = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -26,10 +25,8 @@ export default function Hero() {
 
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
-      if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
-      mouseX.set((e.clientX - rect.left - rect.width / 2) / 20);
-      mouseY.set((e.clientY - rect.top - rect.height / 2) / 20);
+      mouseX.set((e.clientX - window.innerWidth / 2) / 20);
+      mouseY.set((e.clientY - window.innerHeight / 2) / 20);
     };
     window.addEventListener("mousemove", handleMouse);
     return () => window.removeEventListener("mousemove", handleMouse);
@@ -72,13 +69,19 @@ export default function Hero() {
 
   return (
     <section
-      ref={ref}
+      id="hero"
       className="relative min-h-screen flex items-center pt-30 pb-20 px-[5vw] overflow-hidden"
     >
-      {/* Antigravity-inspired background */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(32,86,168,0.35),transparent_60%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_50%_at_80%_60%,rgba(26,63,120,0.2),transparent_50%)]" />
+        <div
+          className="absolute inset-0 opacity-3"
+          style={{
+            backgroundImage: `linear-gradient(rgba(91,158,232,1) 1px, transparent 1px), linear-gradient(90deg, rgba(91,158,232,1) 1px, transparent 1px)`,
+            backgroundSize: "48px 48px",
+          }}
+        />
         <motion.div
           style={{ x: smoothX, y: smoothY }}
           className="absolute top-1/4 -left-20 w-72 h-72 bg-blue-500/20 rounded-full blur-[120px]"
@@ -92,24 +95,16 @@ export default function Hero() {
         />
       </div>
 
-      <div
-        className="absolute inset-0 opacity-3"
-        style={{
-          backgroundImage: `linear-gradient(rgba(91,158,232,1) 1px, transparent 1px), linear-gradient(90deg, rgba(91,158,232,1) 1px, transparent 1px)`,
-          backgroundSize: "48px 48px",
-        }}
-      />
-
       <div className="relative z-10 max-w-300 mx-auto w-full grid lg:grid-cols-2 gap-15 items-center">
         <div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 bg-blue-400/10 border border-blue-400/30 rounded-full px-3.5 py-1.5 mb-6"
+            className="inline-flex items-center gap-2 bg-blue-600/10 dark:bg-blue-400/10 border border-blue-600/30 dark:border-blue-400/30 rounded-full px-3.5 py-1.5 mb-6"
           >
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-            <span className="font-mono text-xs text-blue-200">
+            <span className="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)] dark:shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+            <span className="font-mono text-xs text-blue-800 dark:text-blue-200">
               live • production ready • built in Go • bitcask-inspired
             </span>
           </motion.div>
@@ -118,25 +113,19 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-display font-extrabold text-[clamp(2.8rem,5vw,4.2rem)] leading-[0.95] tracking-[-0.03em] text-white mb-5"
+            className="font-display font-extrabold text-[clamp(2.8rem,5vw,4.2rem)] leading-[0.95] tracking-[-0.03em] text-blue-950 dark:text-white mb-5"
           >
             High-Performance
             <br />
-            <span className="text-blue-300">Embeddable KV</span>
+            <span className="lenis-title-accent text-blue-600 dark:text-blue-300">Embeddable KV</span>
           </motion.h1>
 
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-[1.05rem] text-blue-200/80 leading-relaxed max-w-130 mb-7"
+            className="text-[1.05rem] text-blue-800/80 dark:text-blue-200/80 leading-relaxed max-w-130 mb-7"
           >
-            {/* getMe is a{" "}
-            <strong className="text-blue-200 font-medium">
-              sub-microsecond
-            </strong>{" "}
-            key-value store built in Go. Zero dependencies, CRC-checked
-            durability, and atomic compaction.  */}
             The pure Go key-value store built for <strong>speed</strong>.{" "}
             <strong>sub-microsecond</strong> latency,{" "}
             <strong>thread-safe</strong> embeddability, atomic compaction, and
@@ -150,14 +139,14 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.25 }}
             className="mb-10 max-w-130"
           >
-            <div className="flex items-center justify-between bg-blue-900/20 border border-blue-400/20 hover:border-blue-400/40 transition-colors rounded-xl p-1.5 pl-4 shadow-sm backdrop-blur-sm relative group">
-              <code className="flex-1 min-w-0 font-mono text-[0.8rem] md:text-[0.85rem] text-blue-100/90 truncate mr-2 select-all">
-                <span className="text-blue-400/60 mr-2 select-none">$</span>
+            <div className="flex items-center justify-between bg-blue-100/50 dark:bg-blue-900/20 border border-blue-300/30 dark:border-blue-400/20 hover:border-blue-400/50 dark:hover:border-blue-400/40 transition-colors rounded-xl p-1.5 pl-4 shadow-sm backdrop-blur-sm relative group">
+              <code className="flex-1 min-w-0 font-mono text-[0.8rem] md:text-[0.85rem] text-blue-900/90 dark:text-blue-100/90 truncate mr-2 select-all">
+                <span className="text-blue-500/60 dark:text-blue-400/60 mr-2 select-none">$</span>
                 {installCmd}
               </code>
               <button
                 onClick={copyToClipboard}
-                className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10 hover:bg-blue-500/30 text-blue-300 transition-colors border border-transparent cursor-pointer"
+                className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg bg-blue-600/10 dark:bg-blue-500/10 hover:bg-blue-600/20 dark:hover:bg-blue-500/30 text-blue-600 dark:text-blue-300 transition-colors border border-transparent cursor-pointer"
                 title="Copy install script"
               >
                 {copied ? (
@@ -173,7 +162,7 @@ export default function Hero() {
               </button>
             </div>
             <div className="flex items-center gap-2 mt-2 ml-1">
-              <span className="text-[0.75rem] text-blue-300/60 font-mono">
+              <span className="text-[0.75rem] text-blue-600/60 dark:text-blue-300/60 font-mono">
                 Automated installation for Linux & macOS (amd64/arm64)
               </span>
             </div>
@@ -191,7 +180,7 @@ export default function Hero() {
                 size="md"
                 radius={60}
                 strength={0.3}
-                className="group bg-blue-400 text-white !rounded-2xl shadow-[0_4px_24px_rgba(52,119,212,0.35)] hover:shadow-[0_8px_32px_rgba(52,119,212,0.45)] !border-none hover:bg-blue-600"
+                className="group bg-blue-600 dark:bg-blue-400 text-white !rounded-2xl shadow-[0_4px_24px_rgba(52,119,212,0.35)] hover:shadow-[0_8px_32px_rgba(52,119,212,0.45)] !border-none hover:bg-blue-700 dark:hover:bg-blue-600"
               >
                 Get Started
                 <svg
@@ -214,7 +203,7 @@ export default function Hero() {
                 size="md"
                 radius={60}
                 strength={0.3}
-                className="bg-blue-400/10 !border-blue-400/30 text-blue-50 !rounded-2xl hover:!border-blue-400/50 hover:rounded-4xl"
+                className="bg-blue-600/5 dark:bg-blue-400/10 !border-blue-600/30 dark:!border-blue-400/30 text-blue-900 dark:text-blue-50 !rounded-2xl hover:!border-blue-600/50 dark:hover:!border-blue-400/50 hover:rounded-4xl"
               >
                 <span className="w-4 h-4 flex">
                   <GithubIcon color="currentColor" />
@@ -232,13 +221,13 @@ export default function Hero() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 + i * 0.05 }}
               >
-                <div className="font-display text-[1.6rem] font-extrabold text-white flex items-baseline">
+                <div className="font-display text-[1.6rem] font-extrabold text-blue-950 dark:text-white flex items-baseline">
                   {stat.isNumber ? (
                     <>
                       {stat.prefix}
                       <NumberTicker
                         value={stat.value}
-                        className="text-white dark:text-white"
+                        className="text-blue-950 dark:text-white"
                         duration={1.5}
                       />
                       {stat.suffix}
@@ -247,7 +236,7 @@ export default function Hero() {
                     stat.text
                   )}
                 </div>
-                <div className="text-[0.78rem] text-blue-300/70 uppercase tracking-wider">
+                <div className="text-[0.78rem] text-blue-600/70 dark:text-blue-300/70 uppercase tracking-wider">
                   {stat.label}
                 </div>
               </motion.div>
@@ -265,75 +254,75 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative"
         >
-          <div className="relative bg-blue-850/90 border border-blue-400/30 rounded-3xl overflow-hidden shadow-glow-md backdrop-blur-xl">
-            <div className="bg-blue-800/80 px-4 py-3 flex items-center gap-2 border-b border-blue-400/15">
+          <div className="relative bg-white/90 dark:bg-blue-850/90 border border-blue-200/50 dark:border-blue-400/30 rounded-3xl overflow-hidden shadow-glow-md backdrop-blur-xl">
+            <div className="bg-blue-50/80 dark:bg-blue-800/80 px-4 py-3 flex items-center gap-2 border-b border-blue-200/30 dark:border-blue-400/15">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
                 <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
                 <div className="w-3 h-3 rounded-full bg-[#28c840]" />
               </div>
-              <div className="flex-1 text-center font-mono text-xs text-blue-300/60">
+              <div className="flex-1 text-center font-mono text-xs text-blue-500/80 dark:text-blue-300/60">
                 getme-bundle
               </div>
             </div>
-            <div className="p-5 font-mono text-[0.8rem] leading-[1.9]">
+            <div className="p-5 font-mono text-[0.8rem] leading-[1.9] text-blue-900 dark:text-blue-50">
               <p>
-                <span className="text-blue-300/40">
+                <span className="text-blue-400/80 dark:text-blue-300/40">
                   # Start the full getMe stack
                 </span>
               </p>
               <p>
-                <span className="text-blue-300">$</span>{" "}
-                <span className="text-blue-50">docker-compose up -d</span>
+                <span className="text-blue-600 dark:text-blue-300">$</span>{" "}
+                <span>docker-compose up -d</span>
               </p>
-              <p className="text-blue-300/60">[+] Running 4/4</p>
+              <p className="text-blue-500/80 dark:text-blue-300/60">[+] Running 4/4</p>
               <p>
-                <span className="text-green-400"> ✔</span>{" "}
-                <span className="text-blue-300/60">Container getme-store</span>
-                <span className="text-green-400"> Started :8080</span>
+                <span className="text-green-600 dark:text-green-400"> ✔</span>{" "}
+                <span className="text-blue-500/80 dark:text-blue-300/60">Container getme-store</span>
+                <span className="text-green-600 dark:text-green-400"> Started :8080</span>
               </p>
               <p>
-                <span className="text-green-400"> ✔</span>{" "}
-                <span className="text-blue-300/60">
+                <span className="text-green-600 dark:text-green-400"> ✔</span>{" "}
+                <span className="text-blue-500/80 dark:text-blue-300/60">
                   Container http-proxy-go
                 </span>
-                <span className="text-green-400"> Started</span>
+                <span className="text-green-600 dark:text-green-400"> Started</span>
               </p>
               <p>
-                <span className="text-green-400"> ✔</span>{" "}
-                <span className="text-blue-300/60">Container grafana</span>
-                <span className="text-green-400"> Started :3000</span>
+                <span className="text-green-600 dark:text-green-400"> ✔</span>{" "}
+                <span className="text-blue-500/80 dark:text-blue-300/60">Container grafana</span>
+                <span className="text-green-600 dark:text-green-400"> Started :3000</span>
               </p>
               <p>
-                <span className="text-green-400"> ✔</span>{" "}
-                <span className="text-blue-300/60">Container loki-alloy</span>
-                <span className="text-green-400"> Started</span>
-              </p>
-            </div>
-
-            <div className="p-5 font-mono text-[0.8rem] leading-[1.9]">
-              <p>
-                <span className="text-blue-300/40"># Set a key-value pair</span>
-              </p>
-              <p>
-                <span className="text-blue-300">$</span>{" "}
-                <span className="text-blue-50">{`go run . set greeting "hello world"`}</span>
-              </p>
-              <p>
-                <span className="text-green-400">OK</span>
+                <span className="text-green-600 dark:text-green-400"> ✔</span>{" "}
+                <span className="text-blue-500/80 dark:text-blue-300/60">Container loki-alloy</span>
+                <span className="text-green-600 dark:text-green-400"> Started</span>
               </p>
             </div>
 
-            <div className="p-5 font-mono text-[0.8rem] leading-[1.9]">
+            <div className="p-5 font-mono text-[0.8rem] leading-[1.9] text-blue-900 dark:text-blue-50 border-t border-blue-100/50 dark:border-blue-400/10">
               <p>
-                <span className="text-blue-300/40"># Retrieve the value</span>
+                <span className="text-blue-400/80 dark:text-blue-300/40"># Set a key-value pair</span>
               </p>
               <p>
-                <span className="text-blue-300">$</span>{" "}
-                <span className="text-blue-50">{`go run . get greeting`}</span>
+                <span className="text-blue-600 dark:text-blue-300">$</span>{" "}
+                <span>{`go run . set greeting "hello world"`}</span>
               </p>
               <p>
-                <span className="text-blue-300/60">{`"hello world"`}</span>
+                <span className="text-green-600 dark:text-green-400">OK</span>
+              </p>
+            </div>
+
+            <div className="p-5 font-mono text-[0.8rem] leading-[1.9] text-blue-900 dark:text-blue-50 border-t border-blue-100/50 dark:border-blue-400/10">
+              <p>
+                <span className="text-blue-400/80 dark:text-blue-300/40"># Retrieve the value</span>
+              </p>
+              <p>
+                <span className="text-blue-600 dark:text-blue-300">$</span>{" "}
+                <span>{`go run . get greeting`}</span>
+              </p>
+              <p>
+                <span className="text-blue-500/80 dark:text-blue-300/60">{`"hello world"`}</span>
               </p>
             </div>
           </div>
@@ -342,16 +331,13 @@ export default function Hero() {
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="absolute -top-5 -right-5 w-25 h-25 rounded-2xl overflow-hidden border border-blue-400/30 shadow-glow-lg"
           >
-            {/* <div className="w-full h-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-3xl font-bold text-blue-950">
-              g
-            </div> */}
             <Link href="/">
               <Image
-                src="/icon.png" // Points to public/logo.png
+                src="/icon.png"
                 alt="getMe"
-                width={100} // Replace with your logo's width
-                height={100} // Replace with your logo's height
-                priority // Ensures the logo loads quickly on initial page load
+                width={100}
+                height={100}
+                priority
                 className="rounded-sm"
               />
             </Link>

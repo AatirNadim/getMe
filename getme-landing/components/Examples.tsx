@@ -48,6 +48,8 @@ await client.put('mykey', 'hello world');`,
   },
 ];
 
+import ParallaxSection from "./ParallaxSection";
+
 export default function Examples() {
   const [active, setActive] = useState("cli");
   const [logs, setLogs] = useState<{ id: number; text: string }[]>([]);
@@ -94,7 +96,7 @@ export default function Examples() {
   const renderLogLine = (text: string) => {
     const match = text.match(/level=(\w+)\s+timeStamp=([^ ]+)\s+msg="(.*)"/);
     if (!match) return <span>{text}</span>;
-    const [_, level, time, msg] = match;
+    const [, level, time, msg] = match;
     const levelColor =
       level === "WARN"
         ? "text-yellow-400"
@@ -104,53 +106,53 @@ export default function Examples() {
 
     return (
       <span className="block whitespace-pre-wrap break-all leading-relaxed">
-        <span className="text-blue-400/50">level=</span>
+        <span className="text-blue-600/50 dark:text-blue-400/50">level=</span>
         <span className={levelColor}>{level}</span>{" "}
-        <span className="text-blue-400/50">timeStamp=</span>
-        <span className="text-blue-300/60">{time}</span>{" "}
-        <span className="text-blue-400/50">msg=</span>
-        <span className="text-blue-100">{`${msg}`}</span>
+        <span className="text-blue-600/50 dark:text-blue-400/50">timeStamp=</span>
+        <span className="text-blue-700/60 dark:text-blue-300/60">{time}</span>{" "}
+        <span className="text-blue-600/50 dark:text-blue-400/50">msg=</span>
+        <span className="text-blue-900 dark:text-blue-100">{`${msg}`}</span>
       </span>
     );
   };
 
-  return (
-    <section
-      id="examples"
-      className="relative py-25 px-[5vw] bg-linear-to-b from-blue-950 to-blue-900/30"
-    >
-      <div className="max-w-300 mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-14"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-5 h-px bg-blue-400" />
-            <span className="font-mono text-xs uppercase tracking-widest text-blue-400">
-              Developer Experience
-            </span>
-          </div>
-          <h2 className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-tight text-white mb-4">
-            <span className="text-blue-300">Anything</span> you need.
-          </h2>
-          <p className="text-lg text-blue-200/80 max-w-145">
-            {
-              "From single-key operations to batch ingests across multiple language SDKs — getMe's API is "
-            }
-            <span className="font-semibold italic">intuitive from day one</span>
-            .
-          </p>
-        </motion.div>
+  const titleContent = (
+    <div className="mb-4">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-5 h-px bg-blue-600 dark:bg-blue-400" />
+        <span className="font-mono text-xs uppercase tracking-widest text-blue-600 dark:text-blue-400">
+          Developer Experience
+        </span>
+      </div>
+      <h2
+        className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-tight text-blue-950 dark:text-white mb-4"
+      >
+        <span className="lenis-title-accent text-blue-600 dark:text-blue-300">Anything</span> you need.
+      </h2>
+      <p className="text-lg text-blue-800/80 dark:text-blue-200/80 max-w-145">
+        {
+          "From single-key operations to batch ingests across multiple language SDKs — getMe's API is "
+        }
+        <span className="font-semibold italic">intuitive from day one</span>
+        .
+      </p>
+    </div>
+  );
 
-        <div className="grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start">
+  return (
+    <ParallaxSection
+      id="examples"
+      className=""
+      topOverlap={false}
+      title={titleContent}
+    >
+      <div className="grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start w-full">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <div className="flex gap-1 p-1 bg-blue-800/60 border border-blue-400/15 rounded-2xl mb-4 backdrop-blur-sm">
+            <div className="flex gap-1 p-1 bg-white/60 dark:bg-blue-800/60 border border-blue-200/50 dark:border-blue-400/15 rounded-2xl mb-4 backdrop-blur-sm">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -158,7 +160,7 @@ export default function Examples() {
                   className={`flex-1 px-3 py-2 rounded-xl font-mono text-[0.78rem] transition-all ${
                     active === tab.id
                       ? "bg-blue-600 text-white shadow-lg"
-                      : "text-blue-200/70 hover:text-white hover:bg-blue-400/10"
+                      : "text-blue-800/70 dark:text-blue-200/70 hover:text-blue-950 dark:hover:text-white hover:bg-blue-600/10 dark:hover:bg-blue-400/10"
                   }`}
                 >
                   {tab.label}
@@ -166,11 +168,11 @@ export default function Examples() {
               ))}
             </div>
 
-            <div className="relative bg-blue-850/95 border border-blue-400/15 rounded-2xl p-5 font-mono text-[0.8rem] leading-relaxed min-h-70 overflow-hidden">
-              <pre className="text-blue-200/90 whitespace-pre-wrap">
+            <div className="relative bg-blue-50/95 dark:bg-blue-850/95 border border-blue-200/50 dark:border-blue-400/15 rounded-2xl p-5 font-mono text-[0.8rem] leading-relaxed min-h-70 overflow-hidden">
+              <pre className="text-blue-900/90 dark:text-blue-200/90 whitespace-pre-wrap">
                 {tabs.find((t) => t.id === active)?.content}
               </pre>
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-blue-850/50 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-blue-50/50 dark:from-blue-850/50 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
             </div>
           </motion.div>
 
@@ -178,29 +180,31 @@ export default function Examples() {
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="bg-blue-900/98 border border-blue-400/15 rounded-2xl overflow-hidden backdrop-blur-xl"
+            className="bg-white/98 dark:bg-blue-900/98 border border-blue-200/50 dark:border-blue-400/15 rounded-2xl overflow-hidden backdrop-blur-xl shadow-sm"
           >
-            <div className="bg-blue-800/80 px-4 py-2.5 flex items-center gap-2 border-b border-blue-400/15">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span className="font-mono text-xs text-blue-300/60">
+            <div className="bg-blue-50/80 dark:bg-blue-800/80 px-4 py-2.5 flex items-center gap-2 border-b border-blue-200/50 dark:border-blue-400/15">
+              <span className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse" />
+              <span className="font-mono text-xs text-blue-600/60 dark:text-blue-300/60">
                 live • store.log
               </span>
             </div>
-            <div className="p-4 h-70 overflow-y-auto font-mono text-xs space-y-1.5 scroll-smooth">
+            <div
+              data-lenis-prevent
+              className="p-4 h-70 overflow-y-auto font-mono text-xs space-y-1.5 scroll-smooth"
+            >
               {logs.map((log) => (
                 <motion.p
                   key={log.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="text-blue-200/70"
+                  className="text-blue-900/70 dark:text-blue-200/70"
                 >
                   {renderLogLine(log.text)}
                 </motion.p>
               ))}
             </div>
           </motion.div>
-        </div>
       </div>
-    </section>
+    </ParallaxSection>
   );
 }
