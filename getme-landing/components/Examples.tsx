@@ -48,6 +48,8 @@ await client.put('mykey', 'hello world');`,
   },
 ];
 
+import ParallaxSection from "./ParallaxSection";
+
 export default function Examples() {
   const [active, setActive] = useState("cli");
   const [logs, setLogs] = useState<{ id: number; text: string }[]>([]);
@@ -114,40 +116,37 @@ export default function Examples() {
     );
   };
 
-  return (
-    <section
-      id="examples"
-      className="relative py-25 px-[5vw] bg-linear-to-b from-blue-950 to-blue-900/30"
-    >
-      <div className="max-w-300 mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-14"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-5 h-px bg-blue-400" />
-            <span className="font-mono text-xs uppercase tracking-widest text-blue-400">
-              Developer Experience
-            </span>
-          </div>
-          <h2
-            data-lenis-title
-            className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-tight text-white mb-4"
-          >
-            <span className="lenis-title-accent text-blue-300">Anything</span> you need.
-          </h2>
-          <p className="text-lg text-blue-200/80 max-w-145">
-            {
-              "From single-key operations to batch ingests across multiple language SDKs — getMe's API is "
-            }
-            <span className="font-semibold italic">intuitive from day one</span>
-            .
-          </p>
-        </motion.div>
+  const titleContent = (
+    <div className="mb-4">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-5 h-px bg-blue-400" />
+        <span className="font-mono text-xs uppercase tracking-widest text-blue-400">
+          Developer Experience
+        </span>
+      </div>
+      <h2
+        className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-tight text-white mb-4"
+      >
+        <span className="lenis-title-accent text-blue-300">Anything</span> you need.
+      </h2>
+      <p className="text-lg text-blue-200/80 max-w-145">
+        {
+          "From single-key operations to batch ingests across multiple language SDKs — getMe's API is "
+        }
+        <span className="font-semibold italic">intuitive from day one</span>
+        .
+      </p>
+    </div>
+  );
 
-        <div className="grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start">
+  return (
+    <ParallaxSection
+      id="examples"
+      className=""
+      topOverlap={false}
+      title={titleContent}
+    >
+      <div className="grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start w-full">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -205,8 +204,7 @@ export default function Examples() {
               ))}
             </div>
           </motion.div>
-        </div>
       </div>
-    </section>
+    </ParallaxSection>
   );
 }

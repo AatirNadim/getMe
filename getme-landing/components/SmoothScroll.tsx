@@ -7,51 +7,8 @@ import { useEffect, useState } from "react";
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
-function updateTitleState(titles: HTMLElement[]) {
-  const viewportHeight = window.innerHeight || 1;
-  const startDrop = viewportHeight * 0.72;
-  const travelDistance = viewportHeight * 0.56;
-
-  for (const title of titles) {
-    const previousY = Number.parseFloat(title.dataset.lenisTitleY ?? "0");
-    const rect = title.getBoundingClientRect();
-    const baseTop = rect.top - (Number.isFinite(previousY) ? previousY : 0);
-    const progress = clamp((viewportHeight - baseTop) / travelDistance, 0, 1);
-    const titleY = startDrop * (1 - Math.pow(progress, 2.2));
-
-    title.dataset.lenisTitleY = titleY.toFixed(1);
-    title.style.setProperty("--lenis-title-y", `${titleY.toFixed(1)}px`);
-  }
-}
-
 function LenisScrollEffects() {
-  useEffect(() => {
-    const titles = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-lenis-title]"),
-    );
-
-    updateTitleState(titles);
-
-    const handleResize = () => updateTitleState(titles);
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      document.documentElement.style.removeProperty("--scroll-progress");
-      document.documentElement.style.removeProperty("--scroll-velocity");
-
-      for (const title of titles) {
-        title.style.removeProperty("--lenis-title-y");
-        delete title.dataset.lenisTitleY;
-      }
-    };
-  }, []);
-
   useLenis((lenis) => {
-    const titles = Array.from(
-      document.querySelectorAll<HTMLElement>("[data-lenis-title]"),
-    );
-
     document.documentElement.style.setProperty(
       "--scroll-progress",
       lenis.progress.toFixed(4),
@@ -60,7 +17,6 @@ function LenisScrollEffects() {
       "--scroll-velocity",
       clamp(lenis.velocity / 30, -1, 1).toFixed(3),
     );
-    updateTitleState(titles);
   }, []);
 
   return (

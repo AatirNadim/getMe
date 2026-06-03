@@ -133,13 +133,7 @@ html.lenis body {
     @apply border border-blue-400/30 text-blue-200 px-4 py-2 rounded-xl hover:bg-blue-400/10 hover:border-blue-400/50 hover:text-white transition-all;
   }
 
-  [data-lenis-title] {
-    --lenis-title-y: 0px;
-    translate: 0 var(--lenis-title-y);
-    will-change: translate;
-  }
-
-  [data-lenis-title] .lenis-title-accent {
+  .lenis-title-accent {
     color: var(--blue-300);
   }
 }
@@ -147,12 +141,6 @@ html.lenis body {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-
-  [data-lenis-title],
-  [data-lenis-title] .lenis-title-accent {
-    translate: none;
-    will-change: auto;
   }
 }
 

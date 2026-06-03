@@ -3,6 +3,8 @@ import React from "react";
 import { motion, Variants } from "framer-motion";
 import { NumberTicker } from "./ui/number-ticker";
 
+import ParallaxSection from "./ParallaxSection";
+
 export default function Performance() {
   // Shared animation config for the main elements
   const fadeUpVariant: Variants = {
@@ -25,50 +27,45 @@ export default function Performance() {
     },
   };
 
-  return (
-    <section
-      id="performance"
-      className="relative px-[4vw] md:px-[5vw] py-18 md:py-25 bg-blue-900/60"
-    >
-      <div className="max-w-300 mx-auto">
-        <div className="font-mono text-xs text-(--blue-400) uppercase tracking-widest mb-3 flex items-center gap-2 before:content-[''] before:inline-block before:w-5 before:h-px before:bg-(--blue-400)">
-          Benchmarks
-        </div>
+  const titleContent = (
+    <>
+      <div className="font-mono text-xs text-(--blue-400) uppercase tracking-widest mb-3 flex items-center gap-2 before:content-[''] before:inline-block before:w-5 before:h-px before:bg-(--blue-400)">
+        Benchmarks
+      </div>
 
-        <motion.h2
-          data-lenis-title
-          variants={fadeUpVariant}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-[-0.03em] text-white mb-4 font-display leading-[1.1]"
-        >
-          Built and Benchmarked
-          <br />
-          <span className="lenis-title-accent text-blue-300">to Scale.</span>
-        </motion.h2>
+      <h2
+        className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-[-0.03em] text-white mb-4 font-display leading-[1.1]"
+      >
+        Built and Benchmarked
+        <br />
+        <span className="lenis-title-accent text-blue-300">to Scale.</span>
+      </h2>
 
-        <motion.p
-          variants={fadeUpVariant}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="text-[1.05rem] text-(--text-secondary) max-w-145 leading-[1.7] flex flex-col gap-1"
-        >
-          <span className="text-lg font-semibold italic">
-            Transparent performance and correctness.
+      <p className="text-[1.05rem] text-(--text-secondary) max-w-145 leading-[1.7] flex flex-col gap-1">
+        <span className="text-lg font-semibold italic">
+          Transparent performance and correctness.
+        </span>{" "}
+        <span className="text-sm">
+          These baselines were captured on constrained, multi-tenant CI
+          compute environments—expect{" "}
+          <span className="font-semibold italic underline decoration-dotted decoration-1">
+            significantly elevated
           </span>{" "}
-          <span className="text-sm">
-            These baselines were captured on constrained, multi-tenant CI
-            compute environments—expect{" "}
-            <span className="font-semibold italic underline decoration-dotted decoration-1">
-              significantly elevated
-            </span>{" "}
-            throughput on <strong>dedicated</strong>,{" "}
-            <strong>bare-metal</strong> infrastructure.
-          </span>
-        </motion.p>
+          throughput on <strong>dedicated</strong>,{" "}
+          <strong>bare-metal</strong> infrastructure.
+        </span>
+      </p>
+    </>
+  );
 
+  return (
+    <ParallaxSection
+      id="performance"
+      className=""
+      title={titleContent}
+      focalOffset={15}
+    >
+      <div className="w-full">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -297,6 +294,6 @@ export default function Performance() {
           </div>
         </motion.div>
       </div>
-    </section>
+    </ParallaxSection>
   );
 }

@@ -72,35 +72,32 @@ const items = [
   },
 ];
 
-export default function Availability() {
-  return (
-    <section className="py-25 px-[5vw] bg-blue-900/50">
-      <div className="max-w-300 mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-14"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-5 h-px bg-blue-400" />
-            <span className="font-mono text-xs uppercase tracking-widest text-blue-400">
-              Ecosystem
-            </span>
-          </div>
-          <h2
-            data-lenis-title
-            className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-bold text-white flex flex-col gap-0.5 tracking-[-0.03em] leading-[1.1]"
-          >
-            <span>Anywhere you need it.</span>
-            <span className="lenis-title-accent text-blue-300">Any way you build it.</span>
-          </h2>
-          <p className="text-xl text-blue-200/80 mt-6 font-semibold">
-            Built for the community, with ❤️.
-          </p>
-        </motion.div>
+import ParallaxSection from "./ParallaxSection";
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+export default function Availability() {
+  const titleContent = (
+    <div className="mb-4">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-5 h-px bg-blue-400" />
+        <span className="font-mono text-xs uppercase tracking-widest text-blue-400">
+          Ecosystem
+        </span>
+      </div>
+      <h2
+        className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-bold text-white flex flex-col gap-0.5 tracking-[-0.03em] leading-[1.1]"
+      >
+        <span>Anywhere you need it.</span>
+        <span className="lenis-title-accent text-blue-300">Any way you build it.</span>
+      </h2>
+      <p className="text-xl text-blue-200/80 mt-6 font-semibold">
+        Built for the community, with ❤️.
+      </p>
+    </div>
+  );
+
+  return (
+    <ParallaxSection className="" title={titleContent}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
           {items.map((item, i) => (
             <motion.div
               key={item.title}
@@ -137,8 +134,7 @@ export default function Availability() {
               </Link>
             </motion.div>
           ))}
-        </div>
       </div>
-    </section>
+    </ParallaxSection>
   );
 }

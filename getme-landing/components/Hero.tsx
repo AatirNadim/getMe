@@ -2,13 +2,12 @@
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { NumberTicker } from "./ui/number-ticker";
 import { MagneticButton } from "./lightswind/magnetic-button";
 import GithubIcon from "./icons/github";
 
 export default function Hero() {
-  const ref = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -26,10 +25,8 @@ export default function Hero() {
 
   useEffect(() => {
     const handleMouse = (e: MouseEvent) => {
-      if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
-      mouseX.set((e.clientX - rect.left - rect.width / 2) / 20);
-      mouseY.set((e.clientY - rect.top - rect.height / 2) / 20);
+      mouseX.set((e.clientX - window.innerWidth / 2) / 20);
+      mouseY.set((e.clientY - window.innerHeight / 2) / 20);
     };
     window.addEventListener("mousemove", handleMouse);
     return () => window.removeEventListener("mousemove", handleMouse);
@@ -72,13 +69,19 @@ export default function Hero() {
 
   return (
     <section
-      ref={ref}
+      id="hero"
       className="relative min-h-screen flex items-center pt-30 pb-20 px-[5vw] overflow-hidden"
     >
-      {/* Antigravity-inspired background */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(32,86,168,0.35),transparent_60%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_50%_at_80%_60%,rgba(26,63,120,0.2),transparent_50%)]" />
+        <div
+          className="absolute inset-0 opacity-3"
+          style={{
+            backgroundImage: `linear-gradient(rgba(91,158,232,1) 1px, transparent 1px), linear-gradient(90deg, rgba(91,158,232,1) 1px, transparent 1px)`,
+            backgroundSize: "48px 48px",
+          }}
+        />
         <motion.div
           style={{ x: smoothX, y: smoothY }}
           className="absolute top-1/4 -left-20 w-72 h-72 bg-blue-500/20 rounded-full blur-[120px]"
@@ -91,14 +94,6 @@ export default function Hero() {
           className="absolute bottom-1/4 -right-20 w-96 h-96 bg-cyan-400/15 rounded-full blur-[140px]"
         />
       </div>
-
-      <div
-        className="absolute inset-0 opacity-3"
-        style={{
-          backgroundImage: `linear-gradient(rgba(91,158,232,1) 1px, transparent 1px), linear-gradient(90deg, rgba(91,158,232,1) 1px, transparent 1px)`,
-          backgroundSize: "48px 48px",
-        }}
-      />
 
       <div className="relative z-10 max-w-300 mx-auto w-full grid lg:grid-cols-2 gap-15 items-center">
         <div>
@@ -115,7 +110,6 @@ export default function Hero() {
           </motion.div>
 
           <motion.h1
-            data-lenis-title
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
@@ -132,12 +126,6 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-[1.05rem] text-blue-200/80 leading-relaxed max-w-130 mb-7"
           >
-            {/* getMe is a{" "}
-            <strong className="text-blue-200 font-medium">
-              sub-microsecond
-            </strong>{" "}
-            key-value store built in Go. Zero dependencies, CRC-checked
-            durability, and atomic compaction.  */}
             The pure Go key-value store built for <strong>speed</strong>.{" "}
             <strong>sub-microsecond</strong> latency,{" "}
             <strong>thread-safe</strong> embeddability, atomic compaction, and
@@ -343,16 +331,13 @@ export default function Hero() {
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             className="absolute -top-5 -right-5 w-25 h-25 rounded-2xl overflow-hidden border border-blue-400/30 shadow-glow-lg"
           >
-            {/* <div className="w-full h-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center text-3xl font-bold text-blue-950">
-              g
-            </div> */}
             <Link href="/">
               <Image
-                src="/icon.png" // Points to public/logo.png
+                src="/icon.png"
                 alt="getMe"
-                width={100} // Replace with your logo's width
-                height={100} // Replace with your logo's height
-                priority // Ensures the logo loads quickly on initial page load
+                width={100}
+                height={100}
+                priority
                 className="rounded-sm"
               />
             </Link>

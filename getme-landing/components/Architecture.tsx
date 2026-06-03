@@ -2,40 +2,34 @@
 import React from "react";
 import { motion } from "framer-motion";
 
+import ParallaxSection from "./ParallaxSection";
+
 export default function Architecture() {
+  const titleContent = (
+    <>
+      <div className="font-mono text-xs text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2 before:content-[''] before:inline-block before:w-5 before:h-px before:bg-blue-400">
+        Internals
+      </div>
+
+      <h2
+        className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-bold tracking-[-0.03em] text-white mb-4 leading-[1.1]"
+      >
+        Engineered for
+        <br />
+        <span className="lenis-title-accent text-(--blue-300)">
+          Speed &amp; Simplicity
+        </span>
+      </h2>
+    </>
+  );
+
   return (
-    <section
+    <ParallaxSection
       id="architecture"
-      className="relative px-[4vw] md:px-[5vw] py-18 md:py-25 bg-linear-to-b from-blue-800/20 to-blue-950"
+      className=""
+      title={titleContent}
     >
-      <div className="max-w-300 mx-auto">
-        <div className="font-mono text-xs text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2 before:content-[''] before:inline-block before:w-5 before:h-px before:bg-blue-400">
-          Internals
-        </div>
-
-        <motion.h2
-          data-lenis-title
-          variants={{
-            hidden: { opacity: 0, y: 24 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              transition: { duration: 0.6, ease: "easeOut" },
-            },
-          }}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-bold tracking-[-0.03em] text-white mb-4 leading-[1.1]"
-        >
-          Engineered for
-          <br />
-          <span className="lenis-title-accent text-(--blue-300)">
-            Speed &amp; Simplicity
-          </span>
-        </motion.h2>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-15 mt-14 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-15 items-center w-full">
           {/* Architecture Diagram Box */}
           <motion.div
             variants={{
@@ -290,7 +284,6 @@ export default function Architecture() {
             </motion.div>
           </motion.div>
         </div>
-      </div>
-    </section>
+    </ParallaxSection>
   );
 }
