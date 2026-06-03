@@ -115,6 +115,7 @@ export default function Hero() {
           </motion.div>
 
           <motion.h1
+            data-lenis-title
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
@@ -122,7 +123,7 @@ export default function Hero() {
           >
             High-Performance
             <br />
-            <span className="text-blue-300">Embeddable KV</span>
+            <span className="lenis-title-accent text-blue-300">Embeddable KV</span>
           </motion.h1>
 
           <motion.p

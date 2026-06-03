@@ -106,6 +106,7 @@ export default function Community() {
           </motion.div>
 
           <motion.h2
+            data-lenis-title
             variants={fadeUpVariant}
             initial="hidden"
             whileInView="visible"
@@ -114,7 +115,7 @@ export default function Community() {
           >
             Powered by
             <br />
-            <span className="text-blue-300">Open Source.</span>
+            <span className="lenis-title-accent text-blue-300">Open Source.</span>
           </motion.h2>
 
           <motion.p

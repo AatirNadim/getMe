@@ -6,6 +6,8 @@
 @config "../tailwind.config.js";
 
 :root {
+  --scroll-progress: 0;
+  --scroll-velocity: 0;
   --blue-950: #020b18;
   --blue-900: #040e20;
   --blue-850: #061428;
@@ -70,7 +72,8 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
+    scroll-padding-top: 5rem;
     @apply font-sans;
   }
   body {
@@ -80,6 +83,34 @@
   * {
     @apply border-border outline-ring/50;
   }
+}
+
+/* Lenis recommended CSS, kept local so global styles stay in one place. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+
+.lenis [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch],
+.lenis [data-lenis-prevent-vertical],
+.lenis [data-lenis-prevent-horizontal] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+.lenis.lenis-autoToggle {
+  transition-behavior: allow-discrete;
+  transition-duration: 1ms;
+  transition-property: overflow;
 }
 
 @layer components {
@@ -100,6 +131,28 @@
   }
   .btn-ghost {
     @apply border border-blue-400/30 text-blue-200 px-4 py-2 rounded-xl hover:bg-blue-400/10 hover:border-blue-400/50 hover:text-white transition-all;
+  }
+
+  [data-lenis-title] {
+    --lenis-title-y: 0px;
+    translate: 0 var(--lenis-title-y);
+    will-change: translate;
+  }
+
+  [data-lenis-title] .lenis-title-accent {
+    color: var(--blue-300);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  [data-lenis-title],
+  [data-lenis-title] .lenis-title-accent {
+    translate: none;
+    will-change: auto;
   }
 }
 

@@ -94,7 +94,7 @@ export default function Examples() {
   const renderLogLine = (text: string) => {
     const match = text.match(/level=(\w+)\s+timeStamp=([^ ]+)\s+msg="(.*)"/);
     if (!match) return <span>{text}</span>;
-    const [_, level, time, msg] = match;
+    const [, level, time, msg] = match;
     const levelColor =
       level === "WARN"
         ? "text-yellow-400"
@@ -132,8 +132,11 @@ export default function Examples() {
               Developer Experience
             </span>
           </div>
-          <h2 className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-tight text-white mb-4">
-            <span className="text-blue-300">Anything</span> you need.
+          <h2
+            data-lenis-title
+            className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-tight text-white mb-4"
+          >
+            <span className="lenis-title-accent text-blue-300">Anything</span> you need.
           </h2>
           <p className="text-lg text-blue-200/80 max-w-145">
             {
@@ -186,7 +189,10 @@ export default function Examples() {
                 live • store.log
               </span>
             </div>
-            <div className="p-4 h-70 overflow-y-auto font-mono text-xs space-y-1.5 scroll-smooth">
+            <div
+              data-lenis-prevent
+              className="p-4 h-70 overflow-y-auto font-mono text-xs space-y-1.5 scroll-smooth"
+            >
               {logs.map((log) => (
                 <motion.p
                   key={log.id}

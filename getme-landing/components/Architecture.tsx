@@ -14,6 +14,7 @@ export default function Architecture() {
         </div>
 
         <motion.h2
+          data-lenis-title
           variants={{
             hidden: { opacity: 0, y: 24 },
             visible: {
@@ -29,7 +30,9 @@ export default function Architecture() {
         >
           Engineered for
           <br />
-          <span className="text-(--blue-300)">Speed &amp; Simplicity</span>
+          <span className="lenis-title-accent text-(--blue-300)">
+            Speed &amp; Simplicity
+          </span>
         </motion.h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-15 mt-14 items-center">

@@ -36,6 +36,7 @@ export default function Performance() {
         </div>
 
         <motion.h2
+          data-lenis-title
           variants={fadeUpVariant}
           initial="hidden"
           whileInView="visible"
@@ -44,7 +45,7 @@ export default function Performance() {
         >
           Built and Benchmarked
           <br />
-          <span className="text-blue-300">to Scale.</span>
+          <span className="lenis-title-accent text-blue-300">to Scale.</span>
         </motion.h2>
 
         <motion.p

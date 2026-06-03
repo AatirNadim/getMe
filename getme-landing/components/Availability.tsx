@@ -88,9 +88,12 @@ export default function Availability() {
               Ecosystem
             </span>
           </div>
-          <h2 className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-bold text-white flex flex-col gap-0.5 tracking-[-0.03em] leading-[1.1]">
+          <h2
+            data-lenis-title
+            className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-bold text-white flex flex-col gap-0.5 tracking-[-0.03em] leading-[1.1]"
+          >
             <span>Anywhere you need it.</span>
-            <span className="text-blue-300">Any way you build it.</span>
+            <span className="lenis-title-accent text-blue-300">Any way you build it.</span>
           </h2>
           <p className="text-xl text-blue-200/80 mt-6 font-semibold">
             Built for the community, with ❤️.
