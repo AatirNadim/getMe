@@ -22,10 +22,10 @@ function LenisScrollEffects() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed right-5 top-1/2 z-40 hidden h-30 w-px -translate-y-1/2 overflow-hidden rounded-full bg-blue-300/10 md:block"
+      className="pointer-events-none fixed right-5 top-1/2 z-40 hidden h-30 w-px -translate-y-1/2 overflow-hidden rounded-full bg-blue-600/20 dark:bg-blue-300/10 md:block"
     >
       <div
-        className="absolute inset-x-0 top-0 h-full origin-top rounded-full bg-linear-to-b from-cyan-300 via-blue-300 to-transparent shadow-[0_0_18px_rgba(91,158,232,0.45)]"
+        className="absolute inset-x-0 top-0 h-full origin-top rounded-full bg-linear-to-b from-cyan-500 via-blue-500 to-transparent dark:from-cyan-300 dark:via-blue-300 shadow-[0_0_18px_rgba(32,86,168,0.35)] dark:shadow-[0_0_18px_rgba(91,158,232,0.45)]"
         style={{ transform: "scaleY(var(--scroll-progress, 0))" }}
       />
     </div>

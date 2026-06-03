@@ -17,9 +17,9 @@ export default function Home() {
 
         {/* Voltlites grid */}
         <div
-          className="pointer-events-none fixed inset-0 z-0 opacity-[0.03]"
+          className="pointer-events-none fixed inset-0 z-0 opacity-10 dark:opacity-[0.03]"
           style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(rgba(52, 119, 212, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(52, 119, 212, 0.2) 1px, transparent 1px)`,
             backgroundSize: "100px 100px",
           }}
         />

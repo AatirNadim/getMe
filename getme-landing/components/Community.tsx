@@ -95,7 +95,7 @@ export default function Community() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-50px" }}
-        className="inline-flex items-center gap-2 bg-green-400/8 border border-green-400/20 text-green-400 rounded-full px-4 py-1.5 text-[0.8rem] font-mono mb-6"
+        className="inline-flex items-center gap-2 bg-green-600/10 dark:bg-green-400/8 border border-green-600/30 dark:border-green-400/20 text-green-700 dark:text-green-400 rounded-full px-4 py-1.5 text-[0.8rem] font-mono mb-6"
       >
         ⬡ AGPLv3 Open Source
       </motion.div>
@@ -105,11 +105,11 @@ export default function Community() {
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-50px" }}
-        className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-[-0.03em] text-white mb-4 font-display leading-[1.1]"
+        className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-[-0.03em] text-blue-950 dark:text-white mb-4 font-display leading-[1.1]"
       >
         Powered by
         <br />
-        <span className="lenis-title-accent text-blue-300">Open Source.</span>
+        <span className="lenis-title-accent text-blue-600 dark:text-blue-300">Open Source.</span>
       </motion.h2>
 
       <motion.p
@@ -150,7 +150,7 @@ export default function Community() {
                 <Link
                   href={link.href}
                   target="_blank"
-                  className="inline-flex items-center gap-2 bg-blue-400/8 hover:bg-blue-400/18 text-(--text-primary) border-2 border-(--border-medium) hover:border-(--border-bright) px-5.5 py-2.75 rounded-md text-md cursor-pointer no-underline transition-all duration-200 font-sans hover:-translate-y-px"
+                  className="inline-flex items-center gap-2 bg-blue-600/10 dark:bg-blue-400/8 hover:bg-blue-600/20 dark:hover:bg-blue-400/18 text-blue-900 dark:text-(--text-primary) border-2 border-blue-200/50 dark:border-(--border-medium) hover:border-blue-400/60 dark:hover:border-(--border-bright) px-5.5 py-2.75 rounded-md text-md cursor-pointer no-underline transition-all duration-200 font-sans hover:-translate-y-px"
                 >
                   {link.icon}
                   {link.label}

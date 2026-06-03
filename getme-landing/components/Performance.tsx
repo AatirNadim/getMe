@@ -34,11 +34,11 @@ export default function Performance() {
       </div>
 
       <h2
-        className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-[-0.03em] text-white mb-4 font-display leading-[1.1]"
+        className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-[-0.03em] text-blue-950 dark:text-white mb-4 font-display leading-[1.1]"
       >
         Built and Benchmarked
         <br />
-        <span className="lenis-title-accent text-blue-300">to Scale.</span>
+        <span className="lenis-title-accent text-blue-600 dark:text-blue-300">to Scale.</span>
       </h2>
 
       <p className="text-[1.05rem] text-(--text-secondary) max-w-145 leading-[1.7] flex flex-col gap-1">
@@ -76,16 +76,16 @@ export default function Performance() {
           {/* Card 1 */}
           <motion.div
             variants={fadeUpVariant}
-            className="bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center"
+            className="bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm"
           >
-            <div className="font-display text-[2rem] font-extrabold text-white">
+            <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
                 value={6261}
                 duration={1.5}
-                className="text-white dark:text-white"
+                className="text-blue-950 dark:text-white"
               />
             </div>
-            <div className="text-xs text-blue-400 font-mono mt-0.5">ns/op</div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">ns/op</div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               Single Put
             </div>
@@ -94,16 +94,16 @@ export default function Performance() {
           {/* Card 2 */}
           <motion.div
             variants={fadeUpVariant}
-            className="bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center"
+            className="bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm"
           >
-            <div className="font-display text-[2rem] font-extrabold text-white">
+            <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
                 value={643}
                 duration={1.5}
-                className="text-white dark:text-white"
+                className="text-blue-950 dark:text-white"
               />
             </div>
-            <div className="text-xs text-blue-400 font-mono mt-0.5">ns/op</div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">ns/op</div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               Single Get
             </div>
@@ -112,16 +112,16 @@ export default function Performance() {
           {/* Card 3 */}
           <motion.div
             variants={fadeUpVariant}
-            className="bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center"
+            className="bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm"
           >
-            <div className="font-display text-[2rem] font-extrabold text-white">
+            <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
                 value={2759}
                 duration={1.5}
-                className="text-white dark:text-white"
+                className="text-blue-950 dark:text-white"
               />
             </div>
-            <div className="text-xs text-blue-400 font-mono mt-0.5">ns/op</div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">ns/op</div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               90% Read / 10% Write
             </div>
@@ -130,16 +130,16 @@ export default function Performance() {
           {/* Card 4 */}
           <motion.div
             variants={fadeUpVariant}
-            className="bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center"
+            className="bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm"
           >
-            <div className="font-display text-[2rem] font-extrabold text-white">
+            <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
                 value={40}
                 duration={1.5}
-                className="text-white dark:text-white"
+                className="text-blue-950 dark:text-white"
               />
             </div>
-            <div className="text-xs text-blue-400 font-mono mt-0.5">ns/op</div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">ns/op</div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               Delete Operation
             </div>
@@ -152,7 +152,7 @@ export default function Performance() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="bg-blue-850/90 border border-(--border-subtle) rounded-xl p-7 overflow-hidden"
+          className="bg-white/90 dark:bg-blue-850/90 border border-(--border-subtle) rounded-xl p-7 overflow-hidden shadow-sm backdrop-blur-md"
         >
           <div className="font-mono text-[0.78rem] text-(--text-muted) mb-6">
             go test -bench . ./server/tests/... — Benchmark Results
@@ -163,7 +163,7 @@ export default function Performance() {
             <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) w-48 md:w-64 shrink-0 truncate">
               BenchmarkDelete
             </div>
-            <div className="flex-1 h-2 bg-blue-800/80 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: "8%" }}
@@ -172,7 +172,7 @@ export default function Performance() {
                 className="h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300"
               ></motion.div>
             </div>
-            <div className="font-mono text-[0.72rem] text-blue-200 w-24 text-right shrink-0">
+            <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
               40 ns/op
             </div>
           </div>
@@ -182,7 +182,7 @@ export default function Performance() {
             <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) w-48 md:w-64 shrink-0 truncate">
               BenchmarkGet
             </div>
-            <div className="flex-1 h-2 bg-blue-800/80 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: "15%" }}
@@ -191,7 +191,7 @@ export default function Performance() {
                 className="h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300"
               ></motion.div>
             </div>
-            <div className="font-mono text-[0.72rem] text-blue-200 w-24 text-right shrink-0">
+            <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
               643 ns/op
             </div>
           </div>
@@ -201,7 +201,7 @@ export default function Performance() {
             <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) w-48 md:w-64 shrink-0 truncate">
               BenchmarkReadWriteMixed_90_10
             </div>
-            <div className="flex-1 h-2 bg-blue-800/80 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: "45%" }}
@@ -210,7 +210,7 @@ export default function Performance() {
                 className="h-full rounded-full bg-linear-to-r from-blue-600 to-cyan-400"
               ></motion.div>
             </div>
-            <div className="font-mono text-[0.72rem] text-blue-200 w-24 text-right shrink-0">
+            <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
               2,759 ns/op
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function Performance() {
             <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) w-48 md:w-64 shrink-0 truncate">
               BenchmarkReadWriteMixed_80_20
             </div>
-            <div className="flex-1 h-2 bg-blue-800/80 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: "60%" }}
@@ -229,7 +229,7 @@ export default function Performance() {
                 className="h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300"
               ></motion.div>
             </div>
-            <div className="font-mono text-[0.72rem] text-blue-200 w-24 text-right shrink-0">
+            <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
               3,431 ns/op
             </div>
           </div>
@@ -239,7 +239,7 @@ export default function Performance() {
             <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) w-48 md:w-64 shrink-0 truncate">
               BenchmarkPut
             </div>
-            <div className="flex-1 h-2 bg-blue-800/80 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 whileInView={{ width: "85%" }}
@@ -248,7 +248,7 @@ export default function Performance() {
                 className="h-full rounded-full bg-linear-to-r from-blue-400 to-green-400"
               ></motion.div>
             </div>
-            <div className="font-mono text-[0.72rem] text-blue-200 w-24 text-right shrink-0">
+            <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
               6,261 ns/op
             </div>
           </div>
@@ -257,7 +257,7 @@ export default function Performance() {
             <div className="text-[0.85rem] text-(--text-secondary)">
               Reproducible — run on your own hardware:
             </div>
-            <div className="font-mono text-[0.78rem] bg-blue-400/12 border border-(--border-subtle) text-blue-200 py-2 px-3.5 rounded-md w-full min-[480px]:w-auto overflow-x-auto whitespace-nowrap scrollbar-hide">
+            <div className="font-mono text-[0.78rem] bg-blue-100/50 dark:bg-blue-400/12 border border-(--border-subtle) text-blue-800 dark:text-blue-200 py-2 px-3.5 rounded-md w-full min-[480px]:w-auto overflow-x-auto whitespace-nowrap scrollbar-hide">
               go test -bench . ./server/tests/...
             </div>
           </div>
@@ -272,7 +272,7 @@ export default function Performance() {
               href="https://aatirnadim.github.io/getMe/dev/bench/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[0.85rem] bg-white text-blue-900 hover:bg-blue-50 py-2 px-4 rounded-md transition-colors font-semibold shadow-sm inline-flex items-center justify-center gap-2 whitespace-nowrap w-full min-[480px]:w-auto"
+              className="text-[0.85rem] bg-blue-600 dark:bg-white text-white dark:text-blue-900 hover:bg-blue-700 dark:hover:bg-blue-50 py-2 px-4 rounded-md transition-colors font-semibold shadow-sm inline-flex items-center justify-center gap-2 whitespace-nowrap w-full min-[480px]:w-auto"
             >
               View Full Reports
               <svg
