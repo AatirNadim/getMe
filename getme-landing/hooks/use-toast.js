@@ -1,4 +1,3 @@
-// @ts-nocheck
 import * as React from "react";
 // Action types for reducer
 const actionTypes = {

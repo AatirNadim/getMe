@@ -14,6 +14,8 @@ const monaSans = Mona_Sans({
   variable: "--font-mona-sans",
 });
 
+import { ThemeProvider } from "@/components/theme-provider";
+
 export const metadata: Metadata = {
   title: "getMe",
   description:
@@ -42,6 +44,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn(
         jetbrains.variable,
         monaSans.variable,
@@ -49,7 +52,16 @@ export default function RootLayout({
         geist.variable,
       )}
     >
-      <body className={`${monaSans.className} noise`}>{children}</body>
+      <body className={`${monaSans.className} noise`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

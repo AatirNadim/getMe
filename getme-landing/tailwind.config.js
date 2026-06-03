@@ -7,9 +7,9 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-mona)', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-mona-sans)', 'var(--font-sans)', 'sans-serif'],
         mono: ['var(--font-jetbrains)', 'JetBrains Mono', 'monospace'],
-        display: ['var(--font-mona)', 'Syne', 'sans-serif'],
+        display: ['var(--font-mona-sans)', 'var(--font-sans)', 'sans-serif'],
       },
       colors: {
         blue: {

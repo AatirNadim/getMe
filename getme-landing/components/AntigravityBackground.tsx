@@ -1,8 +1,26 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/purity */
-'use client';
-import { useEffect, useRef } from 'react';
-import { motion, useMotionValue, useSpring } from 'framer-motion';
+"use client";
+
+import { useEffect, useRef } from "react";
+import { motion, useMotionValue, useSpring } from "framer-motion";
+import type { MotionValue } from "framer-motion";
+
+type OrbConfig = {
+  id: number;
+  duration: number;
+  hue: number;
+  size: number;
+  x: number;
+  y: number;
+};
+
+const ORBS: OrbConfig[] = Array.from({ length: 12 }, (_, i) => ({
+  id: i,
+  duration: 8 + (i % 4) * 1.3,
+  hue: 210 + ((i * 11) % 30),
+  size: 92 + ((i * 47) % 190),
+  x: (i * 23 + 7) % 100,
+  y: (i * 31 + 11) % 100,
+}));
 
 export default function AntigravityBackground() {
   const mouseX = useMotionValue(0);
@@ -13,28 +31,28 @@ export default function AntigravityBackground() {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
     };
-    window.addEventListener('mousemove', handleMove);
-    return () => window.removeEventListener('mousemove', handleMove);
+    window.addEventListener("mousemove", handleMove);
+    return () => window.removeEventListener("mousemove", handleMove);
   }, [mouseX, mouseY]);
-
-  const orbs = Array.from({ length: 12 }, (_, i) => ({
-    id: i,
-    size: 80 + Math.random() * 200,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    hue: 210 + Math.random() * 30,
-  }));
 
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden">
-      {orbs.map((orb) => (
+      {ORBS.map((orb) => (
         <Orb key={orb.id} orb={orb} mouseX={mouseX} mouseY={mouseY} />
       ))}
     </div>
   );
 }
 
-function Orb({ orb, mouseX, mouseY }: any) {
+function Orb({
+  orb,
+  mouseX,
+  mouseY,
+}: {
+  orb: OrbConfig;
+  mouseX: MotionValue<number>;
+  mouseY: MotionValue<number>;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useSpring(0, { stiffness: 30, damping: 20 });
   const y = useSpring(0, { stiffness: 30, damping: 20 });
@@ -49,7 +67,7 @@ function Orb({ orb, mouseX, mouseY }: any) {
       const dy = cy - mouseY.get();
       const dist = Math.sqrt(dx * dx + dy * dy);
       const maxDist = 300;
-      
+
       if (dist < maxDist) {
         const force = (1 - dist / maxDist) * 80;
         const angle = Math.atan2(dy, dx);
@@ -61,8 +79,8 @@ function Orb({ orb, mouseX, mouseY }: any) {
       }
     };
 
-    const unsubscribeX = mouseX.on('change', update);
-    const unsubscribeY = mouseY.on('change', update);
+    const unsubscribeX = mouseX.on("change", update);
+    const unsubscribeY = mouseY.on("change", update);
     return () => {
       unsubscribeX();
       unsubscribeY();
@@ -86,9 +104,9 @@ function Orb({ orb, mouseX, mouseY }: any) {
         scale: [1, 1.1, 1],
       }}
       transition={{
-        duration: 8 + Math.random() * 4,
+        duration: orb.duration,
         repeat: Infinity,
-        ease: 'easeInOut',
+        ease: "easeInOut",
       }}
     />
   );
