@@ -6,15 +6,16 @@ import pytest
 from getme_mcp_server.client import GetMeClient, GetMeError
 
 
-class _Transport(httpx.BaseTransport):
+class _AsyncTransport(httpx.AsyncBaseTransport):
     def __init__(self, handler):
         self._handler = handler
 
-    def handle_request(self, request: httpx.Request) -> httpx.Response:
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         return self._handler(request)
 
 
-def test_get_happy_path(monkeypatch):
+@pytest.mark.asyncio
+async def test_get_happy_path(monkeypatch):
     def handler(req: httpx.Request) -> httpx.Response:
         assert req.method == "GET"
         assert req.url.path == "/get"
@@ -23,30 +24,36 @@ def test_get_happy_path(monkeypatch):
 
     client = GetMeClient(socket_path="/tmp/x.sock")
 
-    def _client(self):
-        return httpx.Client(base_url=self.base_url, transport=_Transport(handler))
+    def get_client(self):
+        return httpx.AsyncClient(
+            base_url=self.base_url, transport=_AsyncTransport(handler)
+        )
 
-    monkeypatch.setattr(GetMeClient, "_client", _client)
+    monkeypatch.setattr(GetMeClient, "get_client", get_client)
 
-    assert client.get("a") == "hello"
+    assert await client.get("a") == "hello"
 
 
-def test_get_json_invalid(monkeypatch):
+@pytest.mark.asyncio
+async def test_get_json_invalid(monkeypatch):
     def handler(req: httpx.Request) -> httpx.Response:
         return httpx.Response(200, text="not-json")
 
     client = GetMeClient(socket_path="/tmp/x.sock")
 
-    def _client(self):
-        return httpx.Client(base_url=self.base_url, transport=_Transport(handler))
+    def get_client(self):
+        return httpx.AsyncClient(
+            base_url=self.base_url, transport=_AsyncTransport(handler)
+        )
 
-    monkeypatch.setattr(GetMeClient, "_client", _client)
+    monkeypatch.setattr(GetMeClient, "get_client", get_client)
 
     with pytest.raises(GetMeError):
-        client.get_json("a")
+        await client.get_json("a")
 
 
-def test_put_json_compacts(monkeypatch):
+@pytest.mark.asyncio
+async def test_put_json_compacts(monkeypatch):
     captured = {}
 
     def handler(req: httpx.Request) -> httpx.Response:
@@ -58,12 +65,14 @@ def test_put_json_compacts(monkeypatch):
 
     client = GetMeClient(socket_path="/tmp/x.sock")
 
-    def _client(self):
-        return httpx.Client(base_url=self.base_url, transport=_Transport(handler))
+    def get_client(self):
+        return httpx.AsyncClient(
+            base_url=self.base_url, transport=_AsyncTransport(handler)
+        )
 
-    monkeypatch.setattr(GetMeClient, "_client", _client)
+    monkeypatch.setattr(GetMeClient, "get_client", get_client)
 
-    out = client.put_json("k", {"a": 1, "b": [2, 3]})
+    out = await client.put_json("k", {"a": 1, "b": [2, 3]})
     assert out == "ok"
     assert captured["payload"]["key"] == "k"
     assert captured["payload"]["value"] == '{"a":1,"b":[2,3]}'

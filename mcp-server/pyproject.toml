@@ -22,6 +22,8 @@ package = true
 [dependency-groups]
 dev = [
   "pytest>=8.0.0",
+  "pytest-asyncio>=1.4.0",
+  "ruff>=0.15.16",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -29,3 +31,5 @@ packages = ["getme_mcp_server"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
+asyncio_default_fixture_loop_scope = "function"
+
