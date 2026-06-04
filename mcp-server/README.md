@@ -2,6 +2,8 @@
 
 An MCP server that exposes getMe key-value operations as MCP tools, and talks to the getMe core application over **HTTP via a Unix Domain Socket (UDS)**.
 
+<!-- mcp-name: io.github.aatirnadim/getme-mcp-server -->
+
 ## Features & Safety
 
 - **Read-Only Mode:** Ensure LLMs don't mutate data via `GETME_READ_ONLY=true`.
