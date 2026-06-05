@@ -23,6 +23,7 @@ def allow_clear() -> bool:
     return os.environ.get("GETME_ALLOW_CLEAR", "false").lower() == "true"
 
 
+# Optional key prefix to namespace keys in shared stores. Useful for multi-tenancy or avoiding collisions when multiple applications share the same underlying store.
 def key_prefix() -> str:
     return os.environ.get("GETME_KEY_PREFIX", "")
 

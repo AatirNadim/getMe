@@ -1,4 +1,4 @@
-name: MCP Server CI
+name: MCP Server CI & Release
 
 on:
   push:
@@ -44,16 +44,18 @@ jobs:
       - name: Run Pytest
         run: uv run pytest
 
-  pypi-publish:
+  release-and-publish:
+    needs: test
     if: github.ref.name == 'main'
-    name: Build and publish to PyPI
+    name: Semantic Release, PyPI & MCP Registry Publish
     runs-on: ubuntu-latest
+    concurrency: release
     environment:
       name: pypi
       url: https://pypi.org/p/getme-mcp-server
     permissions:
-      id-token: write # IMPORTANT: mandatory for trusted publishing
-      contents: read
+      id-token: write # Required for OIDC PyPI & MCP Registry publishing
+      contents: write # Required for pushing commits and tags
 
     defaults:
       run:
@@ -61,21 +63,52 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Python Semantic Release
+        id: semantic_release
+        uses: python-semantic-release/python-semantic-release@v9
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directory: mcp-server
 
       - name: Install uv
+        if: steps.semantic_release.outputs.released == 'true'
         uses: astral-sh/setup-uv@v4
         with:
           version: "latest"
 
       - name: Set up Python
+        if: steps.semantic_release.outputs.released == 'true'
         uses: actions/setup-python@v5
         with:
           python-version-file: "mcp-server/pyproject.toml"
 
       - name: Build package
+        if: steps.semantic_release.outputs.released == 'true'
         run: uv build
 
-      - name: Publish package distributions to PyPI
+      - name: Publish to PyPI
+        if: steps.semantic_release.outputs.released == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: mcp-server/dist
+
+      - name: Install mcp-publisher
+        if: steps.semantic_release.outputs.released == 'true'
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher
+          chmod +x mcp-publisher
+
+      - name: Set version in server.json
+        if: steps.semantic_release.outputs.released == 'true'
+        run: |
+          VERSION=${{ steps.semantic_release.outputs.version }}
+          jq --arg v "$VERSION" '.version = $v | .packages[0].version = $v' server.json > server.tmp && mv server.tmp server.json
+
+      - name: Authenticate and Publish to MCP Registry
+        if: steps.semantic_release.outputs.released == 'true'
+        run: |
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish

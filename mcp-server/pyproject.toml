@@ -23,6 +23,7 @@ package = true
 dev = [
   "pytest>=8.0.0",
   "pytest-asyncio>=1.4.0",
+  "python-semantic-release>=10.5.3",
   "ruff>=0.15.16",
 ]
 

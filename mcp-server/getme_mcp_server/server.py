@@ -35,6 +35,7 @@ def build_mcp() -> FastMCP:
         logger.info("Executing get_json for key: %s", key)
         return await client.get_json(key)
 
+    # Only register write tools if the store is not read-only. This allows the same server code to be used for both read-only and read-write stores, with the appropriate tools exposed based on configuration.
     if not config.is_read_only():
 
         @mcp.tool()
