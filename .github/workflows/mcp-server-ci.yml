@@ -46,7 +46,7 @@ jobs:
 
   release-and-publish:
     needs: test
-    if: github.ref.name == 'main'
+    if: github.ref_name == 'main'
     name: Semantic Release, PyPI & MCP Registry Publish
     runs-on: ubuntu-latest
     concurrency: release
