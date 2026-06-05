@@ -35,6 +35,12 @@ def build_mcp() -> FastMCP:
         logger.info("Executing get_json for key: %s", key)
         return await client.get_json(key)
 
+    @mcp.tool()
+    async def batch_get(keys: list[str]) -> Any:
+        """Batch get multiple values by keys."""
+        logger.info("Executing batch_get for %d keys", len(keys))
+        return await client.batch_get(keys)
+
     # Only register write tools if the store is not read-only. This allows the same server code to be used for both read-only and read-write stores, with the appropriate tools exposed based on configuration.
     if not config.is_read_only():
 
@@ -58,7 +64,13 @@ def build_mcp() -> FastMCP:
             return await client.delete(key)
 
         @mcp.tool()
-        async def batch_put(pairs: dict[str, str]) -> str:
+        async def batch_delete(keys: list[str]) -> Any:
+            """Batch delete multiple keys."""
+            logger.info("Executing batch_delete for %d keys", len(keys))
+            return await client.batch_delete(keys)
+
+        @mcp.tool()
+        async def batch_put(pairs: dict[str, str]) -> Any:
             """Batch put from a map of key -> value."""
             logger.info("Executing batch_put for %d keys", len(pairs))
             return await client.batch_put(pairs)

@@ -73,7 +73,9 @@ Once connected, the LLM has access to the following operations:
 - `put_json(key, json_value) -> str`
 - `delete(key) -> str`
 - `clear() -> str` _(Requires `GETME_ALLOW_CLEAR=true`)_
-- `batch_put(pairs: object) -> str`
+- `batch_put(pairs: object) -> object`
+- `batch_get(keys: list) -> object`
+- `batch_delete(keys: list) -> object`
 
 ## Development & Installation
 

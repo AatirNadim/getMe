@@ -24,3 +24,19 @@ async def test_batch_items_validation():
     client.max_batch_items = 2
     with pytest.raises(ValueError, match="batch exceeds max items"):
         await client.batch_put({"k1": "v1", "k2": "v2", "k3": "v3"})
+
+
+@pytest.mark.asyncio
+async def test_batch_get_items_validation():
+    client = GetMeClient(socket_path="/tmp/x.sock")
+    client.max_batch_items = 2
+    with pytest.raises(ValueError, match="batch exceeds max items"):
+        await client.batch_get(["k1", "k2", "k3"])
+
+
+@pytest.mark.asyncio
+async def test_batch_delete_items_validation():
+    client = GetMeClient(socket_path="/tmp/x.sock")
+    client.max_batch_items = 2
+    with pytest.raises(ValueError, match="batch exceeds max items"):
+        await client.batch_delete(["k1", "k2", "k3"])

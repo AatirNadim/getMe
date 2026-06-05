@@ -76,3 +76,76 @@ async def test_put_json_compacts(monkeypatch):
     assert out == "ok"
     assert captured["payload"]["key"] == "k"
     assert captured["payload"]["value"] == '{"a":1,"b":[2,3]}'
+
+
+@pytest.mark.asyncio
+async def test_batch_get_happy_path(monkeypatch):
+    def handler(req: httpx.Request) -> httpx.Response:
+        assert req.method == "POST"
+        assert req.url.path == "/batch-get"
+        payload = json.loads(req.content.decode("utf-8"))
+        assert payload["keys"] == ["a"]
+        resp_body = {"found": {"a": "hello"}, "notFound": [], "errors": {}}
+        return httpx.Response(200, text=json.dumps(resp_body))
+
+    client = GetMeClient(socket_path="/tmp/x.sock")
+
+    def get_client(self):
+        return httpx.AsyncClient(
+            base_url=self.base_url, transport=_AsyncTransport(handler)
+        )
+
+    monkeypatch.setattr(GetMeClient, "get_client", get_client)
+
+    res = await client.batch_get(["a"])
+    assert res["found"]["a"] == "hello"
+
+
+@pytest.mark.asyncio
+async def test_batch_put_unprefix(monkeypatch):
+    def handler(req: httpx.Request) -> httpx.Response:
+        assert req.method == "POST"
+        assert req.url.path == "/batch-put"
+        resp_body = {"successful": 0, "failed": {"test:a": "err"}}
+        return httpx.Response(200, text=json.dumps(resp_body))
+
+    client = GetMeClient(socket_path="/tmp/x.sock")
+    client.prefix = "test:"
+
+    def get_client(self):
+        return httpx.AsyncClient(
+            base_url=self.base_url, transport=_AsyncTransport(handler)
+        )
+
+    monkeypatch.setattr(GetMeClient, "get_client", get_client)
+
+    res = await client.batch_put({"a": "hello"})
+    assert res["failed"]["a"] == "err"
+
+
+@pytest.mark.asyncio
+async def test_batch_get_unprefix(monkeypatch):
+    def handler(req: httpx.Request) -> httpx.Response:
+        assert req.method == "POST"
+        assert req.url.path == "/batch-get"
+        resp_body = {
+            "found": {"test:a": "hello"},
+            "notFound": ["test:b"],
+            "errors": {"test:c": "err"},
+        }
+        return httpx.Response(200, text=json.dumps(resp_body))
+
+    client = GetMeClient(socket_path="/tmp/x.sock")
+    client.prefix = "test:"
+
+    def get_client(self):
+        return httpx.AsyncClient(
+            base_url=self.base_url, transport=_AsyncTransport(handler)
+        )
+
+    monkeypatch.setattr(GetMeClient, "get_client", get_client)
+
+    res = await client.batch_get(["a", "b", "c"])
+    assert res["found"]["a"] == "hello"
+    assert res["notFound"][0] == "b"
+    assert res["errors"]["c"] == "err"

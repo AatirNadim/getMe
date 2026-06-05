@@ -119,7 +119,7 @@ class GetMeClient:
         except httpx.RequestError as e:
             raise GetMeError(f"Database backend unavailable: {e}") from e
 
-    async def batch_put(self, pairs: dict[str, str]) -> str:
+    async def batch_put(self, pairs: dict[str, str]) -> dict[str, Any]:
         if not isinstance(pairs, dict) or not pairs:
             raise ValueError("pairs must be a non-empty object/map")
         if len(pairs) > self.max_batch_items:
@@ -134,6 +134,78 @@ class GetMeClient:
         client = self.get_client()
         try:
             resp = await client.post("/batch-put", json=processed_pairs)
-            return self._ensure_ok(resp)
+            resp_text = self._ensure_ok(resp)
+            data = json.loads(resp_text)
+
+            if self.prefix:
+                prefix_len = len(self.prefix)
+                if data.get("failed") and isinstance(data["failed"], dict):
+                    data["failed"] = {
+                        k[prefix_len:] if k.startswith(self.prefix) else k: v
+                        for k, v in data["failed"].items()
+                    }
+            return data
+        except httpx.RequestError as e:
+            raise GetMeError(f"Database backend unavailable: {e}") from e
+
+    async def batch_get(self, keys: list[str]) -> dict[str, Any]:
+        if not isinstance(keys, list) or not keys:
+            raise ValueError("keys must be a non-empty list")
+        if len(keys) > self.max_batch_items:
+            raise ValueError(f"batch exceeds max items of {self.max_batch_items}")
+
+        processed_keys = [self._check_key(k) for k in keys]
+
+        client = self.get_client()
+        try:
+            resp = await client.post("/batch-get", json={"keys": processed_keys})
+            resp_text = self._ensure_ok(resp)
+            data = json.loads(resp_text)
+
+            if self.prefix:
+                prefix_len = len(self.prefix)
+                if data.get("found") and isinstance(data["found"], dict):
+                    data["found"] = {
+                        k[prefix_len:] if k.startswith(self.prefix) else k: v
+                        for k, v in data["found"].items()
+                    }
+                if data.get("notFound") and isinstance(data["notFound"], list):
+                    data["notFound"] = [
+                        k[prefix_len:] if k.startswith(self.prefix) else k
+                        for k in data["notFound"]
+                    ]
+                if data.get("errors") and isinstance(data["errors"], dict):
+                    data["errors"] = {
+                        k[prefix_len:] if k.startswith(self.prefix) else k: v
+                        for k, v in data["errors"].items()
+                    }
+            return data
+        except httpx.RequestError as e:
+            raise GetMeError(f"Database backend unavailable: {e}") from e
+
+    async def batch_delete(self, keys: list[str]) -> dict[str, Any]:
+        if not isinstance(keys, list) or not keys:
+            raise ValueError("keys must be a non-empty list")
+        if len(keys) > self.max_batch_items:
+            raise ValueError(f"batch exceeds max items of {self.max_batch_items}")
+
+        processed_keys = [self._check_key(k) for k in keys]
+
+        client = self.get_client()
+        try:
+            resp = await client.request(
+                "DELETE", "/batch-delete", json={"keys": processed_keys}
+            )
+            resp_text = self._ensure_ok(resp)
+            data = json.loads(resp_text)
+
+            if self.prefix:
+                prefix_len = len(self.prefix)
+                if data.get("failed") and isinstance(data["failed"], dict):
+                    data["failed"] = {
+                        k[prefix_len:] if k.startswith(self.prefix) else k: v
+                        for k, v in data["failed"].items()
+                    }
+            return data
         except httpx.RequestError as e:
             raise GetMeError(f"Database backend unavailable: {e}") from e
