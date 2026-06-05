@@ -66,24 +66,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Python Semantic Release
-        id: semantic_release
-        uses: python-semantic-release/python-semantic-release@v9
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          directory: mcp-server
-
       - name: Install uv
-        if: steps.semantic_release.outputs.released == 'true'
         uses: astral-sh/setup-uv@v4
         with:
           version: "latest"
 
       - name: Set up Python
-        if: steps.semantic_release.outputs.released == 'true'
         uses: actions/setup-python@v5
         with:
           python-version-file: "mcp-server/pyproject.toml"
+
+      - name: Python Semantic Release
+        id: semantic_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: uvx python-semantic-release@10.5.3 version --no-commit --tag --push --vcs-release
 
       - name: Build package
         if: steps.semantic_release.outputs.released == 'true'
