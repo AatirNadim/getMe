@@ -1,6 +1,5 @@
 [project]
 name = "getme-mcp-server"
-version = "0.1.0"
 description = "MCP server for getMe (HTTP over Unix domain socket)."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -9,9 +8,10 @@ dependencies = [
   "httpx>=0.27.0",
   "mcp>=1.0.0",
 ]
+dynamic = ["version"]
 
 [build-system]
-requires = ["hatchling>=1.27.0"]
+requires = ["hatchling>=1.27.0", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project.scripts]
@@ -22,6 +22,7 @@ package = true
 
 [dependency-groups]
 dev = [
+  "hatch-vcs>=0.5.0",
   "pytest>=8.0.0",
   "pytest-asyncio>=1.4.0",
   "python-semantic-release>=10.5.3",
@@ -31,19 +32,23 @@ dev = [
 [tool.hatch.build.targets.wheel]
 packages = ["getme_mcp_server"]
 
+
+[tool.hatch.build.hooks.vcs]
+version-file = "getme_mcp_server/_version.py"
+
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = "^mcp-server-v(?P<version>.*)$"
+
+[tool.hatch.version.raw-options]
+search_parent_directories = true
+git_describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "mcp-server-v*"]
 [tool.pytest.ini_options]
 addopts = "-q"
 asyncio_default_fixture_loop_scope = "function"
 
 
 [tool.semantic_release]
-version_toml = [
-    "pyproject.toml:project.version"
-]
-version_variables = [
-    "getme_mcp_server/__init__.py:__version__"
-]
 tag_format = "mcp-server-v{version}"
-commit_parser = "angular"
-commit_message = "chore(mcp-server): release v{version}"
+commit_parser = "conventional"
 changelog_file = "CHANGELOG.md"

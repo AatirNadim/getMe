@@ -150,3 +150,6 @@ cython_debug/
 # IDE / editor caches (Python-related)
 .vscode/.ropeproject
 
+
+# hatch-vcs dynamic version file
+getme_mcp_server/_version.py
