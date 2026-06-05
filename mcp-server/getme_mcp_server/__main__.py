@@ -8,7 +8,6 @@ from .utills import _install_graceful_shutdown_handlers
 
 
 def main() -> int:
-    
     _install_graceful_shutdown_handlers()
     mcp = build_mcp()
 
