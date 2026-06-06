@@ -2,7 +2,7 @@
 
 An MCP server that exposes `getMe` key-value operations as Model Context Protocol (MCP) tools, enabling LLMs to talk to the getMe core database over **HTTP via a Unix Domain Socket (UDS)**.
 
-<!-- mcp-name: io.github.aatirnadim/getme-mcp-server -->
+<!-- mcp-name: io.github.AatirNadim/getme-mcp-server -->
 
 ## 🔗 Quick Links
 
