@@ -1,11 +1,16 @@
 "use client";
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import GoIcon from "./icons/go";
 import JavaIcon from "./icons/java";
 import TSIcon from "./icons/typescript";
 import PythonIcon from "./icons/python";
 import DockerIcon from "./icons/docker";
 import Link from "next/link";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const items = [
   {
@@ -75,6 +80,26 @@ const items = [
 import ParallaxSection from "./ParallaxSection";
 
 export default function Availability() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    gsap.fromTo(
+      ".availability-card",
+      { opacity: 0, y: 20 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.05,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 80%",
+        },
+      }
+    );
+  }, { scope: containerRef });
+
   const titleContent = (
     <div className="mb-4">
       <div className="flex items-center gap-2 mb-3">
@@ -97,16 +122,11 @@ export default function Availability() {
 
   return (
     <ParallaxSection className="" title={titleContent}>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
+      <div ref={containerRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
           {items.map((item, i) => (
-            <motion.div
+            <div
               key={item.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="group relative bg-white/50 dark:bg-blue-800/50 border border-blue-200/50 dark:border-blue-400/15 rounded-2xl hover:bg-blue-100/50 dark:hover:bg-blue-700/70 hover:border-blue-400/50 dark:hover:border-blue-400/30 transition-all cursor-pointer backdrop-blur-sm"
+              className="availability-card opacity-0 group relative bg-white/50 dark:bg-blue-800/50 border border-blue-200/50 dark:border-blue-400/15 rounded-2xl hover:bg-blue-100/50 dark:hover:bg-blue-700/70 hover:border-blue-400/50 dark:hover:border-blue-400/30 transition-all duration-300 hover:-translate-y-1 cursor-pointer backdrop-blur-sm"
             >
               <Link href={item.link} target="_blank" className="block w-full h-full p-7">
                 <div className="absolute inset-0 rounded-2xl bg-linear-to-br from-blue-400/0 to-cyan-400/0 group-hover:from-blue-600/10 group-hover:to-cyan-600/5 dark:group-hover:from-blue-400/10 dark:group-hover:to-cyan-400/5 transition-all pointer-events-none" />
@@ -132,7 +152,7 @@ export default function Availability() {
                   </div>
                 </div>
               </Link>
-            </motion.div>
+            </div>
           ))}
       </div>
     </ParallaxSection>

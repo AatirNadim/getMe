@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
-import type { MotionValue } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 
 type OrbConfig = {
   id: number;
@@ -23,22 +22,20 @@ const ORBS: OrbConfig[] = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 export default function AntigravityBackground() {
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+      setMousePos({ x: e.clientX, y: e.clientY });
     };
     window.addEventListener("mousemove", handleMove);
     return () => window.removeEventListener("mousemove", handleMove);
-  }, [mouseX, mouseY]);
+  }, []);
 
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden">
       {ORBS.map((orb) => (
-        <Orb key={orb.id} orb={orb} mouseX={mouseX} mouseY={mouseY} />
+        <Orb key={orb.id} orb={orb} mouseX={mousePos.x} mouseY={mousePos.y} />
       ))}
     </div>
   );
@@ -50,45 +47,66 @@ function Orb({
   mouseY,
 }: {
   orb: OrbConfig;
-  mouseX: MotionValue<number>;
-  mouseY: MotionValue<number>;
+  mouseX: number;
+  mouseY: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const x = useSpring(0, { stiffness: 30, damping: 20 });
-  const y = useSpring(0, { stiffness: 30, damping: 20 });
 
+  // Initial infinite pulse animation
   useEffect(() => {
+    if (!ref.current) return;
+    const pulse = gsap.to(ref.current, {
+      scale: 1.1,
+      duration: orb.duration / 2,
+      repeat: -1,
+      yoyo: true,
+      ease: "easeInOut",
+    });
+    return () => {
+      pulse.kill();
+    };
+  }, [orb.duration]);
+
+  // Antigravity mouse repulsion
+  useEffect(() => {
+    if (!ref.current) return;
+
+    const xTo = gsap.quickTo(ref.current, "x", { duration: 0.8, ease: "power3.out" });
+    const yTo = gsap.quickTo(ref.current, "y", { duration: 0.8, ease: "power3.out" });
+
     const update = () => {
       if (!ref.current) return;
       const rect = ref.current.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = cx - mouseX.get();
-      const dy = cy - mouseY.get();
+      // To prevent compounding transforms, we should calculate distance 
+      // from its original base position, but getBoundingClientRect includes the transform.
+      // A better approach is to store the base position or let the transform 
+      // not affect the center significantly. Since it's just a background effect, this is okay.
+      const currentTransform = gsap.getProperty(ref.current, "x") as number || 0;
+      const currentTransformY = gsap.getProperty(ref.current, "y") as number || 0;
+
+      const cx = rect.left - currentTransform + rect.width / 2;
+      const cy = rect.top - currentTransformY + rect.height / 2;
+      const dx = cx - mouseX;
+      const dy = cy - mouseY;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const maxDist = 300;
 
       if (dist < maxDist) {
         const force = (1 - dist / maxDist) * 80;
         const angle = Math.atan2(dy, dx);
-        x.set(Math.cos(angle) * force);
-        y.set(Math.sin(angle) * force);
+        xTo(Math.cos(angle) * force);
+        yTo(Math.sin(angle) * force);
       } else {
-        x.set(0);
-        y.set(0);
+        xTo(0);
+        yTo(0);
       }
     };
 
-    const unsubscribeX = mouseX.on("change", update);
-    const unsubscribeY = mouseY.on("change", update);
-    return () => {
-      unsubscribeX();
-      unsubscribeY();
-    };
-  }, [mouseX, mouseY, x, y]);
+    update();
+  }, [mouseX, mouseY]);
 
   return (
-    <motion.div
+    <div
       ref={ref}
       className="absolute rounded-full blur-3xl will-change-transform"
       style={{
@@ -96,17 +114,7 @@ function Orb({
         top: `${orb.y}%`,
         width: orb.size,
         height: orb.size,
-        x,
-        y,
         background: `radial-gradient(circle, hsla(${orb.hue}, 80%, 60%, 0.15) 0%, transparent 70%)`,
-      }}
-      animate={{
-        scale: [1, 1.1, 1],
-      }}
-      transition={{
-        duration: orb.duration,
-        repeat: Infinity,
-        ease: "easeInOut",
       }}
     />
   );

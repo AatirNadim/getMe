@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { motion, useSpring, useTransform } from "framer-motion";
+import React, { useRef, useState, useEffect } from "react";
+import gsap from "gsap";
 import { cn } from "../../lib/utils";
 
 interface MagneticButtonProps {
@@ -30,46 +30,80 @@ export function MagneticButton({
   onClick,
   className,
 }: MagneticButtonProps) {
-  const buttonRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const glowRef = useRef<HTMLSpanElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Spring config — snappy but elastic
-  const springConfig = { stiffness: 200, damping: 18, mass: 0.6 };
+  useEffect(() => {
+    if (!buttonRef.current || !textRef.current) return;
 
-  const rawX = useSpring(0, springConfig);
-  const rawY = useSpring(0, springConfig);
+    const xTo = gsap.quickTo(buttonRef.current, "x", { duration: 0.6, ease: "elastic.out(1, 0.3)" });
+    const yTo = gsap.quickTo(buttonRef.current, "y", { duration: 0.6, ease: "elastic.out(1, 0.3)" });
+    
+    const textXTo = gsap.quickTo(textRef.current, "x", { duration: 0.6, ease: "elastic.out(1, 0.3)" });
+    const textYTo = gsap.quickTo(textRef.current, "y", { duration: 0.6, ease: "elastic.out(1, 0.3)" });
 
-  // Inner text moves slightly less than the container (parallax depth)
-  const textX = useTransform(rawX, (v) => v * 0.4);
-  const textY = useTransform(rawY, (v) => v * 0.4);
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = buttonRef.current?.getBoundingClientRect();
-    if (!rect) return;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
 
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+      const distX = e.clientX - centerX;
+      const distY = e.clientY - centerY;
+      const dist = Math.sqrt(distX ** 2 + distY ** 2);
 
-    const distX = e.clientX - centerX;
-    const distY = e.clientY - centerY;
-    const dist = Math.sqrt(distX ** 2 + distY ** 2);
+      if (dist < radius) {
+        xTo(distX * strength);
+        yTo(distY * strength);
+        textXTo(distX * strength * 0.4);
+        textYTo(distY * strength * 0.4);
+        
+        if (!isHovered) {
+          setIsHovered(true);
+          gsap.to(buttonRef.current, { scale: 1.04, duration: 0.3, ease: "power2.out" });
+          if (glowRef.current) gsap.to(glowRef.current, { opacity: 1, duration: 0.25 });
+        }
+      } else {
+        xTo(0);
+        yTo(0);
+        textXTo(0);
+        textYTo(0);
+        
+        if (isHovered) {
+          setIsHovered(false);
+          gsap.to(buttonRef.current, { scale: 1, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+          if (glowRef.current) gsap.to(glowRef.current, { opacity: 0, duration: 0.25 });
+        }
+      }
+    };
 
-    if (dist < radius) {
-      rawX.set(distX * strength);
-      rawY.set(distY * strength);
-      setIsHovered(true);
-    } else {
-      rawX.set(0);
-      rawY.set(0);
+    const handleMouseLeave = () => {
+      xTo(0);
+      yTo(0);
+      textXTo(0);
+      textYTo(0);
       setIsHovered(false);
-    }
-  };
+      gsap.to(buttonRef.current, { scale: 1, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+      if (glowRef.current) gsap.to(glowRef.current, { opacity: 0, duration: 0.25 });
+    };
 
-  const handleMouseLeave = () => {
-    rawX.set(0);
-    rawY.set(0);
-    setIsHovered(false);
-  };
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener("mousemove", handleMouseMove);
+      container.addEventListener("mouseleave", handleMouseLeave);
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener("mousemove", handleMouseMove);
+        container.removeEventListener("mouseleave", handleMouseLeave);
+      }
+    };
+  }, [radius, strength, isHovered]);
 
   const variants = {
     primary:
@@ -90,17 +124,13 @@ export function MagneticButton({
 
   return (
     <div
-      ref={buttonRef}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      ref={containerRef}
       style={{ display: "inline-flex", padding: radius * 0.25 }}
     >
-      <motion.button
+      <button
+        ref={buttonRef}
         type="button"
         onClick={onClick}
-        style={{ x: rawX, y: rawY }}
-        animate={{ scale: isHovered ? 1.04 : 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className={cn(
           "relative inline-flex items-center justify-center font-semibold tracking-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring overflow-hidden",
           variants[variant],
@@ -109,20 +139,19 @@ export function MagneticButton({
         )}
       >
         {/* Subtle inner glow on hover */}
-        <motion.span
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.25 }}
-          className="pointer-events-none absolute inset-0 bg-white/10"
+        <span
+          ref={glowRef}
+          className="pointer-events-none absolute inset-0 bg-white/10 opacity-0"
         />
 
         {/* Text layer with slight parallax */}
-        <motion.span
-          style={{ x: textX, y: textY }}
+        <span
+          ref={textRef}
           className="relative z-10 flex items-center gap-2"
         >
           {children}
-        </motion.span>
-      </motion.button>
+        </span>
+      </button>
     </div>
   );
 }

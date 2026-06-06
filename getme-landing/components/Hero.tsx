@@ -1,16 +1,20 @@
 "use client";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { NumberTicker } from "./ui/number-ticker";
 import { MagneticButton } from "./lightswind/magnetic-button";
 import GithubIcon from "./icons/github";
 
 export default function Hero() {
   const [copied, setCopied] = useState(false);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const containerRef = useRef<HTMLSelectElement>(null);
+  const blurRef1 = useRef<HTMLDivElement>(null);
+  const blurRef2 = useRef<HTMLDivElement>(null);
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const iconRef = useRef<HTMLDivElement>(null);
 
   const installCmd = "curl -sSL https://raw.githubusercontent.com/AatirNadim/getMe/main/install.sh | bash";
 
@@ -20,17 +24,64 @@ export default function Hero() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const smoothX = useSpring(mouseX, { stiffness: 50, damping: 20 });
-  const smoothY = useSpring(mouseY, { stiffness: 50, damping: 20 });
+  useGSAP(() => {
+    // Entrance animations
+    const tl = gsap.timeline();
+
+    tl.fromTo(
+      ".hero-entrance",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: "power2.out" }
+    );
+
+    if (terminalRef.current) {
+      tl.fromTo(
+        terminalRef.current,
+        { opacity: 0, scale: 0.95 },
+        { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" },
+        0.2
+      );
+    }
+
+    if (iconRef.current) {
+      gsap.to(iconRef.current, {
+        y: -10,
+        duration: 2,
+        repeat: -1,
+        yoyo: true,
+        ease: "power1.inOut"
+      });
+    }
+  }, { scope: containerRef });
 
   useEffect(() => {
+    // Mouse parallax
+    const xTo1 = gsap.quickTo(blurRef1.current, "x", { duration: 0.6, ease: "power3" });
+    const yTo1 = gsap.quickTo(blurRef1.current, "y", { duration: 0.6, ease: "power3" });
+    
+    const xTo2 = gsap.quickTo(blurRef2.current, "x", { duration: 0.6, ease: "power3" });
+    const yTo2 = gsap.quickTo(blurRef2.current, "y", { duration: 0.6, ease: "power3" });
+    
+    const xToTerminal = gsap.quickTo(terminalRef.current, "x", { duration: 0.6, ease: "power3" });
+    const yToTerminal = gsap.quickTo(terminalRef.current, "y", { duration: 0.6, ease: "power3" });
+
     const handleMouse = (e: MouseEvent) => {
-      mouseX.set((e.clientX - window.innerWidth / 2) / 20);
-      mouseY.set((e.clientY - window.innerHeight / 2) / 20);
+      const x = (e.clientX - window.innerWidth / 2) / 20;
+      const y = (e.clientY - window.innerHeight / 2) / 20;
+
+      xTo1(x);
+      yTo1(y);
+      
+      xTo2(-x * 1.5);
+      yTo2(-y * 1.5);
+
+      xToTerminal(-x * 0.5);
+      yToTerminal(-y * 0.5);
     };
+
     window.addEventListener("mousemove", handleMouse);
     return () => window.removeEventListener("mousemove", handleMouse);
-  }, [mouseX, mouseY]);
+  }, []);
 
   const stats = [
     {
@@ -70,6 +121,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
+      ref={containerRef as any}
       className="relative min-h-screen flex items-center pt-30 pb-20 px-[5vw] overflow-hidden"
     >
       <div className="absolute inset-0 pointer-events-none -z-10">
@@ -82,62 +134,47 @@ export default function Hero() {
             backgroundSize: "48px 48px",
           }}
         />
-        <motion.div
-          style={{ x: smoothX, y: smoothY }}
+        <div
+          ref={blurRef1}
           className="absolute top-1/4 -left-20 w-72 h-72 bg-blue-500/20 rounded-full blur-[120px]"
         />
-        <motion.div
-          style={{
-            x: useTransform(smoothX, (v) => -v * 1.5),
-            y: useTransform(smoothY, (v) => -v * 1.5),
-          }}
+        <div
+          ref={blurRef2}
           className="absolute bottom-1/4 -right-20 w-96 h-96 bg-cyan-400/15 rounded-full blur-[140px]"
         />
       </div>
 
       <div className="relative z-10 max-w-300 mx-auto w-full grid lg:grid-cols-2 gap-15 items-center">
         <div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 bg-blue-600/10 dark:bg-blue-400/10 border border-blue-600/30 dark:border-blue-400/30 rounded-full px-3.5 py-1.5 mb-6"
+          <div
+            className="hero-entrance inline-flex items-center gap-2 bg-blue-600/10 dark:bg-blue-400/10 border border-blue-600/30 dark:border-blue-400/30 rounded-full px-3.5 py-1.5 mb-6 opacity-0"
           >
             <span className="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)] dark:shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
             <span className="font-mono text-xs text-blue-800 dark:text-blue-200">
               live • production ready • built in Go • bitcask-inspired
             </span>
-          </motion.div>
+          </div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-display font-extrabold text-[clamp(2.8rem,5vw,4.2rem)] leading-[0.95] tracking-[-0.03em] text-blue-950 dark:text-white mb-5"
+          <h1
+            className="hero-entrance font-display font-extrabold text-[clamp(2.8rem,5vw,4.2rem)] leading-[0.95] tracking-[-0.03em] text-blue-950 dark:text-white mb-5 opacity-0"
           >
             High-Performance
             <br />
             <span className="lenis-title-accent text-blue-600 dark:text-blue-300">Embeddable KV</span>
-          </motion.h1>
+          </h1>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-[1.05rem] text-blue-800/80 dark:text-blue-200/80 leading-relaxed max-w-130 mb-7"
+          <p
+            className="hero-entrance text-[1.05rem] text-blue-800/80 dark:text-blue-200/80 leading-relaxed max-w-130 mb-7 opacity-0"
           >
             The pure Go key-value store built for <strong>speed</strong>.{" "}
             <strong>sub-microsecond</strong> latency,{" "}
             <strong>thread-safe</strong> embeddability, atomic compaction, and
             robust data integrity—accessible via Unix sockets, HTTP proxies, or
             directly in your Go binary.
-          </motion.p>
+          </p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-            className="mb-10 max-w-130"
+          <div
+            className="hero-entrance mb-10 max-w-130 opacity-0"
           >
             <div className="flex items-center justify-between bg-blue-100/50 dark:bg-blue-900/20 border border-blue-300/30 dark:border-blue-400/20 hover:border-blue-400/50 dark:hover:border-blue-400/40 transition-colors rounded-xl p-1.5 pl-4 shadow-sm backdrop-blur-sm relative group">
               <code className="flex-1 min-w-0 font-mono text-[0.8rem] md:text-[0.85rem] text-blue-900/90 dark:text-blue-100/90 truncate mr-2 select-all">
@@ -166,13 +203,10 @@ export default function Hero() {
                 Automated installation for Linux & macOS (amd64/arm64)
               </span>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-wrap items-center gap-1 mb-12 -ml-2"
+          <div
+            className="hero-entrance flex flex-wrap items-center gap-1 mb-12 -ml-2 opacity-0"
           >
             <Link href="#examples">
               <MagneticButton
@@ -211,15 +245,13 @@ export default function Hero() {
                 View on GitHub
               </MagneticButton>
             </Link>
-          </motion.div>
+          </div>
 
           <div className="flex flex-wrap gap-8">
             {stats.map((stat, i) => (
-              <motion.div
+              <div
                 key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 + i * 0.05 }}
+                className="hero-entrance opacity-0"
               >
                 <div className="font-display text-[1.6rem] font-extrabold text-blue-950 dark:text-white flex items-baseline">
                   {stat.isNumber ? (
@@ -239,20 +271,14 @@ export default function Hero() {
                 <div className="text-[0.78rem] text-blue-600/70 dark:text-blue-300/70 uppercase tracking-wider">
                   {stat.label}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
 
-        <motion.div
-          style={{
-            x: useTransform(smoothX, (v) => v * -0.5),
-            y: useTransform(smoothY, (v) => v * -0.5),
-          }}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative"
+        <div
+          ref={terminalRef}
+          className="relative opacity-0"
         >
           <div className="relative bg-white/90 dark:bg-blue-850/90 border border-blue-200/50 dark:border-blue-400/30 rounded-3xl overflow-hidden shadow-glow-md backdrop-blur-xl">
             <div className="bg-blue-50/80 dark:bg-blue-800/80 px-4 py-3 flex items-center gap-2 border-b border-blue-200/30 dark:border-blue-400/15">
@@ -326,9 +352,8 @@ export default function Hero() {
               </p>
             </div>
           </div>
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          <div
+            ref={iconRef}
             className="absolute -top-5 -right-5 w-25 h-25 rounded-2xl overflow-hidden border border-blue-400/30 shadow-glow-lg"
           >
             <Link href="/">
@@ -341,8 +366,8 @@ export default function Hero() {
                 className="rounded-sm"
               />
             </Link>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </section>
   );

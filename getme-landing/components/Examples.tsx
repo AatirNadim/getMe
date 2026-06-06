@@ -1,6 +1,11 @@
 "use client";
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import ParallaxSection from "./ParallaxSection";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const tabs = [
   {
@@ -48,11 +53,44 @@ await client.put('mykey', 'hello world');`,
   },
 ];
 
-import ParallaxSection from "./ParallaxSection";
-
 export default function Examples() {
   const [active, setActive] = useState("cli");
   const [logs, setLogs] = useState<{ id: number; text: string }[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    // Left panel slide in
+    gsap.fromTo(
+      ".examples-left",
+      { opacity: 0, x: -20 },
+      {
+        opacity: 1,
+        x: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".examples-container",
+          start: "top 80%",
+        },
+      }
+    );
+
+    // Right panel slide in
+    gsap.fromTo(
+      ".examples-right",
+      { opacity: 0, x: 20 },
+      {
+        opacity: 1,
+        x: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".examples-container",
+          start: "top 80%",
+        },
+      }
+    );
+  }, { scope: containerRef });
 
   useEffect(() => {
     const messages = [
@@ -92,6 +130,17 @@ export default function Examples() {
     }, 600);
     return () => clearInterval(iv);
   }, []);
+
+  useGSAP(() => {
+    if (logs.length > 0) {
+      const lastLogId = logs[logs.length - 1].id;
+      gsap.fromTo(
+        `#log-${lastLogId}`,
+        { opacity: 0, x: -10 },
+        { opacity: 1, x: 0, duration: 0.3 }
+      );
+    }
+  }, { dependencies: [logs], scope: containerRef });
 
   const renderLogLine = (text: string) => {
     const match = text.match(/level=(\w+)\s+timeStamp=([^ ]+)\s+msg="(.*)"/);
@@ -146,11 +195,9 @@ export default function Examples() {
       topOverlap={false}
       title={titleContent}
     >
-      <div className="grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start w-full">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+      <div ref={containerRef} className="examples-container grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start w-full">
+          <div
+            className="examples-left opacity-0"
           >
             <div className="flex gap-1 p-1 bg-white/60 dark:bg-blue-800/60 border border-blue-200/50 dark:border-blue-400/15 rounded-2xl mb-4 backdrop-blur-sm">
               {tabs.map((tab) => (
@@ -174,13 +221,10 @@ export default function Examples() {
               </pre>
               <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-blue-50/50 dark:from-blue-850/50 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="bg-white/98 dark:bg-blue-900/98 border border-blue-200/50 dark:border-blue-400/15 rounded-2xl overflow-hidden backdrop-blur-xl shadow-sm"
+          <div
+            className="examples-right opacity-0 bg-white/98 dark:bg-blue-900/98 border border-blue-200/50 dark:border-blue-400/15 rounded-2xl overflow-hidden backdrop-blur-xl shadow-sm"
           >
             <div className="bg-blue-50/80 dark:bg-blue-800/80 px-4 py-2.5 flex items-center gap-2 border-b border-blue-200/50 dark:border-blue-400/15">
               <span className="w-2 h-2 rounded-full bg-green-500 dark:bg-green-400 animate-pulse" />
@@ -193,17 +237,16 @@ export default function Examples() {
               className="p-4 h-70 overflow-y-auto font-mono text-xs space-y-1.5 scroll-smooth"
             >
               {logs.map((log) => (
-                <motion.p
+                <p
+                  id={`log-${log.id}`}
                   key={log.id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
                   className="text-blue-900/70 dark:text-blue-200/70"
                 >
                   {renderLogLine(log.text)}
-                </motion.p>
+                </p>
               ))}
             </div>
-          </motion.div>
+          </div>
       </div>
     </ParallaxSection>
   );

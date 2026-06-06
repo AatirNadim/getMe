@@ -1,11 +1,52 @@
 "use client";
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ParallaxSection from "./ParallaxSection";
 import Link from "next/link";
 import PythonIcon from "./icons/python";
 
+gsap.registerPlugin(ScrollTrigger);
+
 export default function McpServer() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    // Visual Box
+    gsap.fromTo(
+      ".mcp-visual",
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".mcp-visual",
+          start: "top 80%",
+        },
+      }
+    );
+
+    // Feature items stagger
+    gsap.fromTo(
+      ".mcp-feature",
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.15,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".mcp-features-container",
+          start: "top 80%",
+        },
+      }
+    );
+  }, { scope: containerRef });
+
   const titleContent = (
     <div className="mb-4">
       <div className="flex items-center gap-2 mb-3">
@@ -28,21 +69,10 @@ export default function McpServer() {
 
   return (
     <ParallaxSection id="mcp-server" className="" title={titleContent}>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-15 items-center w-full">
+      <div ref={containerRef} className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-15 items-center w-full">
         {/* Visual Box */}
-        <motion.div
-          variants={{
-            hidden: { opacity: 0, y: 24 },
-            visible: {
-              opacity: 1,
-              y: 0,
-              transition: { duration: 0.6, ease: "easeOut" },
-            },
-          }}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="bg-white/90 dark:bg-blue-850/90 border border-blue-200/50 dark:border-blue-400/15 rounded-xl p-8 relative shadow-glow-md backdrop-blur-md"
+        <div
+          className="mcp-visual opacity-0 bg-white/90 dark:bg-blue-850/90 border border-blue-200/50 dark:border-blue-400/15 rounded-xl p-8 relative shadow-glow-md backdrop-blur-md"
         >
           <div className="text-center mb-6">
             <div className="font-mono text-[0.72rem] text-blue-800/70 dark:text-blue-200/70 uppercase tracking-wider">
@@ -112,26 +142,13 @@ export default function McpServer() {
               CI/CD Automated
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Features Column */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ staggerChildren: 0.15 }}
-        >
+        <div className="mcp-features-container">
           {/* Feature 1 */}
-          <motion.div
-            variants={{
-              hidden: { opacity: 0, y: 24 },
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: { duration: 0.6, ease: "easeOut" },
-              },
-            }}
-            className="flex gap-4 py-5 border-b border-blue-200/50 dark:border-blue-400/15 last:border-b-0"
+          <div
+            className="mcp-feature opacity-0 flex gap-4 py-5 border-b border-blue-200/50 dark:border-blue-400/15 last:border-b-0"
           >
             <div className="w-10 h-10 rounded-md bg-blue-200/50 dark:bg-blue-500/20 border border-blue-300/50 dark:border-blue-400/30 flex items-center justify-center shrink-0">
               <svg className="w-5 h-5 text-blue-700 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -146,19 +163,11 @@ export default function McpServer() {
                 Listed in the official Model Context Protocol registry. Tools like Claude Desktop can seamlessly discover and interact with your local getMe storage.
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Feature 2 */}
-          <motion.div
-            variants={{
-              hidden: { opacity: 0, y: 24 },
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: { duration: 0.6, ease: "easeOut" },
-              },
-            }}
-            className="flex gap-4 py-5 border-b border-blue-200/50 dark:border-blue-400/15 last:border-b-0"
+          <div
+            className="mcp-feature opacity-0 flex gap-4 py-5 border-b border-blue-200/50 dark:border-blue-400/15 last:border-b-0"
           >
             <div className="w-10 h-10 rounded-md bg-blue-200/50 dark:bg-blue-500/20 border border-blue-300/50 dark:border-blue-400/30 flex items-center justify-center shrink-0">
               <div className="w-5 h-5 text-blue-700 dark:text-blue-300"><PythonIcon /></div>
@@ -171,19 +180,11 @@ export default function McpServer() {
                 Available as <code className="text-[0.76rem] bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 font-mono px-1.5 py-0.5 rounded">getme-mcp-server</code> on PyPI. Install it instantly via <code className="text-[0.76rem] bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 font-mono px-1.5 py-0.5 rounded">uvx</code>, <code className="text-[0.76rem] bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 font-mono px-1.5 py-0.5 rounded">pipx</code> or directly in your Python projects.
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Feature 3 */}
-          <motion.div
-            variants={{
-              hidden: { opacity: 0, y: 24 },
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: { duration: 0.6, ease: "easeOut" },
-              },
-            }}
-            className="flex gap-4 py-5 border-b border-blue-200/50 dark:border-blue-400/15 last:border-b-0"
+          <div
+            className="mcp-feature opacity-0 flex gap-4 py-5 border-b border-blue-200/50 dark:border-blue-400/15 last:border-b-0"
           >
             <div className="w-10 h-10 rounded-md bg-blue-200/50 dark:bg-blue-500/20 border border-blue-300/50 dark:border-blue-400/30 flex items-center justify-center shrink-0">
               <svg className="w-5 h-5 text-blue-700 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -198,8 +199,8 @@ export default function McpServer() {
                 Empower Cursor, Windsurf, and other agents to query metrics, inspect keys, and manage storage natively during your development workflow.
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </ParallaxSection>
   );
