@@ -275,6 +275,23 @@ export default function Architecture() {
                 </div>
               </div>
             </div>
+
+            {/* Feature 5 */}
+            <div
+              className="arch-feature opacity-0 flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0"
+            >
+              <div className="w-9 h-9 rounded-sm bg-blue-200/50 dark:bg-blue-500/20 border border-(--border-subtle) flex items-center justify-center shrink-0 text-base">
+                🔌
+              </div>
+              <div>
+                <div className="text-[0.9rem] font-semibold text-blue-950 dark:text-white mb-1 font-display">
+                  Unix Domain Sockets
+                </div>
+                <div className="text-[0.83rem] text-(--text-secondary) leading-[1.6]">
+                  Blazing fast local Inter-Process Communication bypassing the TCP stack. Extremely low-overhead routing for SDKs and the CLI.
+                </div>
+              </div>
+            </div>
           </div>
         </div>
     </ParallaxSection>

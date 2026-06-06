@@ -55,7 +55,7 @@ export default function McpServer() {
           AI & Agents
         </span>
       </div>
-      <h2 className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-bold text-blue-950 dark:text-white flex flex-col gap-0.5 tracking-[-0.03em] leading-[1.1]">
+      <h2 className="font-display text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold text-blue-950 dark:text-white flex flex-col gap-0.5 tracking-[-0.03em] leading-[1.1]">
         <span>Context at the</span>
         <span className="lenis-title-accent text-blue-600 dark:text-blue-300">
           Speed of Thought.
