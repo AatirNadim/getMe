@@ -5,6 +5,7 @@ import Availability from "@/components/Availability";
 import Architecture from "@/components/Architecture";
 import Performance from "@/components/Performance";
 import Community from "@/components/Community";
+import McpServer from "@/components/McpServer";
 import Footer from "@/components/Footer";
 import AntigravityBackground from "@/components/AntigravityBackground";
 import SmoothScroll from "@/components/SmoothScroll";
@@ -30,6 +31,7 @@ export default function Home() {
         <Availability />
         <Architecture />
         <Performance />
+        <McpServer />
         <Community />
         <Footer />
       </main>

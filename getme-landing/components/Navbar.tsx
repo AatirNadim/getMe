@@ -59,7 +59,7 @@ export default function Navbar() {
                 width={32}
                 height={32}
                 priority
-                className="rounded-sm"
+                className="rounded-md"
               />
             </Link>
             getMe
