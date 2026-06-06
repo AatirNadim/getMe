@@ -72,7 +72,7 @@ export default function UseCases() {
     <ParallaxSection
       id="use-cases"
       className=""
-      topOverlap={true}
+      topOverlap={false}
       title={titleContent}
     >
       <div ref={containerRef} className="usecases-container grid md:grid-cols-3 gap-6 lg:gap-8 w-full mt-4">
@@ -89,7 +89,7 @@ export default function UseCases() {
                 {uc.highlight}
               </div>
             </div>
-            <h3 className="text-xl font-bold font-display text-blue-950 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <h3 className="text-xl font-bold text-blue-950 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {uc.title}
             </h3>
             <p className="text-[0.9rem] text-blue-800/80 dark:text-blue-200/80 leading-relaxed">

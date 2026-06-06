@@ -103,7 +103,6 @@ export default function Performance() {
       id="performance"
       className=""
       title={titleContent}
-      focalOffset={15}
     >
       <div className="w-full" ref={containerRef}>
         <div className="perf-cards-container grid grid-cols-2 lg:grid-cols-4 gap-5 my-14">

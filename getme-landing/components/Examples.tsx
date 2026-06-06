@@ -192,7 +192,7 @@ export default function Examples() {
     <ParallaxSection
       id="examples"
       className=""
-      topOverlap={false}
+      topOverlap={true}
       title={titleContent}
     >
       <div ref={containerRef} className="examples-container grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start w-full">

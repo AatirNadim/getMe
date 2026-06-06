@@ -102,16 +102,16 @@ export default function ParallaxSection({
   return (
     <section id={id} ref={containerRef} className={`relative h-[350vh] ${marginClass} ${className}`}>
       <div className="sticky top-0 h-screen w-full overflow-hidden flex flex-col items-center justify-center pointer-events-none">
-        <div className="w-full max-w-[1400px] px-[5vw] mx-auto pointer-events-auto">
+        <div className="w-full max-w-[1400px] px-[5vw] mx-auto flex flex-col items-center">
           {title && (
-            <div ref={titleRef} className="flex flex-col items-start w-full">
+            <div ref={titleRef} className="flex flex-col items-start w-full pointer-events-auto">
               {title}
             </div>
           )}
           
           <div 
             ref={childrenRef}
-            className={`w-full ${title ? "mt-10" : ""}`}
+            className={`w-full pointer-events-auto ${title ? "mt-10" : ""}`}
           >
             {children}
           </div>
