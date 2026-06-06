@@ -78,12 +78,15 @@ jobs:
 
       - name: Python Semantic Release
         id: semantic_release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: uvx python-semantic-release@10.5.3 version --no-commit --tag --push --vcs-release
+        uses: python-semantic-release/python-semantic-release@v9
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directory: mcp-server
 
       - name: Build package
         if: steps.semantic_release.outputs.released == 'true'
+        env:
+          SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.semantic_release.outputs.version }}
         run: uv build
 
       - name: Publish to PyPI
