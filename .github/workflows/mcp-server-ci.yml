@@ -82,6 +82,8 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           directory: mcp-server
+          commit: "false"
+          changelog: "false"
 
       - name: Build package
         if: steps.semantic_release.outputs.released == 'true'
