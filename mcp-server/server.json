@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.aatirnadim/getme-mcp-server",
+  "name": "io.github.AatirNadim/getme-mcp-server",
   "title": "getMe MCP Server",
   "description": "An MCP server that exposes getMe key-value operations as MCP tools",
   "version": "0.1.0",
