@@ -1,8 +1,12 @@
 "use client";
-import React from "react";
-import { motion, Variants } from "framer-motion";
+import React, { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import GithubIcon from "./icons/github";
 import Link from "next/link";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const communityLinks = [
   {
@@ -67,57 +71,62 @@ const communityLinks = [
 ];
 
 export default function Community() {
-  // Shared animation config for the main elements
-  const fadeUpVariant: Variants = {
-    hidden: { opacity: 0, y: 24 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  };
+  const containerRef = useRef<HTMLElement>(null);
 
-  // Staggered container for the community links
-  const staggerContainer: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
+  useGSAP(() => {
+    // Title elements fade up
+    gsap.fromTo(
+      ".community-title > *",
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".community-title",
+          start: "top 80%",
+        },
+      }
+    );
+
+    // Links stagger
+    gsap.fromTo(
+      ".community-link",
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".community-links-container",
+          start: "top 85%",
+        },
+      }
+    );
+  }, { scope: containerRef });
 
   const titleContent = (
-    <div className="text-center mx-auto flex flex-col items-center">
-      <motion.div
-        variants={fadeUpVariant}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-        className="inline-flex items-center gap-2 bg-green-600/10 dark:bg-green-400/8 border border-green-600/30 dark:border-green-400/20 text-green-700 dark:text-green-400 rounded-full px-4 py-1.5 text-[0.8rem] font-mono mb-6"
+    <div className="community-title text-center mx-auto flex flex-col items-center">
+      <div
+        className="opacity-0 inline-flex items-center gap-2 bg-green-600/10 dark:bg-green-400/8 border border-green-600/30 dark:border-green-400/20 text-green-700 dark:text-green-400 rounded-full px-4 py-1.5 text-[0.8rem] font-mono mb-6"
       >
         ⬡ AGPLv3 Open Source
-      </motion.div>
+      </div>
 
-      <motion.h2
-        variants={fadeUpVariant}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-        className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-[-0.03em] text-blue-950 dark:text-white mb-4 font-display leading-[1.1]"
+      <h2
+        className="opacity-0 text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-[-0.03em] text-blue-950 dark:text-white mb-4 font-display leading-[1.1]"
       >
         Powered by
         <br />
         <span className="lenis-title-accent text-blue-600 dark:text-blue-300">Open Source.</span>
-      </motion.h2>
+      </h2>
 
-      <motion.p
-        variants={fadeUpVariant}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-        className="text-(--text-secondary) mt-4 leading-[1.7] text-[1.05rem] flex flex-col items-center gap-2 "
+      <p
+        className="opacity-0 text-(--text-secondary) mt-4 leading-[1.7] text-[1.05rem] flex flex-col items-center gap-2 "
       >
         <span>getMe is licensed under AGPLv3. </span>
         <span className="text-center flex flex-col items-center ">
@@ -126,27 +135,24 @@ export default function Community() {
             ..from reporting bugs and improving documentation to optimizing the core storage engine..
           </span>
         </span>
-      </motion.p>
+      </p>
     </div>
   );
 
   return (
     <section
       id="community"
+      ref={containerRef}
       className="relative px-[4vw] md:px-[5vw] py-18 md:py-25 z-20"
     >
       <div className="mx-auto w-full">
         {titleContent}
         
-        <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            className="flex justify-center gap-4 flex-wrap mt-9 font-semibold"
+        <div
+            className="community-links-container flex justify-center gap-4 flex-wrap mt-9 font-semibold"
           >
             {communityLinks.map((link, idx) => (
-              <motion.div key={idx} variants={fadeUpVariant}>
+              <div key={idx} className="community-link opacity-0">
                 <Link
                   href={link.href}
                   target="_blank"
@@ -155,9 +161,9 @@ export default function Community() {
                   {link.icon}
                   {link.label}
                 </Link>
-              </motion.div>
+              </div>
             ))}
-          </motion.div>
+          </div>
       </div>
     </section>
   );

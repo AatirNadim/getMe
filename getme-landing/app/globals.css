@@ -127,10 +127,10 @@ html.lenis body {
     @apply bg-white/80 dark:bg-blue-950/80 backdrop-blur-xl border border-blue-200/50 dark:border-blue-400/15;
   }
   .btn-primary {
-    @apply bg-blue-600 dark:bg-blue-300 text-white dark:text-blue-950 font-semibold px-5 py-2 rounded-xl hover:bg-blue-700 dark:hover:bg-blue-200 transition-all duration-200 shadow-glow-sm hover:shadow-glow-md hover:-translate-y-0.5;
+    @apply bg-blue-600 dark:bg-blue-300 text-white dark:text-blue-950 font-semibold px-5 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-200 transition-all duration-200 shadow-glow-sm hover:shadow-glow-md hover:-translate-y-0.5;
   }
   .btn-ghost {
-    @apply border border-blue-600/30 dark:border-blue-400/30 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-xl hover:bg-blue-600/10 dark:hover:bg-blue-400/10 hover:border-blue-600/50 dark:hover:border-blue-400/50 hover:text-blue-950 dark:hover:text-white transition-all;
+    @apply border border-blue-600/30 dark:border-blue-400/30 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-lg hover:bg-blue-600/10 dark:hover:bg-blue-400/10 hover:border-blue-600/50 dark:hover:border-blue-400/50 hover:text-blue-950 dark:hover:text-white transition-all;
   }
 
   .lenis-title-accent {

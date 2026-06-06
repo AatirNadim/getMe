@@ -21,7 +21,6 @@ export const metadata: Metadata = {
   description:
     "getMe is a high-performance, embeddable key-value store built in Go.",
   metadataBase: new URL("https://getme.dev"),
-  icons: { icon: "/icon.png", apple: "/icon.png" },
   keywords: [
     "getMe",
     "key-value store",

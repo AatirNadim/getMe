@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useRef, type ComponentPropsWithoutRef } from "react";
-import { useInView, useMotionValue, useSpring } from "motion/react";
-
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { cn } from "@/lib/utils";
+
+gsap.registerPlugin(ScrollTrigger);
 
 interface NumberTickerProps extends ComponentPropsWithoutRef<"span"> {
   value: number;
@@ -21,47 +24,41 @@ export function NumberTicker({
   delay = 0,
   className,
   decimalPlaces = 0,
-  duration,
+  duration = 1,
   ...props
 }: NumberTickerProps) {
   const ref = useRef<HTMLSpanElement>(null);
-  const motionValue = useMotionValue(direction === "down" ? value : startValue);
-  const springValue = useSpring(
-    motionValue,
-    duration
-      ? { bounce: 0, duration: duration * 1000 }
-      : { damping: 60, stiffness: 100 },
-  );
-  const isInView = useInView(ref, { once: true, margin: "0px" });
 
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
+  useGSAP(() => {
+    if (!ref.current) return;
 
-    if (isInView) {
-      timer = setTimeout(() => {
-        motionValue.set(direction === "down" ? startValue : value);
-      }, delay * 1000);
-    }
+    const from = direction === "down" ? value : startValue;
+    const to = direction === "down" ? startValue : value;
+    
+    // We animate a dummy object to track the value
+    const proxy = { val: from };
 
-    return () => {
-      if (timer !== null) {
-        clearTimeout(timer);
-      }
-    };
-  }, [motionValue, isInView, delay, value, direction, startValue]);
-
-  useEffect(
-    () =>
-      springValue.on("change", (latest) => {
+    gsap.to(proxy, {
+      val: to,
+      duration: duration,
+      ease: "power2.out",
+      delay: delay,
+      scrollTrigger: {
+        trigger: ref.current,
+        start: "top 90%",
+        once: true,
+      },
+      onUpdate: () => {
         if (ref.current) {
           ref.current.textContent = Intl.NumberFormat("en-US", {
             minimumFractionDigits: decimalPlaces,
             maximumFractionDigits: decimalPlaces,
-          }).format(Number(latest.toFixed(decimalPlaces)));
+          }).format(Number(proxy.val.toFixed(decimalPlaces)));
         }
-      }),
-    [springValue, decimalPlaces],
-  );
+      }
+    });
+
+  }, { scope: ref });
 
   return (
     <span
@@ -72,7 +69,10 @@ export function NumberTicker({
       )}
       {...props}
     >
-      {startValue}
+      {Intl.NumberFormat("en-US", {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces,
+      }).format(startValue)}
     </span>
   );
 }

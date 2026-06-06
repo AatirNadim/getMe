@@ -2,12 +2,34 @@
 
 import { ReactLenis, useLenis } from "lenis/react";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
 function LenisScrollEffects() {
+  const lenis = useLenis(ScrollTrigger.update);
+
+  useEffect(() => {
+    if (!lenis) return;
+    
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+    
+    gsap.ticker.lagSmoothing(0);
+
+    return () => {
+      gsap.ticker.remove((time) => {
+        lenis.raf(time * 1000);
+      });
+    };
+  }, [lenis]);
+
   useLenis((lenis) => {
     document.documentElement.style.setProperty(
       "--scroll-progress",
@@ -54,7 +76,7 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       root
       options={{
         anchors: { duration: 0.9, offset: -76 },
-        autoRaf: true,
+        autoRaf: false,
         duration: 1.05,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         prevent: (node) => Boolean(node.closest("[data-lenis-prevent]")),

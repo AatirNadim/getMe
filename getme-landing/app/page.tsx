@@ -1,11 +1,14 @@
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import UseCases from "@/components/UseCases";
 import Examples from "@/components/Examples";
 import Availability from "@/components/Availability";
 import Architecture from "@/components/Architecture";
 import Performance from "@/components/Performance";
 import Community from "@/components/Community";
+import McpServer from "@/components/McpServer";
 import Footer from "@/components/Footer";
+import CallToAction from "@/components/CallToAction";
 import AntigravityBackground from "@/components/AntigravityBackground";
 import SmoothScroll from "@/components/SmoothScroll";
 
@@ -26,11 +29,14 @@ export default function Home() {
 
         <Navbar />
         <Hero />
+        <UseCases />
         <Examples />
         <Availability />
         <Architecture />
         <Performance />
+        <McpServer />
         <Community />
+        <CallToAction />
         <Footer />
       </main>
     </SmoothScroll>

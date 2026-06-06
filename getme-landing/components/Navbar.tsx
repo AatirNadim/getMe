@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import Link from "next/link";
 import Image from "next/image";
 import { ThemeToggle } from "./theme-toggle";
@@ -9,6 +10,29 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    // Initial slide down animation
+    if (navRef.current) {
+      gsap.fromTo(
+        navRef.current,
+        { y: -100 },
+        { y: 0, duration: 0.6, ease: "power2.out" }
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (menuRef.current) {
+      if (open) {
+        gsap.to(menuRef.current, { height: "auto", opacity: 1, duration: 0.3, ease: "power2.out" });
+      } else {
+        gsap.to(menuRef.current, { height: 0, opacity: 0, duration: 0.3, ease: "power2.in" });
+      }
+    }
+  }, [open]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -41,10 +65,9 @@ export default function Navbar() {
 
   return (
     <>
-      <motion.nav
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className={`fixed top-0 inset-x-0 z-50 h-16 transition-all duration-300 border-blue-400/15 dark:border-blue-400/15 border-blue-200/30 ${
+      <nav
+        ref={navRef}
+        className={`fixed top-0 inset-x-0 z-50 h-16 transition-colors duration-300 border-blue-400/15 dark:border-blue-400/15 border-blue-200/30 ${
           scrolled
             ? "bg-white/90 dark:bg-blue-950/90 backdrop-blur-xl border-b"
             : "bg-transparent"
@@ -59,7 +82,7 @@ export default function Navbar() {
                 width={32}
                 height={32}
                 priority
-                className="rounded-sm"
+                className="rounded-md"
               />
             </Link>
             getMe
@@ -107,30 +130,24 @@ export default function Navbar() {
           </div>
         </div>
 
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white/95 dark:bg-blue-900/95 backdrop-blur-xl border-b border-blue-200/30 dark:border-blue-400/15"
-            >
-              <div className="px-[5vw] py-4 flex flex-col gap-2">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    target={item.href.startsWith("http") ? "_blank" : undefined}
-                    className="text-blue-900 dark:text-blue-200 py-2 font-bold"
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.nav>
+        <div
+          ref={menuRef}
+          className="md:hidden overflow-hidden bg-white/95 dark:bg-blue-900/95 backdrop-blur-xl border-b border-blue-200/30 dark:border-blue-400/15 h-0 opacity-0"
+        >
+          <div className="px-[5vw] py-4 flex flex-col gap-2">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                target={item.href.startsWith("http") ? "_blank" : undefined}
+                className="text-blue-900 dark:text-blue-200 py-2 font-bold"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </nav>
       <div
         ref={topRef}
         className="absolute top-0 w-0 h-0 pointer-events-none"

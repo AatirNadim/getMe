@@ -1,31 +1,71 @@
 "use client";
-import React from "react";
-import { motion, Variants } from "framer-motion";
+import React, { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { NumberTicker } from "./ui/number-ticker";
 
 import ParallaxSection from "./ParallaxSection";
 
-export default function Performance() {
-  // Shared animation config for the main elements
-  const fadeUpVariant: Variants = {
-    hidden: { opacity: 0, y: 24 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  };
+gsap.registerPlugin(ScrollTrigger);
 
-  // Staggered container for the performance cards
-  const staggerContainer: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
+export default function Performance() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    // Fade up elements (staggered container for cards)
+    gsap.fromTo(
+      ".perf-card",
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".perf-cards-container",
+          start: "top 80%",
+        },
+      }
+    );
+
+    // Fade up block
+    gsap.fromTo(
+      ".perf-block",
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".perf-block",
+          start: "top 80%",
+        },
+      }
+    );
+
+    // Benchmark bars
+    const bars = gsap.utils.toArray<HTMLElement>(".perf-bar");
+    bars.forEach((bar, i) => {
+      const width = bar.getAttribute("data-width");
+      gsap.fromTo(
+        bar,
+        { width: 0 },
+        {
+          width: width || "0%",
+          duration: 1,
+          ease: "power2.out",
+          delay: 0.1 + i * 0.1,
+          scrollTrigger: {
+            trigger: ".perf-block",
+            start: "top 80%",
+          },
+        }
+      );
+    });
+  }, { scope: containerRef });
 
   const titleContent = (
     <>
@@ -65,19 +105,10 @@ export default function Performance() {
       title={titleContent}
       focalOffset={15}
     >
-      <div className="w-full">
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-5 my-14"
-        >
+      <div className="w-full" ref={containerRef}>
+        <div className="perf-cards-container grid grid-cols-2 lg:grid-cols-4 gap-5 my-14">
           {/* Card 1 */}
-          <motion.div
-            variants={fadeUpVariant}
-            className="bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm"
-          >
+          <div className="perf-card opacity-0 bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm">
             <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
                 value={6261}
@@ -89,13 +120,10 @@ export default function Performance() {
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               Single Put
             </div>
-          </motion.div>
+          </div>
 
           {/* Card 2 */}
-          <motion.div
-            variants={fadeUpVariant}
-            className="bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm"
-          >
+          <div className="perf-card opacity-0 bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm">
             <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
                 value={643}
@@ -107,13 +135,10 @@ export default function Performance() {
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               Single Get
             </div>
-          </motion.div>
+          </div>
 
           {/* Card 3 */}
-          <motion.div
-            variants={fadeUpVariant}
-            className="bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm"
-          >
+          <div className="perf-card opacity-0 bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm">
             <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
                 value={2759}
@@ -125,13 +150,10 @@ export default function Performance() {
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               90% Read / 10% Write
             </div>
-          </motion.div>
+          </div>
 
           {/* Card 4 */}
-          <motion.div
-            variants={fadeUpVariant}
-            className="bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm"
-          >
+          <div className="perf-card opacity-0 bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm">
             <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
                 value={40}
@@ -143,17 +165,11 @@ export default function Performance() {
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               Delete Operation
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Benchmarks Block */}
-        <motion.div
-          variants={fadeUpVariant}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          className="bg-white/90 dark:bg-blue-850/90 border border-(--border-subtle) rounded-xl p-7 overflow-hidden shadow-sm backdrop-blur-md"
-        >
+        <div className="perf-block opacity-0 bg-white/90 dark:bg-blue-850/90 border border-(--border-subtle) rounded-xl p-7 overflow-hidden shadow-sm backdrop-blur-md">
           <div className="font-mono text-[0.78rem] text-(--text-muted) mb-6">
             go test -bench . ./server/tests/... — Benchmark Results
           </div>
@@ -164,13 +180,10 @@ export default function Performance() {
               BenchmarkDelete
             </div>
             <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                whileInView={{ width: "8%" }}
-                transition={{ duration: 1, ease: "easeOut", delay: 0.1 }}
-                viewport={{ once: true }}
-                className="h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300"
-              ></motion.div>
+              <div
+                data-width="8%"
+                className="perf-bar h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300 w-0"
+              ></div>
             </div>
             <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
               40 ns/op
@@ -183,13 +196,10 @@ export default function Performance() {
               BenchmarkGet
             </div>
             <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                whileInView={{ width: "15%" }}
-                transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-                viewport={{ once: true }}
-                className="h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300"
-              ></motion.div>
+              <div
+                data-width="15%"
+                className="perf-bar h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300 w-0"
+              ></div>
             </div>
             <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
               643 ns/op
@@ -202,13 +212,10 @@ export default function Performance() {
               BenchmarkReadWriteMixed_90_10
             </div>
             <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                whileInView={{ width: "45%" }}
-                transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
-                viewport={{ once: true }}
-                className="h-full rounded-full bg-linear-to-r from-blue-600 to-cyan-400"
-              ></motion.div>
+              <div
+                data-width="45%"
+                className="perf-bar h-full rounded-full bg-linear-to-r from-blue-600 to-cyan-400 w-0"
+              ></div>
             </div>
             <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
               2,759 ns/op
@@ -221,13 +228,10 @@ export default function Performance() {
               BenchmarkReadWriteMixed_80_20
             </div>
             <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                whileInView={{ width: "60%" }}
-                transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
-                viewport={{ once: true }}
-                className="h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300"
-              ></motion.div>
+              <div
+                data-width="60%"
+                className="perf-bar h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300 w-0"
+              ></div>
             </div>
             <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
               3,431 ns/op
@@ -240,13 +244,10 @@ export default function Performance() {
               BenchmarkPut
             </div>
             <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                whileInView={{ width: "85%" }}
-                transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
-                viewport={{ once: true }}
-                className="h-full rounded-full bg-linear-to-r from-blue-400 to-green-400"
-              ></motion.div>
+              <div
+                data-width="85%"
+                className="perf-bar h-full rounded-full bg-linear-to-r from-blue-400 to-green-400 w-0"
+              ></div>
             </div>
             <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
               6,261 ns/op
@@ -266,13 +267,11 @@ export default function Performance() {
             <div className="text-[0.85rem] text-(--text-secondary)">
               Detailed continuous benchmarking reports from our CI:
             </div>
-            <motion.a
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+            <a
               href="https://aatirnadim.github.io/getMe/dev/bench/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[0.85rem] bg-blue-600 dark:bg-white text-white dark:text-blue-900 hover:bg-blue-700 dark:hover:bg-blue-50 py-2 px-4 rounded-md transition-colors font-semibold shadow-sm inline-flex items-center justify-center gap-2 whitespace-nowrap w-full min-[480px]:w-auto"
+              className="text-[0.85rem] bg-blue-600 dark:bg-white text-white dark:text-blue-900 hover:bg-blue-700 dark:hover:bg-blue-50 py-2 px-4 rounded-md transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] font-semibold shadow-sm inline-flex items-center justify-center gap-2 whitespace-nowrap w-full min-[480px]:w-auto"
             >
               View Full Reports
               <svg
@@ -290,9 +289,9 @@ export default function Performance() {
                   strokeLinejoin="round"
                 />
               </svg>
-            </motion.a>
+            </a>
           </div>
-        </motion.div>
+        </div>
       </div>
     </ParallaxSection>
   );

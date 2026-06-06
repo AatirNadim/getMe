@@ -1,10 +1,51 @@
 "use client";
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import ParallaxSection from "./ParallaxSection";
 
+gsap.registerPlugin(ScrollTrigger);
+
 export default function Architecture() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    // Architecture Diagram Box
+    gsap.fromTo(
+      ".arch-diagram",
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".arch-diagram",
+          start: "top 80%",
+        },
+      }
+    );
+
+    // Feature items stagger
+    gsap.fromTo(
+      ".arch-feature",
+      { opacity: 0, y: 24 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.15,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".arch-features-container",
+          start: "top 80%",
+        },
+      }
+    );
+  }, { scope: containerRef });
+
   const titleContent = (
     <>
       <div className="font-mono text-xs text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2 before:content-[''] before:inline-block before:w-5 before:h-px before:bg-blue-600 dark:before:bg-blue-400">
@@ -29,21 +70,10 @@ export default function Architecture() {
       className=""
       title={titleContent}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-15 items-center w-full">
+      <div ref={containerRef} className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-15 items-center w-full">
           {/* Architecture Diagram Box */}
-          <motion.div
-            variants={{
-              hidden: { opacity: 0, y: 24 },
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: { duration: 0.6, ease: "easeOut" },
-              },
-            }}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            className="bg-white/90 dark:bg-blue-850/90 border border-(--border-medium) rounded-xl p-8 relative shadow-glow-md backdrop-blur-md"
+          <div
+            className="arch-diagram opacity-0 bg-white/90 dark:bg-blue-850/90 border border-(--border-medium) rounded-xl p-8 relative shadow-glow-md backdrop-blur-md"
           >
             <div className="text-center mb-4">
               <div className="font-mono text-[0.72rem] text-(--text-muted)">
@@ -157,26 +187,13 @@ export default function Architecture() {
                 IPC Sockets
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Features Column with Staggered Children */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ staggerChildren: 0.15 }}
-          >
+          <div className="arch-features-container">
             {/* Feature 1 */}
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 24 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { duration: 0.6, ease: "easeOut" },
-                },
-              }}
-              className="flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0"
+            <div
+              className="arch-feature opacity-0 flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0"
             >
               <div className="w-9 h-9 rounded-sm bg-blue-200/50 dark:bg-blue-500/20 border border-(--border-subtle) flex items-center justify-center shrink-0 text-base">
                 📝
@@ -194,19 +211,11 @@ export default function Architecture() {
                   byte is correct on read.
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Feature 2 */}
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 24 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { duration: 0.6, ease: "easeOut" },
-                },
-              }}
-              className="flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0"
+            <div
+              className="arch-feature opacity-0 flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0"
             >
               <div className="w-9 h-9 rounded-sm bg-blue-200/50 dark:bg-blue-500/20 border border-(--border-subtle) flex items-center justify-center shrink-0 text-base">
                 ⚡
@@ -224,19 +233,11 @@ export default function Architecture() {
                   guessing.
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Feature 3 */}
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 24 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { duration: 0.6, ease: "easeOut" },
-                },
-              }}
-              className="flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0"
+            <div
+              className="arch-feature opacity-0 flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0"
             >
               <div className="w-9 h-9 rounded-sm bg-blue-200/50 dark:bg-blue-500/20 border border-(--border-subtle) flex items-center justify-center shrink-0 text-base">
                 🔄
@@ -254,19 +255,11 @@ export default function Architecture() {
                   . Disk usage stays bounded forever.
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Feature 4 */}
-            <motion.div
-              variants={{
-                hidden: { opacity: 0, y: 24 },
-                visible: {
-                  opacity: 1,
-                  y: 0,
-                  transition: { duration: 0.6, ease: "easeOut" },
-                },
-              }}
-              className="flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0"
+            <div
+              className="arch-feature opacity-0 flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0"
             >
               <div className="w-9 h-9 rounded-sm bg-blue-200/50 dark:bg-blue-500/20 border border-(--border-subtle) flex items-center justify-center shrink-0 text-base">
                 🛡️
@@ -281,8 +274,25 @@ export default function Architecture() {
                   cannot produce partial or inconsistent reads.
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+
+            {/* Feature 5 */}
+            <div
+              className="arch-feature opacity-0 flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0"
+            >
+              <div className="w-9 h-9 rounded-sm bg-blue-200/50 dark:bg-blue-500/20 border border-(--border-subtle) flex items-center justify-center shrink-0 text-base">
+                🔌
+              </div>
+              <div>
+                <div className="text-[0.9rem] font-semibold text-blue-950 dark:text-white mb-1 font-display">
+                  Unix Domain Sockets
+                </div>
+                <div className="text-[0.83rem] text-(--text-secondary) leading-[1.6]">
+                  Blazing fast local Inter-Process Communication bypassing the TCP stack. Extremely low-overhead routing for SDKs and the CLI.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
     </ParallaxSection>
   );
