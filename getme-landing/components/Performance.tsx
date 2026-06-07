@@ -24,8 +24,8 @@ export default function Performance() {
         stagger: 0.1,
         ease: "power2.out",
         scrollTrigger: {
-          trigger: ".perf-cards-container",
-          start: "top 80%",
+          trigger: "#performance",
+          start: "top -50%",
         },
       }
     );
@@ -40,8 +40,8 @@ export default function Performance() {
         duration: 0.6,
         ease: "power2.out",
         scrollTrigger: {
-          trigger: ".perf-block",
-          start: "top 80%",
+          trigger: "#performance",
+          start: "top -50%",
         },
       }
     );
@@ -59,8 +59,8 @@ export default function Performance() {
           ease: "power2.out",
           delay: 0.1 + i * 0.1,
           scrollTrigger: {
-            trigger: ".perf-block",
-            start: "top 80%",
+            trigger: "#performance",
+            start: "top -50%",
           },
         }
       );

@@ -23,8 +23,8 @@ export default function McpServer() {
         duration: 0.6,
         ease: "power2.out",
         scrollTrigger: {
-          trigger: ".mcp-visual",
-          start: "top 80%",
+          trigger: "#mcp-server",
+          start: "top -50%",
         },
       }
     );
@@ -40,8 +40,8 @@ export default function McpServer() {
         stagger: 0.15,
         ease: "power2.out",
         scrollTrigger: {
-          trigger: ".mcp-features-container",
-          start: "top 80%",
+          trigger: "#mcp-server",
+          start: "top -50%",
         },
       }
     );

@@ -23,8 +23,8 @@ export default function Architecture() {
           duration: 0.6,
           ease: "power2.out",
           scrollTrigger: {
-            trigger: ".arch-diagram",
-            start: "top 80%",
+            trigger: "#architecture",
+            start: "top -50%",
           },
         },
       );
@@ -40,8 +40,8 @@ export default function Architecture() {
           stagger: 0.15,
           ease: "power2.out",
           scrollTrigger: {
-            trigger: ".arch-features-container",
-            start: "top 80%",
+            trigger: "#architecture",
+            start: "top -50%",
           },
         },
       );

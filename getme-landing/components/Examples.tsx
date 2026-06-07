@@ -69,8 +69,8 @@ export default function Examples() {
         duration: 0.6,
         ease: "power2.out",
         scrollTrigger: {
-          trigger: ".examples-container",
-          start: "top 80%",
+          trigger: "#examples",
+          start: "top -50%",
         },
       }
     );
@@ -85,8 +85,8 @@ export default function Examples() {
         duration: 0.6,
         ease: "power2.out",
         scrollTrigger: {
-          trigger: ".examples-container",
-          start: "top 80%",
+          trigger: "#examples",
+          start: "top -50%",
         },
       }
     );

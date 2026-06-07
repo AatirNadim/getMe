@@ -93,8 +93,8 @@ export default function Availability() {
         stagger: 0.05,
         ease: "power2.out",
         scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top 80%",
+          trigger: "#availability",
+          start: "top -50%",
         },
       }
     );
@@ -121,7 +121,7 @@ export default function Availability() {
   );
 
   return (
-    <ParallaxSection className="" title={titleContent}>
+    <ParallaxSection id="availability" className="" title={titleContent}>
       <div ref={containerRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
           {items.map((item, i) => (
             <div
