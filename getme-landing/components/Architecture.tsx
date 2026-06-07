@@ -13,38 +13,75 @@ export default function Architecture() {
 
   useGSAP(
     () => {
-      // Architecture Diagram Box
-      gsap.fromTo(
-        ".arch-diagram",
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: "#architecture",
-            start: "top -50%",
-          },
-        },
-      );
+      const mm = gsap.matchMedia();
 
-      // Feature items stagger
-      gsap.fromTo(
-        ".arch-feature",
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          stagger: 0.15,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: "#architecture",
-            start: "top -50%",
+      mm.add("(min-width: 768px)", () => {
+        gsap.fromTo(
+          ".arch-diagram",
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: "#architecture",
+              start: "top -50%",
+            },
           },
-        },
-      );
+        );
+
+        gsap.fromTo(
+          ".arch-feature",
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.15,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: "#architecture",
+              start: "top -50%",
+            },
+          },
+        );
+      });
+
+      mm.add("(max-width: 767px)", () => {
+        gsap.fromTo(
+          ".arch-diagram",
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: "top 85%",
+            },
+          },
+        );
+
+        gsap.fromTo(
+          ".arch-feature",
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.15,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".arch-features-container",
+              start: "top 85%",
+            },
+          },
+        );
+      });
+
+      return () => mm.revert();
     },
     { scope: containerRef },
   );
