@@ -25,7 +25,7 @@ The CLI is built and run from this directory. It supports several commands to in
 - **`set <key> <value>`**: Sets a value for a given key.
 
   ```bash
-  go run . set mykey "hello world"
+  go run . put mykey "hello world"
   ```
 
 - **`delete <key>`**: Deletes a key from the store.

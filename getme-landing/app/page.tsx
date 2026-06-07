@@ -15,7 +15,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 export default function Home() {
   return (
     <SmoothScroll>
-      <main className="relative">
+      <main className="relative overflow-x-clip">
         <AntigravityBackground />
 
         {/* Voltlites grid */}

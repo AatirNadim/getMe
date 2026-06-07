@@ -12,7 +12,7 @@ const tabs = [
     id: "cli",
     label: "CLI",
     content: `# Basic CLI operations
-$ go run . set mykey "hello world"
+$ go run . put mykey "hello world"
 → OK
 
 $ go run . get mykey
@@ -55,41 +55,75 @@ await client.put('mykey', 'hello world');`,
 
 export default function Examples() {
   const [active, setActive] = useState("cli");
-  const [logs, setLogs] = useState<{ id: number; text: string }[]>([]);
+  const [logs, setLogs] = useState<{ id: string; text: string }[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    // Left panel slide in
-    gsap.fromTo(
-      ".examples-left",
-      { opacity: 0, x: -20 },
-      {
-        opacity: 1,
-        x: 0,
-        duration: 0.6,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: ".examples-container",
-          start: "top 80%",
-        },
-      }
-    );
+    const mm = gsap.matchMedia();
 
-    // Right panel slide in
-    gsap.fromTo(
-      ".examples-right",
-      { opacity: 0, x: 20 },
-      {
-        opacity: 1,
-        x: 0,
-        duration: 0.6,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: ".examples-container",
-          start: "top 80%",
-        },
-      }
-    );
+    mm.add("(min-width: 768px)", () => {
+      gsap.fromTo(
+        ".examples-left",
+        { opacity: 0, x: -20 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.6,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current!.closest("section"),
+            start: "top -50%",
+          },
+        }
+      );
+      gsap.fromTo(
+        ".examples-right",
+        { opacity: 0, x: 20 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.6,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current!.closest("section"),
+            start: "top -50%",
+          },
+        }
+      );
+    });
+
+    mm.add("(max-width: 767px)", () => {
+      gsap.fromTo(
+        ".examples-left",
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 85%",
+          },
+        }
+      );
+      gsap.fromTo(
+        ".examples-right",
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 85%",
+          },
+        }
+      );
+    });
+
+    return () => mm.revert();
   }, { scope: containerRef });
 
   useEffect(() => {
@@ -125,7 +159,7 @@ export default function Examples() {
       const baseMsg = messages[i % messages.length];
       const liveMsg = baseMsg.replace(/timeStamp=\S+/, `timeStamp=${liveTime}`);
 
-      setLogs((prev) => [...prev.slice(-14), { id: i, text: liveMsg }]);
+      setLogs((prev) => [...prev.slice(-14), { id: crypto.randomUUID(), text: liveMsg }]);
       i++;
     }, 600);
     return () => clearInterval(iv);
@@ -192,7 +226,7 @@ export default function Examples() {
     <ParallaxSection
       id="examples"
       className=""
-      topOverlap={false}
+      topOverlap={true}
       title={titleContent}
     >
       <div ref={containerRef} className="examples-container grid lg:grid-cols-[1fr_1.2fr] gap-10 items-start w-full">

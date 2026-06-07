@@ -33,7 +33,7 @@ export default function AntigravityBackground() {
   }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-0 overflow-hidden">
+    <div className="hidden md:block pointer-events-none fixed inset-0 overflow-hidden">
       {ORBS.map((orb) => (
         <Orb key={orb.id} orb={orb} mouseX={mousePos.x} mouseY={mousePos.y} />
       ))}

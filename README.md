@@ -70,7 +70,7 @@ The repository ships with helper scripts that bootstrap everything you need for 
 2. Use the `set`, `get`, or `delete` commands:
 
     ```bash
-    go run . set mykey "hello world"
+    go run . put mykey "hello world"
     go run . get mykey
     ```
 

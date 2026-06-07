@@ -19,7 +19,7 @@ export default function Navbar() {
       gsap.fromTo(
         navRef.current,
         { y: -100 },
-        { y: 0, duration: 0.6, ease: "power2.out" }
+        { y: 0, duration: 0.6, ease: "power2.out" },
       );
     }
   }, []);
@@ -27,9 +27,19 @@ export default function Navbar() {
   useEffect(() => {
     if (menuRef.current) {
       if (open) {
-        gsap.to(menuRef.current, { height: "auto", opacity: 1, duration: 0.3, ease: "power2.out" });
+        gsap.to(menuRef.current, {
+          height: "auto",
+          opacity: 1,
+          duration: 0.3,
+          ease: "power2.out",
+        });
       } else {
-        gsap.to(menuRef.current, { height: 0, opacity: 0, duration: 0.3, ease: "power2.in" });
+        gsap.to(menuRef.current, {
+          height: 0,
+          opacity: 0,
+          duration: 0.3,
+          ease: "power2.in",
+        });
       }
     }
   }, [open]);
@@ -58,7 +68,7 @@ export default function Navbar() {
       name: "SDKs",
       href: "https://github.com/AatirNadim/getMe/tree/main/sdks",
     },
-    { name: "Benchmarks", href: "#performance" },
+    { name: "Benchmarks", href: "#mcp-server" },
     { name: "GitHub", href: "https://github.com/AatirNadim/getMe/" },
     { name: "Blog", href: "https://techtom.hashnode.dev/series/getme" },
   ];
@@ -115,18 +125,18 @@ export default function Navbar() {
           <div className="md:hidden flex items-center gap-2">
             <ThemeToggle />
             <button onClick={() => setOpen(!open)} className="p-2">
-            <div className="w-5 h-4 flex flex-col justify-between">
-              <span
-                className={`block h-0.5 bg-blue-900 dark:bg-blue-200 transition-all ${open ? "rotate-45 translate-y-1.75" : ""}`}
-              />
-              <span
-                className={`block h-0.5 bg-blue-900 dark:bg-blue-200 transition-all ${open ? "opacity-0" : ""}`}
-              />
-              <span
-                className={`block h-0.5 bg-blue-900 dark:bg-blue-200 transition-all ${open ? "-rotate-45 -translate-y-1.75" : ""}`}
-              />
-            </div>
-          </button>
+              <div className="w-5 h-4 flex flex-col justify-between">
+                <span
+                  className={`block h-0.5 bg-blue-900 dark:bg-blue-200 transition-all ${open ? "rotate-45 translate-y-1.75" : ""}`}
+                />
+                <span
+                  className={`block h-0.5 bg-blue-900 dark:bg-blue-200 transition-all ${open ? "opacity-0" : ""}`}
+                />
+                <span
+                  className={`block h-0.5 bg-blue-900 dark:bg-blue-200 transition-all ${open ? "-rotate-45 -translate-y-1.75" : ""}`}
+                />
+              </div>
+            </button>
           </div>
         </div>
 

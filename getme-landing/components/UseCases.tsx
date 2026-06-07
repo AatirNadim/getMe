@@ -32,21 +32,45 @@ export default function UseCases() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    gsap.fromTo(
-      ".usecase-card",
-      { opacity: 0, y: 30 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        stagger: 0.15,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: ".usecases-container",
-          start: "top 85%",
-        },
-      }
-    );
+    const mm = gsap.matchMedia();
+
+    mm.add("(min-width: 768px)", () => {
+      gsap.fromTo(
+        ".usecase-card",
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.15,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current!.closest("section"),
+            start: "top -50%",
+          },
+        }
+      );
+    });
+
+    mm.add("(max-width: 767px)", () => {
+      gsap.fromTo(
+        ".usecase-card",
+        { opacity: 0, y: 30 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.15,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 85%",
+          },
+        }
+      );
+    });
+
+    return () => mm.revert();
   }, { scope: containerRef });
 
   const titleContent = (
@@ -72,7 +96,7 @@ export default function UseCases() {
     <ParallaxSection
       id="use-cases"
       className=""
-      topOverlap={true}
+      topOverlap={false}
       title={titleContent}
     >
       <div ref={containerRef} className="usecases-container grid md:grid-cols-3 gap-6 lg:gap-8 w-full mt-4">
@@ -89,7 +113,7 @@ export default function UseCases() {
                 {uc.highlight}
               </div>
             </div>
-            <h3 className="text-xl font-bold font-display text-blue-950 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <h3 className="text-xl font-bold text-blue-950 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
               {uc.title}
             </h3>
             <p className="text-[0.9rem] text-blue-800/80 dark:text-blue-200/80 leading-relaxed">

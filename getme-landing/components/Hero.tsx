@@ -16,7 +16,8 @@ export default function Hero() {
   const terminalRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
 
-  const installCmd = "curl -sSL https://raw.githubusercontent.com/AatirNadim/getMe/main/install.sh | bash";
+  const installCmd =
+    "curl -sSL https://raw.githubusercontent.com/AatirNadim/getMe/main/install.sh | bash";
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(installCmd);
@@ -24,46 +25,67 @@ export default function Hero() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  useGSAP(() => {
-    // Entrance animations
-    const tl = gsap.timeline();
+  useGSAP(
+    () => {
+      // Entrance animations
+      const tl = gsap.timeline();
 
-    tl.fromTo(
-      ".hero-entrance",
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: "power2.out" }
-    );
-
-    if (terminalRef.current) {
       tl.fromTo(
-        terminalRef.current,
-        { opacity: 0, scale: 0.95 },
-        { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" },
-        0.2
+        ".hero-entrance",
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: "power2.out" },
       );
-    }
 
-    if (iconRef.current) {
-      gsap.to(iconRef.current, {
-        y: -10,
-        duration: 2,
-        repeat: -1,
-        yoyo: true,
-        ease: "power1.inOut"
-      });
-    }
-  }, { scope: containerRef });
+      if (terminalRef.current) {
+        tl.fromTo(
+          terminalRef.current,
+          { opacity: 0, scale: 0.95 },
+          { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" },
+          0.2,
+        );
+      }
+
+      if (iconRef.current) {
+        gsap.to(iconRef.current, {
+          y: -10,
+          duration: 2,
+          repeat: -1,
+          yoyo: true,
+          ease: "power1.inOut",
+        });
+      }
+    },
+    { scope: containerRef },
+  );
 
   useEffect(() => {
     // Mouse parallax
-    const xTo1 = gsap.quickTo(blurRef1.current, "x", { duration: 0.6, ease: "power3" });
-    const yTo1 = gsap.quickTo(blurRef1.current, "y", { duration: 0.6, ease: "power3" });
-    
-    const xTo2 = gsap.quickTo(blurRef2.current, "x", { duration: 0.6, ease: "power3" });
-    const yTo2 = gsap.quickTo(blurRef2.current, "y", { duration: 0.6, ease: "power3" });
-    
-    const xToTerminal = gsap.quickTo(terminalRef.current, "x", { duration: 0.6, ease: "power3" });
-    const yToTerminal = gsap.quickTo(terminalRef.current, "y", { duration: 0.6, ease: "power3" });
+    const xTo1 = gsap.quickTo(blurRef1.current, "x", {
+      duration: 0.6,
+      ease: "power3",
+    });
+    const yTo1 = gsap.quickTo(blurRef1.current, "y", {
+      duration: 0.6,
+      ease: "power3",
+    });
+
+    const xTo2 = gsap.quickTo(blurRef2.current, "x", {
+      duration: 0.6,
+      ease: "power3",
+    });
+    const yTo2 = gsap.quickTo(blurRef2.current, "y", {
+      duration: 0.6,
+      ease: "power3",
+    });
+
+    const xToTerminal = gsap.quickTo(terminalRef.current, "x", {
+      duration: 0.6,
+      ease: "power3",
+    });
+    const yToTerminal = gsap.quickTo(terminalRef.current, "y", {
+      duration: 0.6,
+      ease: "power3",
+    });
 
     const handleMouse = (e: MouseEvent) => {
       const x = (e.clientX - window.innerWidth / 2) / 20;
@@ -71,7 +93,7 @@ export default function Hero() {
 
       xTo1(x);
       yTo1(y);
-      
+
       xTo2(-x * 1.5);
       yTo2(-y * 1.5);
 
@@ -122,7 +144,7 @@ export default function Hero() {
     <section
       id="hero"
       ref={containerRef as any}
-      className="relative min-h-screen flex items-center pt-30 pb-20 px-[5vw] overflow-hidden"
+      className="relative min-h-svh flex flex-col items-center justify-center pt-28 md:pt-30 pb-16 md:pb-20 px-5 md:px-[5vw]"
     >
       <div className="absolute inset-0 pointer-events-none -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(32,86,168,0.35),transparent_60%)]" />
@@ -136,36 +158,56 @@ export default function Hero() {
         />
         <div
           ref={blurRef1}
-          className="absolute top-1/4 -left-20 w-72 h-72 bg-blue-500/20 rounded-full blur-[120px]"
+          className="hidden md:block absolute top-1/4 -left-20 w-72 h-72 bg-blue-500/20 rounded-full blur-[120px]"
         />
         <div
           ref={blurRef2}
-          className="absolute bottom-1/4 -right-20 w-96 h-96 bg-cyan-400/15 rounded-full blur-[140px]"
+          className="hidden md:block absolute bottom-1/4 -right-20 w-96 h-96 bg-cyan-400/15 rounded-full blur-[140px]"
         />
       </div>
 
-      <div className="relative z-10 max-w-300 mx-auto w-full grid lg:grid-cols-2 gap-15 items-center">
-        <div>
-          <div
-            className="hero-entrance inline-flex items-center gap-2 bg-blue-600/10 dark:bg-blue-400/10 border border-blue-600/30 dark:border-blue-400/30 rounded-full px-3.5 py-1.5 mb-6 opacity-0"
-          >
-            <span className="w-2 h-2 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)] dark:shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-            <span className="font-mono text-xs text-blue-800 dark:text-blue-200">
-              live • production ready • built in Go • bitcask-inspired
-            </span>
-          </div>
+      <div className="relative z-10 max-w-300 w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-15 items-center">
+        <div className="flex flex-col w-full">
+          <section className="w-full flex items-center gap-2 flex-col md:flex-row">
+            <section className="flex gap-2">
+              <div className="hero-entrance inline-flex flex-wrap items-center justify-center gap-2 bg-blue-600/10 dark:bg-blue-400/10 border border-blue-600/30 dark:border-blue-400/30 rounded-3xl px-4 py-2 mb-6 opacity-0">
+                <span className="w-2 h-2 shrink-0 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)] dark:shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span className="font-mono text-xs text-blue-800 dark:text-blue-200 text-center wrap-break-word">
+                  live
+                </span>
+              </div>
+              <div className="hero-entrance inline-flex flex-wrap items-center justify-center gap-2 bg-blue-600/10 dark:bg-blue-400/10 border border-blue-600/30 dark:border-blue-400/30 rounded-3xl px-4 py-2 mb-6 opacity-0">
+                <span className="w-2 h-2 shrink-0 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)] dark:shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span className="font-mono text-xs text-blue-800 dark:text-blue-200 text-center wrap-break-word">
+                  production ready
+                </span>
+              </div>
+            </section>
+            <section className="flex gap-2">
+              <div className="hero-entrance inline-flex flex-wrap items-center justify-center gap-2 bg-blue-600/10 dark:bg-blue-400/10 border border-blue-600/30 dark:border-blue-400/30 rounded-3xl px-4 py-2 mb-6 opacity-0">
+                <span className="w-2 h-2 shrink-0 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)] dark:shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span className="font-mono text-xs text-blue-800 dark:text-blue-200 text-center wrap-break-word">
+                  built in Go
+                </span>
+              </div>
+              <div className="hero-entrance inline-flex flex-wrap items-center justify-center gap-2 bg-blue-600/10 dark:bg-blue-400/10 border border-blue-600/30 dark:border-blue-400/30 rounded-3xl px-4 py-2 mb-6 opacity-0">
+                <span className="w-2 h-2 shrink-0 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.8)] dark:shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span className="font-mono text-xs text-blue-800 dark:text-blue-200 text-center wrap-break-word">
+                  bitcask-inspired
+                </span>
+              </div>
+            </section>
+          </section>
 
-          <h1
-            className="hero-entrance font-display font-extrabold text-[clamp(2.8rem,5vw,4.2rem)] leading-[0.95] tracking-[-0.03em] text-blue-950 dark:text-white mb-5 opacity-0"
-          >
+          <h1 className="hero-entrance font-display font-extrabold text-[clamp(2.4rem,8vw,4.2rem)] leading-[1.05] md:leading-[0.95] tracking-[-0.03em] text-blue-950 dark:text-white mb-5 opacity-0 break-words">
             High-Performance
             <br />
-            <span className="lenis-title-accent text-blue-600 dark:text-blue-300">Embeddable KV</span>
+            <span className="lenis-title-accent text-blue-600 dark:text-blue-300">
+              Embeddable KV
+            </span>
           </h1>
 
-          <p
-            className="hero-entrance text-[1.05rem] text-blue-800/80 dark:text-blue-200/80 leading-relaxed max-w-130 mb-7 opacity-0"
-          >
+          <p className="hero-entrance text-[1.05rem] text-blue-800/80 dark:text-blue-200/80 leading-relaxed max-w-130 mb-7 opacity-0">
             The pure Go key-value store built for <strong>speed</strong>.{" "}
             <strong>sub-microsecond</strong> latency,{" "}
             <strong>thread-safe</strong> embeddability, atomic compaction, and
@@ -173,12 +215,12 @@ export default function Hero() {
             directly in your Go binary.
           </p>
 
-          <div
-            className="hero-entrance mb-10 max-w-130 opacity-0"
-          >
-            <div className="flex items-center justify-between bg-blue-100/50 dark:bg-blue-900/20 border border-blue-300/30 dark:border-blue-400/20 hover:border-blue-400/50 dark:hover:border-blue-400/40 transition-colors rounded-xl p-1.5 pl-4 shadow-sm backdrop-blur-sm relative group">
-              <code className="flex-1 min-w-0 font-mono text-[0.8rem] md:text-[0.85rem] text-blue-900/90 dark:text-blue-100/90 truncate mr-2 select-all">
-                <span className="text-blue-500/60 dark:text-blue-400/60 mr-2 select-none">$</span>
+          <div className="hero-entrance mb-10 max-w-130 w-full opacity-0">
+            <div className="flex items-center justify-between bg-blue-100/50 dark:bg-blue-900/20 border border-blue-300/30 dark:border-blue-400/20 hover:border-blue-400/50 dark:hover:border-blue-400/40 transition-colors rounded-xl p-1.5 pl-4 shadow-sm backdrop-blur-sm relative group overflow-hidden">
+              <code className="flex-1 min-w-0 font-mono text-[0.75rem] md:text-[0.85rem] text-blue-900/90 dark:text-blue-100/90 truncate mr-2 select-all">
+                <span className="text-blue-500/60 dark:text-blue-400/60 mr-2 select-none shrink-0">
+                  $
+                </span>
                 {installCmd}
               </code>
               <button
@@ -187,11 +229,30 @@ export default function Hero() {
                 title="Copy install script"
               >
                 {copied ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-green-400"
+                  >
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                   </svg>
@@ -205,54 +266,57 @@ export default function Hero() {
             </div>
           </div>
 
-          <div
-            className="hero-entrance flex flex-wrap items-center gap-1 mb-12 -ml-2 opacity-0"
-          >
-            <Link href="#examples">
-              <MagneticButton
-                variant="primary"
-                size="md"
-                radius={60}
-                strength={0.3}
-                className="group bg-blue-600 dark:bg-blue-400 text-white !rounded-2xl shadow-[0_4px_24px_rgba(52,119,212,0.35)] hover:shadow-[0_8px_32px_rgba(52,119,212,0.45)] !border-none hover:bg-blue-700 dark:hover:bg-blue-600"
+          <div className="hero-entrance flex flex-wrap flex-col md:flex-row items-center gap-1 sm:gap-2 md:gap-4 mb-12 opacity-0">
+            {/* <Link href="#examples"
+            className="h-fit w-fit"  
+          > */}
+            <MagneticButton
+              variant="primary"
+              size="md"
+              radius={60}
+              strength={0.3}
+              className="group bg-blue-600 dark:bg-blue-400 text-white !rounded-2xl shadow-[0_4px_24px_rgba(52,119,212,0.35)] hover:shadow-[0_8px_32px_rgba(52,119,212,0.45)] !border-none hover:bg-blue-700 dark:hover:bg-blue-600"
+              onClick={() => {
+                window.location.href = "#examples";
+              }}
+            >
+              Get Started
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className="transition-transform group-hover:translate-x-0.5"
               >
-                Get Started
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  className="transition-transform group-hover:translate-x-0.5"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </MagneticButton>
-            </Link>
-            
-            <Link href="https://github.com/AatirNadim/getMe" target="_blank">
-              <MagneticButton
-                variant="outline"
-                size="md"
-                radius={60}
-                strength={0.3}
-                className="bg-blue-600/5 dark:bg-blue-400/10 !border-blue-600/30 dark:!border-blue-400/30 text-blue-900 dark:text-blue-50 !rounded-2xl hover:!border-blue-600/50 dark:hover:!border-blue-400/50 hover:rounded-4xl"
-              >
-                <span className="w-4 h-4 flex">
-                  <GithubIcon color="currentColor" />
-                </span>
-                View on GitHub
-              </MagneticButton>
-            </Link>
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </MagneticButton>
+            {/* </Link> */}
+
+            {/* <Link href="https://github.com/AatirNadim/getMe" target="_blank"> */}
+            <MagneticButton
+              variant="outline"
+              size="md"
+              radius={60}
+              strength={0.3}
+              className="bg-blue-600/5 dark:bg-blue-400/10 !border-blue-600/30 dark:!border-blue-400/30 text-blue-900 dark:text-blue-50 !rounded-2xl hover:!border-blue-600/50 dark:hover:!border-blue-400/50 hover:rounded-4xl"
+              onClick={() => {
+                window.open("https://github.com/AatirNadim/getMe", "_blank");
+              }}
+            >
+              <span className="w-4 h-4 flex">
+                <GithubIcon color="currentColor" />
+              </span>
+              View on GitHub
+            </MagneticButton>
+            {/* </Link> */}
           </div>
 
-          <div className="flex flex-wrap gap-8">
+          <div className="flex flex-wrap gap-4 sm:gap-8">
             {stats.map((stat, i) => (
-              <div
-                key={stat.label}
-                className="hero-entrance opacity-0"
-              >
+              <div key={stat.label} className="hero-entrance opacity-0">
                 <div className="font-display text-[1.6rem] font-extrabold text-blue-950 dark:text-white flex items-baseline">
                   {stat.isNumber ? (
                     <>
@@ -276,22 +340,19 @@ export default function Hero() {
           </div>
         </div>
 
-        <div
-          ref={terminalRef}
-          className="relative opacity-0"
-        >
-          <div className="relative bg-white/90 dark:bg-blue-850/90 border border-blue-200/50 dark:border-blue-400/30 rounded-3xl overflow-hidden shadow-glow-md backdrop-blur-xl">
+        <div ref={terminalRef} className="relative opacity-0 max-w-screen">
+          <div className="relative bg-white/90 dark:bg-blue-850/90 border border-blue-200/50 dark:border-blue-400/30 rounded-3xl overflow-hidden shadow-glow-md backdrop-blur-xl max-w-screen">
             <div className="bg-blue-50/80 dark:bg-blue-800/80 px-4 py-3 flex items-center gap-2 border-b border-blue-200/30 dark:border-blue-400/15">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-                <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-                <div className="w-3 h-3 rounded-full bg-[#28c840]" />
-              </div>
-              <div className="flex-1 text-center font-mono text-xs text-blue-500/80 dark:text-blue-300/60">
+              <div className="relative flex-1 text-center font-mono text-xs text-blue-500/80 dark:text-blue-300/60">
+                <div className="absolute inset-0 flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+                  <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                  <div className="w-3 h-3 rounded-full bg-[#28c840]" />
+                </div>
                 getme-bundle
               </div>
             </div>
-            <div className="p-5 font-mono text-[0.8rem] leading-[1.9] text-blue-900 dark:text-blue-50">
+            <div className="p-4 md:p-5 font-mono text-[0.75rem] md:text-[0.8rem] leading-[1.8] md:leading-[1.9] text-blue-900 dark:text-blue-50 break-words whitespace-pre-wrap">
               <p>
                 <span className="text-blue-400/80 dark:text-blue-300/40">
                   # Start the full getMe stack
@@ -301,47 +362,71 @@ export default function Hero() {
                 <span className="text-blue-600 dark:text-blue-300">$</span>{" "}
                 <span>docker-compose up -d</span>
               </p>
-              <p className="text-blue-500/80 dark:text-blue-300/60">[+] Running 4/4</p>
+              <p className="text-blue-500/80 dark:text-blue-300/60">
+                [+] Running 4/4
+              </p>
               <p>
                 <span className="text-green-600 dark:text-green-400"> ✔</span>{" "}
-                <span className="text-blue-500/80 dark:text-blue-300/60">Container getme-store</span>
-                <span className="text-green-600 dark:text-green-400"> Started :8080</span>
+                <span className="text-blue-500/80 dark:text-blue-300/60">
+                  Container getme-store
+                </span>
+                <span className="text-green-600 dark:text-green-400">
+                  {" "}
+                  Started :8080
+                </span>
               </p>
               <p>
                 <span className="text-green-600 dark:text-green-400"> ✔</span>{" "}
                 <span className="text-blue-500/80 dark:text-blue-300/60">
                   Container http-proxy-go
                 </span>
-                <span className="text-green-600 dark:text-green-400"> Started</span>
+                <span className="text-green-600 dark:text-green-400">
+                  {" "}
+                  Started
+                </span>
               </p>
               <p>
                 <span className="text-green-600 dark:text-green-400"> ✔</span>{" "}
-                <span className="text-blue-500/80 dark:text-blue-300/60">Container grafana</span>
-                <span className="text-green-600 dark:text-green-400"> Started :3000</span>
+                <span className="text-blue-500/80 dark:text-blue-300/60">
+                  Container grafana
+                </span>
+                <span className="text-green-600 dark:text-green-400">
+                  {" "}
+                  Started :3000
+                </span>
               </p>
               <p>
                 <span className="text-green-600 dark:text-green-400"> ✔</span>{" "}
-                <span className="text-blue-500/80 dark:text-blue-300/60">Container loki-alloy</span>
-                <span className="text-green-600 dark:text-green-400"> Started</span>
+                <span className="text-blue-500/80 dark:text-blue-300/60">
+                  Container loki-alloy
+                </span>
+                <span className="text-green-600 dark:text-green-400">
+                  {" "}
+                  Started
+                </span>
               </p>
             </div>
 
-            <div className="p-5 font-mono text-[0.8rem] leading-[1.9] text-blue-900 dark:text-blue-50 border-t border-blue-100/50 dark:border-blue-400/10">
+            <div className="p-4 md:p-5 font-mono text-[0.75rem] md:text-[0.8rem] leading-[1.8] md:leading-[1.9] text-blue-900 dark:text-blue-50 border-t border-blue-100/50 dark:border-blue-400/10 break-words whitespace-pre-wrap">
               <p>
-                <span className="text-blue-400/80 dark:text-blue-300/40"># Set a key-value pair</span>
+                <span className="text-blue-400/80 dark:text-blue-300/40">
+                  # Set a key-value pair
+                </span>
               </p>
               <p>
                 <span className="text-blue-600 dark:text-blue-300">$</span>{" "}
-                <span>{`go run . set greeting "hello world"`}</span>
+                <span>{`go run . put greeting "hello world"`}</span>
               </p>
               <p>
                 <span className="text-green-600 dark:text-green-400">OK</span>
               </p>
             </div>
 
-            <div className="p-5 font-mono text-[0.8rem] leading-[1.9] text-blue-900 dark:text-blue-50 border-t border-blue-100/50 dark:border-blue-400/10">
+            <div className="p-4 md:p-5 font-mono text-[0.75rem] md:text-[0.8rem] leading-[1.8] md:leading-[1.9] text-blue-900 dark:text-blue-50 border-t border-blue-100/50 dark:border-blue-400/10 break-words whitespace-pre-wrap">
               <p>
-                <span className="text-blue-400/80 dark:text-blue-300/40"># Retrieve the value</span>
+                <span className="text-blue-400/80 dark:text-blue-300/40">
+                  # Retrieve the value
+                </span>
               </p>
               <p>
                 <span className="text-blue-600 dark:text-blue-300">$</span>{" "}
@@ -354,7 +439,7 @@ export default function Hero() {
           </div>
           <div
             ref={iconRef}
-            className="absolute -top-5 -right-5 w-25 h-25 rounded-2xl overflow-hidden border border-blue-400/30 shadow-glow-lg"
+            className="absolute -top-3 -right-3 md:-top-5 md:-right-5 w-20 h-20 md:w-25 md:h-25 rounded-2xl overflow-hidden border border-blue-400/30 shadow-glow-lg"
           >
             <Link href="/">
               <Image

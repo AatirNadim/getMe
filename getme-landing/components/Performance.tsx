@@ -13,58 +13,113 @@ export default function Performance() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    // Fade up elements (staggered container for cards)
-    gsap.fromTo(
-      ".perf-card",
-      { opacity: 0, y: 24 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        stagger: 0.1,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: ".perf-cards-container",
-          start: "top 80%",
-        },
-      }
-    );
+    const mm = gsap.matchMedia();
 
-    // Fade up block
-    gsap.fromTo(
-      ".perf-block",
-      { opacity: 0, y: 24 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: ".perf-block",
-          start: "top 80%",
-        },
-      }
-    );
-
-    // Benchmark bars
-    const bars = gsap.utils.toArray<HTMLElement>(".perf-bar");
-    bars.forEach((bar, i) => {
-      const width = bar.getAttribute("data-width");
+    mm.add("(min-width: 768px)", () => {
       gsap.fromTo(
-        bar,
-        { width: 0 },
+        ".perf-card",
+        { opacity: 0, y: 24 },
         {
-          width: width || "0%",
-          duration: 1,
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.1,
           ease: "power2.out",
-          delay: 0.1 + i * 0.1,
           scrollTrigger: {
-            trigger: ".perf-block",
-            start: "top 80%",
+            trigger: containerRef.current!.closest("section"),
+            start: "top -50%",
           },
         }
       );
+
+      gsap.fromTo(
+        ".perf-block",
+        { opacity: 0, y: 24 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current!.closest("section"),
+            start: "top -50%",
+          },
+        }
+      );
+
+      const bars = gsap.utils.toArray<HTMLElement>(".perf-bar");
+      bars.forEach((bar, i) => {
+        const width = bar.getAttribute("data-width");
+        gsap.fromTo(
+          bar,
+          { width: 0 },
+          {
+            width: width || "0%",
+            duration: 1,
+            ease: "power2.out",
+            delay: 0.1 + i * 0.1,
+            scrollTrigger: {
+              trigger: containerRef.current!.closest("section"),
+              start: "top -50%",
+            },
+          }
+        );
+      });
     });
+
+    mm.add("(max-width: 767px)", () => {
+      gsap.fromTo(
+        ".perf-card",
+        { opacity: 0, y: 24 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: ".perf-cards-container",
+            start: "top 85%",
+          },
+        }
+      );
+
+      gsap.fromTo(
+        ".perf-block",
+        { opacity: 0, y: 24 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: ".perf-block",
+            start: "top 85%",
+          },
+        }
+      );
+
+      const bars = gsap.utils.toArray<HTMLElement>(".perf-bar");
+      bars.forEach((bar, i) => {
+        const width = bar.getAttribute("data-width");
+        gsap.fromTo(
+          bar,
+          { width: 0 },
+          {
+            width: width || "0%",
+            duration: 1,
+            ease: "power2.out",
+            delay: 0.1 + i * 0.1,
+            scrollTrigger: {
+              trigger: ".perf-block",
+              start: "top 85%",
+            },
+          }
+        );
+      });
+    });
+
+    return () => mm.revert();
   }, { scope: containerRef });
 
   const titleContent = (
@@ -103,7 +158,6 @@ export default function Performance() {
       id="performance"
       className=""
       title={titleContent}
-      focalOffset={15}
     >
       <div className="w-full" ref={containerRef}>
         <div className="perf-cards-container grid grid-cols-2 lg:grid-cols-4 gap-5 my-14">

@@ -83,21 +83,45 @@ export default function Availability() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    gsap.fromTo(
-      ".availability-card",
-      { opacity: 0, y: 20 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        stagger: 0.05,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top 80%",
-        },
-      }
-    );
+    const mm = gsap.matchMedia();
+
+    mm.add("(min-width: 768px)", () => {
+      gsap.fromTo(
+        ".availability-card",
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.05,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current!.closest("section"),
+            start: "top -50%",
+          },
+        }
+      );
+    });
+
+    mm.add("(max-width: 767px)", () => {
+      gsap.fromTo(
+        ".availability-card",
+        { opacity: 0, y: 20 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.05,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 85%",
+          },
+        }
+      );
+    });
+
+    return () => mm.revert();
   }, { scope: containerRef });
 
   const titleContent = (
@@ -121,7 +145,7 @@ export default function Availability() {
   );
 
   return (
-    <ParallaxSection className="" title={titleContent}>
+    <ParallaxSection id="availability" className="" title={titleContent}>
       <div ref={containerRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
           {items.map((item, i) => (
             <div
