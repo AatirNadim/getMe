@@ -71,7 +71,7 @@ export default function Examples() {
           duration: 0.6,
           ease: "power2.out",
           scrollTrigger: {
-            trigger: "#examples",
+            trigger: containerRef.current!.closest("section"),
             start: "top -50%",
           },
         }
@@ -85,7 +85,7 @@ export default function Examples() {
           duration: 0.6,
           ease: "power2.out",
           scrollTrigger: {
-            trigger: "#examples",
+            trigger: containerRef.current!.closest("section"),
             start: "top -50%",
           },
         }
@@ -102,7 +102,7 @@ export default function Examples() {
           duration: 0.6,
           ease: "power2.out",
           scrollTrigger: {
-            trigger: ".examples-container",
+            trigger: containerRef.current,
             start: "top 85%",
           },
         }
@@ -116,7 +116,7 @@ export default function Examples() {
           duration: 0.6,
           ease: "power2.out",
           scrollTrigger: {
-            trigger: ".examples-container",
+            trigger: containerRef.current,
             start: "top 85%",
           },
         }

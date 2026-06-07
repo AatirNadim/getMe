@@ -25,7 +25,7 @@ export default function Architecture() {
             duration: 0.6,
             ease: "power2.out",
             scrollTrigger: {
-              trigger: "#architecture",
+              trigger: containerRef.current!.closest("section"),
               start: "top -50%",
             },
           },
@@ -41,7 +41,7 @@ export default function Architecture() {
             stagger: 0.15,
             ease: "power2.out",
             scrollTrigger: {
-              trigger: "#architecture",
+              trigger: containerRef.current!.closest("section"),
               start: "top -50%",
             },
           },

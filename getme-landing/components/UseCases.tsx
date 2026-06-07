@@ -45,7 +45,7 @@ export default function UseCases() {
           stagger: 0.15,
           ease: "power2.out",
           scrollTrigger: {
-            trigger: "#use-cases",
+            trigger: containerRef.current!.closest("section"),
             start: "top -50%",
           },
         }
@@ -63,7 +63,7 @@ export default function UseCases() {
           stagger: 0.15,
           ease: "power2.out",
           scrollTrigger: {
-            trigger: ".usecases-container",
+            trigger: containerRef.current,
             start: "top 85%",
           },
         }

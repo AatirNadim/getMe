@@ -96,7 +96,7 @@ export default function Availability() {
           stagger: 0.05,
           ease: "power2.out",
           scrollTrigger: {
-            trigger: "#availability",
+            trigger: containerRef.current!.closest("section"),
             start: "top -50%",
           },
         }
