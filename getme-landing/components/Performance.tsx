@@ -141,13 +141,12 @@ export default function Performance() {
           Transparent performance and correctness.
         </span>{" "}
         <span className="text-sm">
-          These baselines were captured on constrained, multi-tenant CI
-          compute environments—expect{" "}
+          These baselines were captured on a <strong>Linux AMD64</strong> environment powered by an{" "}
+          <strong>AMD Ryzen 7 5800HS</strong> processor. Expect{" "}
           <span className="font-semibold italic underline decoration-dotted decoration-1">
-            significantly elevated
+            even higher
           </span>{" "}
-          throughput on <strong>dedicated</strong>,{" "}
-          <strong>bare-metal</strong> infrastructure.
+          throughput on more modern or <strong>dedicated server</strong> infrastructure.
         </span>
       </p>
     </>
@@ -165,7 +164,7 @@ export default function Performance() {
           <div className="perf-card opacity-0 bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm">
             <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
-                value={6261}
+                value={4663}
                 duration={1.5}
                 className="text-blue-950 dark:text-white"
               />
@@ -180,7 +179,7 @@ export default function Performance() {
           <div className="perf-card opacity-0 bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm">
             <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
-                value={643}
+                value={187}
                 duration={1.5}
                 className="text-blue-950 dark:text-white"
               />
@@ -195,7 +194,7 @@ export default function Performance() {
           <div className="perf-card opacity-0 bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm">
             <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
-                value={2759}
+                value={1933}
                 duration={1.5}
                 className="text-blue-950 dark:text-white"
               />
@@ -210,7 +209,7 @@ export default function Performance() {
           <div className="perf-card opacity-0 bg-white/50 dark:bg-blue-800/50 border border-(--border-subtle) rounded-lg py-7 px-5 text-center shadow-sm backdrop-blur-sm">
             <div className="font-display text-[2rem] font-extrabold text-blue-950 dark:text-white">
               <NumberTicker
-                value={40}
+                value={69}
                 duration={1.5}
                 className="text-blue-950 dark:text-white"
               />
@@ -235,12 +234,12 @@ export default function Performance() {
             </div>
             <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <div
-                data-width="8%"
+                data-width="1%"
                 className="perf-bar h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300 w-0"
               ></div>
             </div>
             <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
-              40 ns/op
+              69 ns/op
             </div>
           </div>
 
@@ -251,12 +250,12 @@ export default function Performance() {
             </div>
             <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <div
-                data-width="15%"
+                data-width="4%"
                 className="perf-bar h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300 w-0"
               ></div>
             </div>
             <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
-              643 ns/op
+              187 ns/op
             </div>
           </div>
 
@@ -267,12 +266,12 @@ export default function Performance() {
             </div>
             <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <div
-                data-width="45%"
+                data-width="41%"
                 className="perf-bar h-full rounded-full bg-linear-to-r from-blue-600 to-cyan-400 w-0"
               ></div>
             </div>
             <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
-              2,759 ns/op
+              1,933 ns/op
             </div>
           </div>
 
@@ -283,12 +282,12 @@ export default function Performance() {
             </div>
             <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <div
-                data-width="60%"
+                data-width="55%"
                 className="perf-bar h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300 w-0"
               ></div>
             </div>
             <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
-              3,431 ns/op
+              2,562 ns/op
             </div>
           </div>
 
@@ -299,12 +298,12 @@ export default function Performance() {
             </div>
             <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <div
-                data-width="85%"
+                data-width="100%"
                 className="perf-bar h-full rounded-full bg-linear-to-r from-blue-400 to-green-400 w-0"
               ></div>
             </div>
             <div className="font-mono text-[0.72rem] text-blue-800 dark:text-blue-200 w-24 text-right shrink-0">
-              6,261 ns/op
+              4,663 ns/op
             </div>
           </div>
 
