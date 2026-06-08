@@ -1,91 +1,157 @@
-# getMe - A High-Performance Key-Value Store
+<div align="center">
+  <img src="./getme-landing/app/icon.png" width="150" alt="getMe Icon" style="vertical-align: middle; margin-right: 20px;"/>
+  <span style="font-family: 'Mona Sans', sans-serif; font-size: 6em; font-weight: 800; margin-bottom: 0;vertical-align: middle;">getme</span>
+  <div style="margin-top: 10px;"><strong>A High-Performance Key-Value Store</strong></div>
+</div>
+
+<!-- --- -->
+
+## 📑 Index
+
+- [Overview](#-overview)
+- [Project Structure](#-project-structure)
+- [Core Architecture](#-core-architecture)
+- [Getting Started](#-getting-started)
+  - [Running the Server](#running-the-server)
+  - [Using the CLI](#using-the-cli)
+  - [HTTP Proxy](#http-proxy)
+  - [MCP Server](#mcp-server)
+- [Running Benchmarks & Tests](#-running-benchmarks--tests)
+- [SDKs](#-sdks)
+- [License](#-license)
+
+<!-- --- -->
+
+## 📖 Overview
 
 `getMe` is a persistent, embeddable key-value store written in Go. It is inspired by the design of Bitcask and is optimized for high write throughput and low-latency reads.
 
-## Project Structure
+It uses a log-structured storage approach, ensuring that all data is appended sequentially. It uses Unix Domain Sockets (UDS) for incredibly fast local inter-process communication, alongside several interfaces like an HTTP proxy, a CLI, and a Model Context Protocol (MCP) server for LLMs.
 
-This project is a monorepo containing the core storage server, a command-line interface (CLI), client SDKs for various languages, and a benchmarking suite.
+<!-- --- -->
 
-- **[`server/`](./server/)**: The core storage engine and HTTP server. This is the heart of the project, implementing the log-structured hash table for persistent storage. <br>**Important:** See [`server/README.md`](./server/README.md) for a diagram-rich tour of the storage layers, HTTP controllers, and background workers.
-- **[`cli/`](./cli/)**: A command-line interface for interacting with the `getMe` server. Useful for manual testing, debugging, and scripting.
-- **[`sdks/`](./sdks/)**: Client libraries (SDKs) for different programming languages to make it easy to integrate `getMe` into your applications.
-  - `goSdk/`
-  - `javaSdk/`
-  - `jsSdk/`
-  - `pythonSdk/`
-- **[`benchmarking/`](./benchmarking/)**: A comprehensive suite of benchmarks for measuring performance, analyzing memory allocations, and stress-testing the database under concurrent loads.
-- **[`utils/`](./utils/)**: Shared utility packages, such as a logger and global constants, used across the project.
+## 🏗 Project Structure
 
-> **Spotlight:** The curated inner docs are the quickest way to understand the system end-to-end. Start with [`server/README.md`](./server/README.md) for architecture fundamentals, then explore [`benchmarking/README.md`](./benchmarking/README.md) to see how we measure performance and [`cli/README.md`](./cli/README.md) for a walkthrough of the local tooling.
+This project is a monorepo containing the core storage server, multiple client interfaces, and tools.
 
-## Core Concepts
+- **[`server/`](./server/)**: The core storage daemon and engine. Implements the log-structured hash table for persistent storage. See [`server/README.md`](./server/README.md) for architectural deep-dives.
+- **[`cli/`](./cli/)**: A command-line interface for interacting with the `getMe` server for testing and debugging.
+- **[`sdks/`](./sdks/)**: Client libraries (`goSdk`, `javaSdk`, `jsSdk`, `pythonSdk`) to integrate `getMe` into your applications.
+- **[`http-proxy-go/`](./http-proxy-go/)**: An HTTP server built using the `goSdk` that exposes the core engine's Unix Domain Socket connection over standard HTTP routes.
+- **[`mcp-server/`](./mcp-server/)**: A Model Context Protocol (MCP) server that exposes the `getMe` database as tools to Large Language Models (like Claude or Cursor).
+- **[`commons/`](./commons/)**: Shared code, socket paths, types, and constants used across the monorepo to ensure consistency.
+- **[`utils/`](./utils/)**: Shared utility packages, including logging stack configurations (Loki + Alloy + Grafana).
 
-The storage engine is built on a few key principles:
+> **Spotlight:** The curated inner docs are the quickest way to understand the system end-to-end. Start with [`server/README.md`](./server/README.md) for architecture fundamentals, then explore the `cli` and `mcp-server` modules for integrations.
+
+<!-- --- -->
+
+## 🧠 Core Architecture
+
+The storage engine relies on a few core principles:
 
 - **Log-Structured Storage**: All data is written to an append-only log file. This makes writes extremely fast as it avoids slow, random disk I/O.
-- **In-Memory Hash Index**: A hash table is kept in memory, mapping each key to the exact location of its value on disk. This allows for very fast read operations, typically requiring only a single disk seek.
+- **In-Memory Hash Index**: A hash table is kept in memory, mapping each key to the exact location of its value on disk. This allows for very fast read operations (typically one disk seek).
 - **Compaction**: A background process that periodically cleans up old, stale data from the log files to reclaim disk space.
-- **Batch Operations**: A `BatchPut` API is provided to amortize the cost of writes, allowing for very high throughput when ingesting large amounts of data.
+- **Fast Local Transport**: Communication is done predominantly via Unix Domain Sockets, avoiding standard TCP overhead locally.
 
-## Getting Started
+<!-- --- -->
+
+## 🚀 Getting Started
 
 ### Running the Server
 
-The repository ships with helper scripts that bootstrap everything you need for a local or containerised deployment of the store.
+The repository ships with helper scripts to bootstrap the environment.
 
 #### Option A: Local binaries + logging stack
 
-1. Switch to the server module and run the local init script:
+Switch to the server module and run the local init script:
 
-    ```bash
-    cd server
-    ./init-server-local.sh
-    ```
+```bash
+cd server
+./init-server-local.sh
+```
 
-    This script builds the Go binary into `server/dist/`, prepares data/log/socket directories, and starts the Loki + Alloy + Grafana logging stack via Docker Compose before launching the server in the foreground.
+This script builds the Go binary into `server/dist/`, prepares data/log/socket directories, and starts the Loki + Alloy + Grafana logging stack via Docker Compose before launching the server in the foreground.
 
-    **Note: Do not prefix this script with `sudo`**—the script already calls the individual setup helpers with elevated privileges where needed. Running the top-level script as root would cause all generated folders and files to be owned by `root`, making subsequent local development much harder to manage.
+> **Warning:** **Do not prefix this script with `sudo`**. It will invoke elevated privileges internally where needed. Using `sudo` at the top level causes permission errors for local development.
 
 #### Option B: Full Docker Compose stack
 
-1. From the same `server` directory run:
+From the same `server` directory run:
 
-    ```bash
-    cd server
-    ./init-server-docker.sh
-    ```
+```bash
+cd server
+./init-server-docker.sh
+```
 
-    The script ensures host bind-mount directories exist, exports your UID/GID for correct ownership, and then invokes `docker compose up --build` to start the containerised server alongside its logging dependencies.
-
-> Prefer Option A when iterating on Go code locally; use Option B to validate the container stack or share an environment with teammates.
+This ensures host directories exist, exports your UID/GID, and invokes `docker compose up --build` to run everything in containers.
 
 ### Using the CLI
 
-1. Navigate to the `cli` directory:
+Interact directly with the local server:
 
-    ```bash
-    cd cli
-    ```
+```bash
+cd cli
+go run . put mykey "hello world"
+go run . get mykey
+go run . delete mykey
+```
 
-2. Use the `set`, `get`, or `delete` commands:
+### HTTP Proxy
 
-    ```bash
-    go run . put mykey "hello world"
-    go run . get mykey
-    ```
+If you want standard HTTP REST endpoints instead of Unix Sockets, run the Go HTTP proxy:
 
-### Running Benchmarks
+```bash
+cd http-proxy-go
+go run main.go -port 8080
+```
 
-1. Navigate to the project root.
-2. Run the tests with the `-bench` flag:
+This will allow you to run `curl http://localhost:8080/get?key=mykey`.
 
-    ```bash
-    go test -bench . ./...
-    ```
+### MCP Server
 
-For more detailed information, please refer to the `README.md` file within each respective directory.
+`getMe` can be used by LLM clients (like Claude Desktop) through the Model Context Protocol.
 
-## License
+```bash
+cd mcp-server
+uv run getme-mcp-server
+```
+
+(See [`mcp-server/README.md`](./mcp-server/README.md) for configuration and integration instructions).
+
+<!-- --- -->
+
+## 📊 Running Benchmarks & Tests
+
+To ensure no performance regressions or to stress test the database:
+
+1. Navigate to the specific module (e.g., `server`).
+2. Run standard tests:
+   ```bash
+   go test ./...
+   ```
+3. Run benchmarks:
+   ```bash
+   go test -bench . ./...
+   ```
+   (Note: For heavier stress/correctness testing, look into `server/tests/`).
+
+<!-- --- -->
+
+## 📦 SDKs
+
+We provide SDKs across different languages. Find them in the `sdks/` directory:
+
+- [**Go SDK**](./sdks/goSdk/)
+- [**JavaScript / TypeScript SDK**](./sdks/jsSdk/)
+- [**Python SDK**](./sdks/pythonSdk/)
+- [**Java SDK**](./sdks/javaSdk/)
+
+All SDKs interface directly with the Unix Domain Socket to provide optimal latency.
+
+<!-- --- -->
+
+## 📄 License
 
 This project is licensed under the GNU Affero General Public License v3.0 (AGPLv3) - see the [LICENSE](LICENSE) file for details.
-
