@@ -109,7 +109,7 @@ export default function Hero() {
     {
       isNumber: true,
       prefix: "~",
-      value: 6290,
+      value: 4663,
       suffix: "ns",
       text: "",
       label: "Write Latency",
@@ -117,7 +117,7 @@ export default function Hero() {
     {
       isNumber: true,
       prefix: "~",
-      value: 643,
+      value: 187,
       suffix: "ns",
       text: "",
       label: "Read Latency",
