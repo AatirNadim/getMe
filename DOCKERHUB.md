@@ -1,17 +1,50 @@
-# getMe - High-Performance Key-Value Store
+<div align="center">
+  <img src="./getme-landing/app/icon.png" width="150" alt="getMe Icon" style="vertical-align: middle; margin-right: 20px;"/>
+  <span style="font-family: 'Mona Sans', sans-serif; font-size: 6em; font-weight: 800; margin-bottom: 0;vertical-align: middle;">getme</span>
+  <div style="margin-top: 10px;"><strong>Container Images for a High-Performance Key-Value Store</strong></div>
+</div>
 
-`getMe` is a persistent, embeddable, log-structured key-value store optimized for high write throughput and low-latency reads.
+<!-- --- -->
 
-This Docker image provides a complete, containerized environment for `getMe`, packaging the core storage server, the HTTP proxy, and the built-in command-line interface (CLI) into a single, lightweight image.
+## 📑 Index
 
-## Image Architecture & Multi-Stage Build
+- [Overview](#-overview)
+- [Available Docker Images](#-available-docker-images)
+- [All-in-One Container (HTTP Proxy, CLI, Server)](#-all-in-one-container-http-proxy-cli-server)
+  - [Quick Start](#quick-start)
+  - [Using the Built-in CLI](#using-the-built-in-cli)
+  - [Docker Compose Example](#docker-compose-example)
+- [MCP Server Container](#-mcp-server-container)
+- [Core Server Only Container](#-core-server-only-container)
+- [Volumes and Persistence](#-volumes-and-persistence)
+- [Security & Customization](#-security--customization)
+- [Links](#-links)
 
-This image is built using a highly optimized **multi-stage Docker build** process defined in our `ContainerFile`:
+<!-- --- -->
 
-1. **Build Stage (`golang:1.23.1-alpine`)**: The image compiles the core system (Server, CLI, and HTTP Proxy) from source. It gathers all essential local modules and builds statically linked Go binaries (`getMe-server`, `getMe-cli`, `getMe-proxy`).
-2. **Final Stage (`alpine:latest`)**: The built binaries and entrypoint scripts are copied into a clean, minimal Alpine Linux base image. This keeps the final image size incredibly small and reduces the attack surface.
+## 📖 Overview
 
-## Quick Start
+`getme` is a persistent, embeddable, log-structured key-value store optimized for high write throughput and low-latency reads. 
+
+This document covers the different containerized environments available for `getme`, allowing you to run the database seamlessly across various setups.
+
+<!-- --- -->
+
+## 📦 Available Docker Images
+
+`getme` provides multiple Docker architectures depending on your use case:
+
+1. **`ContainerFile` (All-in-one)**: Packages the Core Server, HTTP Proxy, and CLI into a single lightweight image.
+2. **`ContainerFile.server` (Core Engine)**: Runs *only* the core storage engine over Unix Domain Sockets (UDS).
+3. **`mcp-server/Dockerfile`**: A specialized Python-based container exposing the `getme` database as tools for Large Language Models using the Model Context Protocol.
+
+<!-- --- -->
+
+## 🚀 All-in-One Container (HTTP Proxy, CLI, Server)
+
+Built from the `ContainerFile`, this is the standard image. It runs the storage engine internally and exposes it over port `8080` via the HTTP proxy, alongside pre-installing the CLI.
+
+### Quick Start
 
 Run the container in the background, exposing the HTTP proxy port and mounting a volume for data persistence:
 
@@ -20,12 +53,13 @@ docker run -d \
   --name getme-store \
   -p 8080:8080 \
   -v getme_data:/var/lib/getMeStore \
+  -v getme_tmp:/tmp/getMeStore \
   your-dockerhub-username/getme:latest
 ```
 
-## Using the Built-in CLI
+### Using the Built-in CLI
 
-The image comes with the `getMe` CLI pre-installed. We have configured the image to automatically load an alias (`getme-cli`), allowing you to interact with the database directly from your host using `docker exec`:
+The image comes with the `getme` CLI pre-installed. We have configured the image to automatically load an alias (`getme-cli`), allowing you to interact with the database directly from your host using `docker exec`:
 
 ```bash
 # Set a value
@@ -37,33 +71,9 @@ docker exec -it getme-store sh -ic "getme-cli get mykey"
 
 _(Note: the `-ic` flags are required to invoke an interactive shell that loads the alias configuration inside the container)._
 
-## Volumes and Persistence
+### Docker Compose Example
 
-To ensure your data survives container restarts, you must mount volumes to the following directories inside the container:
-
-- `/var/lib/getMeStore/dataDir`: The primary directory where the log-structured segments (database files) are stored.
-- `/tmp/getMeStore/sockDir`: Used for internal Unix socket communication.
-- `/tmp/getMeStore/dumpDir`: Used by the internal application logger.
-
-## Security
-
-Security is built-in by design. The container **does not run as root**.
-
-During the build process, an unprivileged user named `appuser` (along with `appgroup`) is created. All binaries are executed under this user profile, and the ownership of all critical data directories (`/var/lib/getMeStore` and `/tmp/getMeStore`) is automatically assigned to `appuser:appgroup`.
-
-You can override the default UID and GID during the build phase using `build-args` if your environment requires specific user ID mappings:
-
-```bash
-docker build --build-arg UID=2000 --build-arg GID=2000 -t getme -f ContainerFile .
-```
-
-## Exposed Ports
-
-- **`8080`**: The default port exposed by the HTTP proxy to handle incoming REST requests.
-
-## Docker Compose Example
-
-For an easier deployment, you can use `docker-compose.yml`:
+For an easier deployment, use a `docker-compose.yml`:
 
 ```yaml
 version: "3.8"
@@ -84,9 +94,66 @@ volumes:
   getme_tmp:
 ```
 
+<!-- --- -->
+
+## 🤖 MCP Server Container
+
+If you are using `getme` with an LLM agent (like Claude Desktop or Cursor), deploy the MCP server container defined in `mcp-server/Dockerfile`.
+
+This container requires access to the Unix Domain Socket file of the running `getme` server.
+
+```bash
+cd mcp-server
+docker compose run --rm -T getme-mcp-server
+```
+
+This communicates over standard I/O (JSON-RPC) avoiding TTY allocation (`-T`). Note that it mounts `/tmp/getMeStore/sockDir` from the host.
+
+<!-- --- -->
+
+## ⚡ Core Server Only Container
+
+If you only need the raw storage engine and are interacting directly via UDS (without HTTP), you can build `ContainerFile.server`.
+
+```bash
+docker build -t getme-core -f ContainerFile.server .
+docker run -d \
+  --name getme-engine \
+  -v getme_data:/var/lib/getMeStore \
+  -v /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir \
+  getme-core
+```
+**Crucial:** `/tmp/getMeStore/sockDir` MUST be bind-mounted so external processes (SDKs) can reach the `getMe.sock`.
+
+<!-- --- -->
+
+## 💾 Volumes and Persistence
+
+To ensure your data survives container restarts, you must mount volumes to the following directories inside the container:
+
+- `/var/lib/getMeStore/dataDir`: The primary directory where the log-structured segments (database files) are stored.
+- `/tmp/getMeStore/sockDir`: Used for internal Unix Domain Socket communication.
+- `/tmp/getMeStore/dumpDir`: Used by the internal application logger.
+
+<!-- --- -->
+
+## 🛡️ Security & Customization
+
+Security is built-in by design. The containers **do not run as root**.
+
+During the multi-stage build processes, an unprivileged user named `appuser` (along with `appgroup`) is created. All binaries are executed under this user profile, and the ownership of all critical data directories is automatically assigned to `appuser:appgroup`.
+
+You can override the default UID and GID during the build phase using `build-args` if your environment requires specific user ID mappings to avoid local permission issues:
+
+```bash
+docker build --build-arg UID=2000 --build-arg GID=2000 -t getme -f ContainerFile .
+```
+
+<!-- --- -->
+
 ## 🔗 Links
 
 - **GitHub Repository**: [**Visit here!**](https://github.com/AatirNadim/getMe)
-- **Blog Part I - Building getMe**: [**Read here!**](https://techtom.hashnode.dev/building-getme-i)
-- **Blog Part II - Building getMe**: [**Read here!**](https://techtom.hashnode.dev/building-getme-ii)
+- **Blog Part I - Building getme**: [**Read here!**](https://techtom.hashnode.dev/building-getme-i)
+- **Blog Part II - Building getme**: [**Read here!**](https://techtom.hashnode.dev/building-getme-ii)
 - **SDKs Available**: Go, Java, JavaScript, Python

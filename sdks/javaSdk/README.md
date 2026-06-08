@@ -1,7 +1,7 @@
 <div align="center">
   <img src="../../getme-landing/app/icon.png" width="150" alt="getMe Icon" style="vertical-align: middle; margin-right: 20px;"/>
   <span style="font-family: 'Mona Sans', sans-serif; font-size: 6em; font-weight: 800; margin-bottom: 0;vertical-align: middle;">getme</span>
-  <div style="margin-top: 10px;"><strong>Python SDK for a High-Performance Key-Value Store</strong></div>
+  <div style="margin-top: 10px;"><strong>Java SDK for a High-Performance Key-Value Store</strong></div>
 </div>
 
 <!-- --- -->
@@ -22,7 +22,7 @@
 
 ## 📖 Overview
 
-The official Python client library for the **getMe** key-value store. This SDK abstracts the underlying API calls, providing Python developers with a simple, idiomatic interface to interact directly with the `getMe` runtime.
+The official Java client library for the **getMe** key-value store. This SDK abstracts the underlying API calls, providing Java developers with a simple, idiomatic interface to interact directly with the `getMe` runtime.
 
 <!-- --- -->
 
@@ -62,30 +62,30 @@ docker run -d \
 
 ### Connecting the SDK to the Core Engine
 
-The SDK communicates with the engine via the Unix Domain Socket (`getMe.sock`). Because the engine creates the socket in `/tmp/getMeStore/sockDir`, it is **critical** that this exact directory is bind-mounted when running the container so that your local Python application can reach it.
+The SDK communicates with the engine via the Unix Domain Socket (`getMe.sock`). Because the engine creates the socket in `/tmp/getMeStore/sockDir`, it is **critical** that this exact directory is bind-mounted when running the container so that your local Java application can reach it.
 
-To connect your Python SDK to the core engine:
+To connect your Java SDK to the core engine:
 1. Ensure the `getMe` server is running (either locally or via Docker with the `/tmp/getMeStore/sockDir` volume mounted).
 2. Point your SDK initialization to the socket file location (default: `/tmp/getMeStore/sockDir/getMe.sock`).
 
 ### Why manage the core engine separately?
 
-Decoupling the database engine from the Python logic provides several critical advantages:
+Decoupling the database engine from the Java logic provides several critical advantages:
 
-- **Performance & Isolation**: The core engine heavily utilizes memory for its hash index and performs continuous background disk I/O for compaction. Running it separately prevents the storage engine from starving your Python application of memory or compute resources (and vice-versa).
-- **Independent Scaling**: You can scale your Python applications dynamically while connecting to a centralized, standalone `getMe` instance.
+- **Performance & Isolation**: The core engine heavily utilizes memory for its hash index and performs continuous background disk I/O for compaction. Running it separately prevents the storage engine from starving your Java application of memory or compute resources (and vice-versa).
+- **Independent Scaling**: You can scale your Java applications dynamically while connecting to a centralized, standalone `getMe` instance.
 - **Polyglot Ecosystems**: A decoupled server can serve multiple applications simultaneously, even if those applications are built across entirely different technology stacks.
 
 <!-- --- -->
 
 ## 📦 Other Available SDKs
 
-While this is the Python client, `getMe` supports multiple languages. Detailed information on all available SDKs can be found in the [Root README](https://github.com/AatirNadim/getMe/blob/main/README.md).
+While this is the Java client, `getMe` supports multiple languages. Detailed information on all available SDKs can be found in the [Root README](https://github.com/AatirNadim/getMe/blob/main/README.md).
 
 - [Go SDK](https://github.com/AatirNadim/getMe/tree/main/sdks/goSdk)
-- [Java SDK](https://github.com/AatirNadim/getMe/tree/main/sdks/javaSdk)
+- [Java SDK (This package)](https://github.com/AatirNadim/getMe/tree/main/sdks/javaSdk)
 - [JavaScript/TypeScript SDK](https://github.com/AatirNadim/getMe/tree/main/sdks/jsSdk)
-- [Python SDK (This package)](https://github.com/AatirNadim/getMe/tree/main/sdks/pythonSdk)
+- [Python SDK](https://github.com/AatirNadim/getMe/tree/main/sdks/pythonSdk)
 
 <!-- --- -->
 
