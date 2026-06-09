@@ -41,6 +41,13 @@ Add the following to your `claude_desktop_config.json`:
 }
 ```
 
+### Core Engine Lifecycle & Management
+
+The MCP Server acts as a client bridge to the `getMe` database and **does not manage the lifecycle of the core engine daemon**.
+
+- **Manual Startup:** If you manually start the `getMe` core engine, you are responsible for terminating it.
+- **Client/Agent Startup:** If an MCP-compatible client (or an AI agent) runs an initialization script to start the database server, the daemon runs independently. When you close the MCP client, the `getme-mcp-server` process will cleanly terminate, **but the `getMe` core engine daemon will continue running in the background.** It falls on the user to manually terminate the daemon when it is no longer needed.
+
 ## Features & Safety
 
 - **Read-Only Mode:** Ensure LLMs don't mutate data via `GETME_READ_ONLY=true`.
