@@ -1,7 +1,10 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/AatirNadim/getMe/main/getme-landing/public/extended-logo-rounded.png" alt="getMe Logo" style="width: 400px; max-width: 100%; margin-bottom: 20px;"/>
-  
-  <div style="margin-top: 10px; margin-bottom: 20px;"><strong>A High-Performance Key-Value Store</strong></div>
+  <img src="https://raw.githubusercontent.com/AatirNadim/getMe/main/getme-landing/public/extended-logo-rounded.png" alt="getMe Logo" style="width: 400px; max-width: 100%;"/>
+
+<br/>
+
+  <div><strong>A High-Performance Key-Value Store</strong></div>
+  <br/>
 
 [![Docker Image](https://img.shields.io/badge/Docker-Image-2496ED?logo=docker&logoColor=white&style=for-the-badge)](https://hub.docker.com/r/aatir0docking/getme)
 [![Go SDK](https://img.shields.io/badge/Go_SDK-Releases-00ADD8?logo=go&style=for-the-badge)](https://github.com/AatirNadim/getMe/releases?q=gosdk&expanded=true)
