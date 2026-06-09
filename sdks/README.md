@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="https://raw.githubusercontent.com/AatirNadim/getMe/main/getme-landing/public/extended-logo-rounded.png" alt="getMe Logo" style="width: 400px; max-width: 100%; margin-bottom: 20px;"/>
+</div>
+
 # getMe SDKs
 
 This directory provides Software Development Kits (SDKs) for interacting with the `getMe` storage server from different programming languages. These SDKs abstract away the underlying HTTP API calls, offering a simple, idiomatic interface for developers.
