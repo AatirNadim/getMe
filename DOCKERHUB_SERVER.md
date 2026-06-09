@@ -81,4 +81,4 @@ docker build --build-arg UID=2000 --build-arg GID=2000 -t getme-core -f Containe
 - **GitHub Repository**: [**Visit here!**](https://github.com/AatirNadim/getMe)
 - **Blog Part I - Building getme**: [**Read here!**](https://techtom.hashnode.dev/building-getme-i)
 - **Blog Part II - Building getme**: [**Read here!**](https://techtom.hashnode.dev/building-getme-ii)
-- **SDKs Available**: Go, Java, JavaScript, Python
+- **SDKs Available**: [Go](https://github.com/AatirNadim/getMe/releases?q=gosdk&expanded=true), [Java](https://central.sonatype.com/artifact/io.github.aatirnadim/getme-javasdk), [JavaScript](https://www.npmjs.com/package/getme-js-sdk), [Python](https://pypi.org/p/getme-python-sdk)
