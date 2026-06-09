@@ -44,7 +44,7 @@ const items = [
     title: "Java SDK",
     desc: "Async client for JVM ecosystems",
     tags: ["17+"],
-    link: "https://search.maven.org/artifact/io.getme/getme-java-sdk",
+    link: "https://central.sonatype.com/artifact/io.github.aatirnadim/getme-javasdk",
   },
   {
     icon: (
