@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="https://raw.githubusercontent.com/AatirNadim/getMe/main/getme-landing/public/extended-logo-rounded.png" alt="getMe Logo" style="width: 400px; max-width: 100%; margin-bottom: 20px;"/>
+</div>
+
 # getMe MCP Server
 
 An MCP server that exposes `getMe` key-value operations as Model Context Protocol (MCP) tools, enabling LLMs to talk to the getMe core database over **HTTP via a Unix Domain Socket (UDS)**.

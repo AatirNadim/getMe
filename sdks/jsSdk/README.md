@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="../../getme-landing/app/icon.png" width="150" alt="getMe Icon" style="vertical-align: middle; margin-right: 20px;"/>
-  <span style="font-family: 'Mona Sans', sans-serif; font-size: 6em; font-weight: 800; margin-bottom: 0;vertical-align: middle;">getme</span>
+  <img src="https://raw.githubusercontent.com/AatirNadim/getMe/main/getme-landing/public/extended-logo-rounded.png" alt="getMe Logo" style="width: 400px; max-width: 100%; margin-bottom: 20px;"/>
+  
   <div style="margin-top: 10px;"><strong>JavaScript/TypeScript SDK for a High-Performance Key-Value Store</strong></div>
 </div>
 
