@@ -1,7 +1,16 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/AatirNadim/getMe/main/getme-landing/public/extended-logo-rounded.png" alt="getMe Logo" style="width: 400px; max-width: 100%; margin-bottom: 20px;"/>
   
-  <div style="margin-top: 10px;"><strong>A High-Performance Key-Value Store</strong></div>
+  <div style="margin-top: 10px; margin-bottom: 20px;"><strong>A High-Performance Key-Value Store</strong></div>
+
+[![Docker Image](https://img.shields.io/badge/Docker-Image-2496ED?logo=docker&logoColor=white&style=for-the-badge)](https://hub.docker.com/r/aatir0docking/getme)
+[![Go SDK](https://img.shields.io/badge/Go_SDK-Releases-00ADD8?logo=go&style=for-the-badge)](https://github.com/AatirNadim/getMe/releases?q=gosdk&expanded=true)
+[![Java SDK](https://img.shields.io/maven-central/v/io.github.aatirnadim/getme-javasdk?logo=apachemaven&logoColor=red&label=Java%20SDK&style=for-the-badge)](https://central.sonatype.com/artifact/io.github.aatirnadim/getme-javasdk)
+[![JS SDK](https://img.shields.io/npm/v/getme-js-sdk?logo=npm&logoColor=CB3837&label=JS%20SDK&style=for-the-badge)](https://www.npmjs.com/package/getme-js-sdk)
+[![Python SDK](https://img.shields.io/pypi/v/getme-python-sdk?logo=python&label=Python%20SDK&style=for-the-badge)](https://pypi.org/p/getme-python-sdk)
+[![MCP Server](https://img.shields.io/pypi/v/getme-mcp-server?logo=modelcontextprotocol&label=MCP%20Server&style=for-the-badge)](https://pypi.org/project/getme-mcp-server/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg?logo=gnu&style=for-the-badge)](https://www.gnu.org/licenses/agpl-3.0.html)
+
 </div>
 
 <!-- --- -->
