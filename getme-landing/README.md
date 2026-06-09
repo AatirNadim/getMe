@@ -1,6 +1,6 @@
 <div align="center">
-  <img src="./app/icon.png" width="120" alt="getMe Icon" />
-  <h1 style="font-family: 'Mona Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 4em; font-weight: 800; margin-top: 10px;">getme</h1>
+  <img src="public/extended-logo-rounded.png" alt="getMe Logo" style="width: 400px; max-width: 100%; margin-bottom: 20px;"/>
+  
 </div>
 
 > **getme-landing** is the official landing page for the high-performance, local-first Key-Value Store, **getMe**.
