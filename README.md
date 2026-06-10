@@ -162,6 +162,9 @@ SDKs are available across different languages. Find them in the `sdks/` director
 
 All SDKs interface directly with the Unix Domain Socket to provide optimal latency.
 
+**⚠️ Note on SDK Releases**: SDK versioning and publishing is managed automatically via an **Ephemeral Release Structure**. The CI/CD pipelines autonomously orchestrate the entire release lifecycle—from creating detached commits and tagging them, to generating changelogs and pushing builds to public registries—all from a single bump-type trigger. This keeps the `main` branch entirely clean of meaningless version-bump commits. 
+*If you are exploring the code or contributing, **do not manually bump versions** in PRs. You can read more about this advanced architecture in the [SDKs README](./sdks/README.md#advanced-release--versioning-architecture).*
+
 <!-- --- -->
 
 ## 📄 License

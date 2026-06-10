@@ -93,6 +93,23 @@ When changes are merged into the `main` branch, the CI pipeline (`.github/workfl
 
 **Important:** Do NOT manually bump versions in `pyproject.toml` or `server.json`. Rely entirely on correct Conventional Commit messages.
 
+### SDK Versioning & Releases (Ephemeral Release Structure)
+
+The SDKs located in the `sdks/` directory are published with manual release triggers (for bump-type) via a highly sophisticated **Ephemeral Release Structure**.
+
+To keep the `main` branch impeccably clean from meaningless "bump version to X" commits, we treat versioning as a pure deployment concern. **Just by providing a bump-type (`major`, `minor`, `patch`), the CI/CD pipeline autonomously orchestrates the entire release lifecycle.**
+
+The gh-actions pipelines in this repo, check out the code on a **detached HEAD**, dynamically calculate the next semantic version from prior tags, mutate the necessary configuration files (like `package.json`, `build.gradle.kts`, or `pyproject.toml`), and tag that specific detached commit. From there, it automatically **generates a changelog**, **drafts a GitHub Release**, and **publishes** the build to the **public registries** (npm, PyPI, Maven Central). These version bumps are **never merged back** into `main`.
+
+**Important:** Just like the MCP server, **do NOT manually bump versions** for any SDK in your Pull Requests. Leave the base placeholder versions exactly as they are. 
+
+If you are curious to see how this powerful automation works, you can explore the associated workflows:
+- Core Versioning & Tagging: [`.github/workflows/reusable-sdk-release.yml`](.github/workflows/reusable-sdk-release.yml)
+- Changelogs & Releases: [`.github/workflows/reusable-release-drafter.yml`](.github/workflows/reusable-release-drafter.yml)
+- Registry Publishing: [`.github/workflows/publish-js-sdk.yml`](.github/workflows/publish-js-sdk.yml), etc.
+
+You can read more about this architecture in the [SDKs README](./sdks/README.md#advanced-release--versioning-architecture).
+
 ## 4. Pull Requests
 
 When you are ready to submit your code, open a Pull Request (PR) against the `main` branch.
