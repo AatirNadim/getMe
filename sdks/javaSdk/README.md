@@ -52,12 +52,12 @@ You can use the official Docker images mentioned in our [DockerHub README](https
 For maximum performance, using the Core Server Only container (`ContainerFile.server`) is recommended, which isolates the database engine:
 
 ```bash
-docker build -t getme-core -f ../../ContainerFile.server ../../
+docker build -t getme.server -f ../../ContainerFile.server ../../
 docker run -d \
   --name getme-engine \
   -v getme_data:/var/lib/getMeStore \
   -v /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir \
-  getme-core
+  getme.server
 ```
 
 ### Connecting the SDK to the Core Engine

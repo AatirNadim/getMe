@@ -47,17 +47,16 @@ For a deep dive into the architecture, please refer to the [Root README](https:/
 
 ### Running the Core Engine via Docker
 
-You can use the official Docker images mentioned in our [DockerHub README](https://github.com/AatirNadim/getMe/blob/main/DOCKERHUB.md). 
+You can use the official Docker image hosted on [DockerHub (aatir0docking/getme)](https://hub.docker.com/r/aatir0docking/getme). 
 
-For maximum performance, using the Core Server Only container (`ContainerFile.server`) is recommended, which isolates the database engine:
+For maximum performance and isolation, using the pre-built Core Server image is recommended. You must bind-mount the socket directory to your local machine (`-v /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir`) so your application can communicate with the engine over the Unix Domain Socket:
 
 ```bash
-docker build -t getme-core -f ../../ContainerFile.server ../../
 docker run -d \
   --name getme-engine \
   -v getme_data:/var/lib/getMeStore \
   -v /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir \
-  getme-core
+  aatir0docking/getme.server:latest
 ```
 
 ### Connecting the SDK to the Core Engine

@@ -21,7 +21,7 @@
 
 `getme` is a persistent, embeddable, log-structured key-value store optimized for high write throughput and low-latency reads. 
 
-This specific Docker image (`getme-core`) runs **only** the core storage engine. It is designed for maximum performance and minimal footprint, communicating exclusively over Unix Domain Sockets (UDS) rather than standard HTTP.
+This specific Docker image (`getme.server`) runs **only** the core storage engine. It is designed for maximum performance and minimal footprint, communicating exclusively over Unix Domain Sockets (UDS) rather than standard HTTP.
 
 If you need the HTTP proxy and built-in CLI, please use our All-in-One image instead.
 
@@ -45,7 +45,7 @@ docker run -d \
   --name getme-engine \
   -v getme_data:/var/lib/getMeStore \
   -v /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir \
-  your-dockerhub-username/getme-core:latest
+  your-dockerhub-username/getme.server:latest
 ```
 
 **Crucial:** The `-v /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir` mapping allows the internal `getMe.sock` file created by the engine to be accessible by other processes running on the host machine.
@@ -71,7 +71,7 @@ During the build process, an unprivileged user named `appuser` (along with `appg
 You can override the default UID and GID during the build phase using `build-args` if your environment requires specific user ID mappings to avoid local permission conflicts:
 
 ```bash
-docker build --build-arg UID=2000 --build-arg GID=2000 -t getme-core -f ContainerFile.server .
+docker build --build-arg UID=2000 --build-arg GID=2000 -t getme.server -f ContainerFile.server .
 ```
 
 <!-- --- -->

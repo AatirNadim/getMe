@@ -116,12 +116,12 @@ This communicates over standard I/O (JSON-RPC) avoiding TTY allocation (`-T`). N
 If you only need the raw storage engine and are interacting directly via UDS (without HTTP), you can build `ContainerFile.server`.
 
 ```bash
-docker build -t getme-core -f ContainerFile.server .
+docker build -t getme.server -f ContainerFile.server .
 docker run -d \
   --name getme-engine \
   -v getme_data:/var/lib/getMeStore \
   -v /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir \
-  getme-core
+  getme.server
 ```
 **Crucial:** `/tmp/getMeStore/sockDir` MUST be bind-mounted so external processes (SDKs) can reach the `getMe.sock`.
 
