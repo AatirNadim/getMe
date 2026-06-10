@@ -131,15 +131,15 @@ export default function Architecture() {
                 Go SDK
               </div>
               <div className="text-[0.72rem] text-(--text-muted) mt-0.75">
-                Direct gRPC
+                UDS (Unix Sockets)
               </div>
             </div>
             <div className="flex-1 bg-blue-100/50 dark:bg-blue-700/80 hover:bg-blue-200/50 dark:hover:bg-blue-600/80 border border-(--border-medium) hover:border-(--border-bright) rounded-md px-4 py-3 text-center transition-all duration-200 cursor-default hover:shadow-glow-sm">
               <div className="font-mono text-[0.8rem] text-blue-800 dark:text-blue-200 font-semibold">
-                JS/Py SDK
+                JS/Py/Java SDK
               </div>
               <div className="text-[0.72rem] text-(--text-muted) mt-0.75">
-                REST :8080
+                UDS (Unix Sockets)
               </div>
             </div>
           </div>
@@ -170,8 +170,8 @@ export default function Architecture() {
               <div className="font-mono text-[0.8rem] font-semibold text-blue-950! dark:text-white!">
                 Storage Engine
               </div>
-              <div className="text-[0.72rem] text-(--text-muted) mt-0.75">
-                Log-structured Hash Table · CRC Checksums
+              <div className="text-[0.72rem] text-(--text-muted) mt-0.75 font-semibold">
+                Log-structured Hash Table · Segments
               </div>
             </div>
           </div>
@@ -240,8 +240,7 @@ export default function Architecture() {
                 <code className="text-[0.76rem] text-blue-800 dark:text-blue-200 font-mono">
                   SegmentManager
                 </code>{" "}
-                handles serialization with CRC checksums guaranteeing every byte
-                is correct on read.
+                handles rapid serialization and persistence of key-value payloads.
               </div>
             </div>
           </div>
@@ -289,16 +288,14 @@ export default function Architecture() {
           {/* Feature 4 */}
           <div className="arch-feature opacity-0 flex gap-4 py-5 border-b border-(--border-subtle) last:border-b-0">
             <div className="w-9 h-9 rounded-sm bg-blue-200/50 dark:bg-blue-500/20 border border-(--border-subtle) flex items-center justify-center shrink-0 text-base">
-              🛡️
+              📦
             </div>
             <div>
               <div className="text-[0.9rem] font-semibold text-blue-950 dark:text-white mb-1 font-display">
-                CRC Data Integrity
+                Buffered Batching
               </div>
               <div className="text-[0.83rem] text-(--text-secondary) leading-[1.6]">
-                Every value is checksummed at write time and verified at read
-                time. Silent corruption is impossible. Crashes during writes
-                cannot produce partial or inconsistent reads.
+                Dramatically reduces system calls during ingestion. High-volume bulk writes are aggregated into memory pools and flushed to disk as large contiguous chunks to avoid I/O bottlenecks.
               </div>
             </div>
           </div>

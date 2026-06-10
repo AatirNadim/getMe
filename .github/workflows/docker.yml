@@ -53,6 +53,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -71,5 +74,6 @@ jobs:
         with:
           context: .
           file: ./ContainerFile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ vars.DOCKER_USERNAME }}/${{ vars.IMAGE_NAME }}:${{ steps.vars.outputs.sha_short }},${{ vars.DOCKER_USERNAME }}/${{ vars.IMAGE_NAME }}:latest

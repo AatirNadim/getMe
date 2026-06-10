@@ -33,6 +33,7 @@ RUN addgroup -g ${GID} appgroup && \
 # --- Making the added user the owner of the data directory ---
 RUN chown -R appuser:appgroup /var/lib/getMeStore
 
+
 USER appuser
 
 # --- Now running as appuser ---
