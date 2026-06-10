@@ -42,6 +42,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -62,6 +65,7 @@ jobs:
         with:
           context: .
           file: ./ContainerFile.server
+          platforms: linux/amd64,linux/arm64
           # true if push to main, false if PR
           push: ${{ github.event_name == 'push' }}
           # Creates tags like: <user>/<image>-server:<sha> and <user>/<image>-server:latest

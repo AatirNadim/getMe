@@ -25,7 +25,7 @@ $ go run . delete mykey
     id: "batch",
     label: "Batch",
     content: `# Bulk ingest from JSON
-$ go run . batch
+$ go run . batchPut batch-input.json
 Reading batch-input.json...
 → Ingested 10,000 records
 → Duration: 1.82ms`,
@@ -34,21 +34,23 @@ Reading batch-input.json...
     id: "go-java",
     label: "Go",
     content: `// Go SDK — concurrent BatchPut
-client := getme.NewClient("localhost:8080")
-defer client.Close()
-
-entries := []getme.Entry{
-  {Key: "k1", Value: "v1"},
-  {Key: "k2", Value: "v2"},
+client := &gosdk.GetMeClient{}
+err := client.Init()
+if err != nil {
+  panic(err)
 }
-err := client.BatchPut(ctx, entries)`,
+entries := map[string]string{
+  "k1": "v1",
+  "k2": "v2",
+}
+res, err := client.BatchPutForPayload(entries)`,
   },
   {
     id: "js-py",
     label: "JS",
     content: `// JavaScript SDK
-import { GetMeClient } from '@getme/client';
-const client = new GetMeClient({ host: 'localhost', port: 8080 });
+import { GetMeClient } from 'getme-js-sdk';
+const client = new GetMeClient();
 await client.put('mykey', 'hello world');`,
   },
 ];

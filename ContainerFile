@@ -57,6 +57,7 @@ RUN chmod +x /usr/local/bin/getMe-server /usr/local/bin/getMe-cli /usr/local/bin
 RUN echo "alias getme-cli='/usr/local/bin/getMe-cli'" >> /home/appuser/.shrc && \
     chown appuser:appgroup /home/appuser/.shrc
 
+
 USER appuser
 
 # Ensure interactive non-login shells (like 'docker exec') read the .shrc file
