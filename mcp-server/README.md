@@ -41,6 +41,31 @@ Add the following to your `claude_desktop_config.json`:
 }
 ```
 
+### Opencode Configuration
+
+For **Opencode**, the MCP configuration format differs slightly from Claude. Add the following to your `opencode.json` (or `~/.config/opencode/opencode.json`):
+
+```json
+{
+  "mcp": {
+    "getme": {
+      "type": "local",
+      "command": ["uvx", "getme-mcp-server"],
+      "env": {
+        "GETME_SOCKET_PATH": "/tmp/getMeStore/sockDir/getMe.sock",
+        "GETME_KEY_PREFIX": "agent-context:",
+        "GETME_READ_ONLY": "false"
+      }
+    }
+  }
+}
+```
+
+**Key differences from Claude:**
+- Uses `"mcp"` at the top level instead of `"mcpServers"`.
+- Requires `"type": "local"`.
+- The `command` is an array that includes both the executable and its arguments (e.g., `["uvx", "getme-mcp-server"]`), whereas Claude separates them into `"command"` (string) and `"args"` (array).
+
 ### Core Engine Lifecycle & Management
 
 The MCP Server acts as a client bridge to the `getMe` database and **does not manage the lifecycle of the core engine daemon**.

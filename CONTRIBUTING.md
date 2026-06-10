@@ -1,6 +1,6 @@
 # Contributing to getMe
 
-First off, thank you for your interest in contributing to **getMe**! We want to make contributing to this project as easy and transparent as possible, whether it's:
+First off, thank you for your interest in contributing to **getMe**! The general idea is that contributing to this project be easy and transparent as possible, whether it's:
 
 - Reporting a bug
 - Discussing the current state of the code
@@ -8,11 +8,11 @@ First off, thank you for your interest in contributing to **getMe**! We want to 
 - Proposing new features
 - Becoming a maintainer
 
-In order to keep our issues and pull requests highly navigable, our version history clean, and to prevent repository clogging, we ask that you adhere to the following guidelines.
+In order to keep our issues and pull requests highly navigable, our version history clean, and to prevent repository clogging, adhering to the following guidelines is strongly advised.
 
 ## 1. Issues: Reporting Bugs & Proposing Features
 
-We use GitHub issues to track public bugs and requests.
+GitHub issues are used to track public bugs and requests.
 
 ### Reporting Bugs
 
@@ -55,7 +55,7 @@ The MCP (Model Context Protocol) server is built with Python and uses `uv` for l
 
 ## 3. Git Workflow & Commit Guidelines
 
-To ensure a navigable and clean version history, we strictly enforce branch naming and commit message conventions.
+To ensure a navigable and clean version history, branch naming and commit message conventions are strictly enforced.
 
 ### Branch Naming
 
@@ -67,7 +67,7 @@ Never commit directly to `main`. Create a branch from `main` using the following
 
 ### Commit Messages
 
-We follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification. This allows us to auto-generate changelogs and easily parse the commit history.
+[Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specifications are followed here. This allows us to auto-generate changelogs and easily parse the commit history.
 
 - `feat:` (new feature for the user, not a new feature for build script)
 - `fix:` (bug fix for the user, not a fix to a build script)
@@ -92,6 +92,23 @@ When changes are merged into the `main` branch, the CI pipeline (`.github/workfl
 4. Publishes the new version to PyPI and the MCP Registry.
 
 **Important:** Do NOT manually bump versions in `pyproject.toml` or `server.json`. Rely entirely on correct Conventional Commit messages.
+
+### SDK Versioning & Releases (Ephemeral Release Structure)
+
+The SDKs located in the `sdks/` directory are published with manual release triggers (for bump-type) via a highly sophisticated **Ephemeral Release Structure**.
+
+To keep the `main` branch impeccably clean from meaningless "bump version to X" commits, we treat versioning as a pure deployment concern. **Just by providing a bump-type (`major`, `minor`, `patch`), the CI/CD pipeline autonomously orchestrates the entire release lifecycle.**
+
+The gh-actions pipelines in this repo, check out the code on a **detached HEAD**, dynamically calculate the next semantic version from prior tags, mutate the necessary configuration files (like `package.json`, `build.gradle.kts`, or `pyproject.toml`), and tag that specific detached commit. From there, it automatically **generates a changelog**, **drafts a GitHub Release**, and **publishes** the build to the **public registries** (npm, PyPI, Maven Central). These version bumps are **never merged back** into `main`.
+
+**Important:** Just like the MCP server, **do NOT manually bump versions** for any SDK in your Pull Requests. Leave the base placeholder versions exactly as they are. 
+
+If you are curious to see how this powerful automation works, you can explore the associated workflows:
+- Core Versioning & Tagging: [`.github/workflows/reusable-sdk-release.yml`](.github/workflows/reusable-sdk-release.yml)
+- Changelogs & Releases: [`.github/workflows/reusable-release-drafter.yml`](.github/workflows/reusable-release-drafter.yml)
+- Registry Publishing: [`.github/workflows/publish-js-sdk.yml`](.github/workflows/publish-js-sdk.yml), etc.
+
+You can read more about this architecture in the [SDKs README](./sdks/README.md#advanced-release--versioning-architecture).
 
 ## 4. Pull Requests
 

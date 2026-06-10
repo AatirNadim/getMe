@@ -2,9 +2,14 @@ FROM ghcr.io/astral-sh/uv:python3.12-bookworm AS builder
 
 WORKDIR /app
 
+# The project uses hatch-vcs which requires .git to resolve the dynamic version.
+# Since .git is not copied into the Docker context, we must provide a pretend version
+# so that building the wheel and syncing does not fail with setuptools-scm errors.
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=1.0.0
+
 COPY pyproject.toml uv.lock README.md ./
 
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev --no-install-project
 
 COPY getme_mcp_server ./getme_mcp_server
 

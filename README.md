@@ -153,7 +153,7 @@ To ensure no performance regressions or to stress test the database:
 
 ## 📦 SDKs
 
-We provide SDKs across different languages. Find them in the `sdks/` directory:
+SDKs are available across different languages. Find them in the `sdks/` directory:
 
 - [**Go SDK**](./sdks/goSdk/)
 - [**JavaScript / TypeScript SDK**](./sdks/jsSdk/)
@@ -161,6 +161,9 @@ We provide SDKs across different languages. Find them in the `sdks/` directory:
 - [**Java SDK**](./sdks/javaSdk/)
 
 All SDKs interface directly with the Unix Domain Socket to provide optimal latency.
+
+**⚠️ Note on SDK Releases**: SDK versioning and publishing is managed automatically via an **Ephemeral Release Structure**. The CI/CD pipelines autonomously orchestrate the entire release lifecycle—from creating detached commits and tagging them, to generating changelogs and pushing builds to public registries—all from a single bump-type trigger. This keeps the `main` branch entirely clean of meaningless version-bump commits. 
+*If you are exploring the code or contributing, **do not manually bump versions** in PRs. You can read more about this advanced architecture in the [SDKs README](./sdks/README.md#advanced-release--versioning-architecture).*
 
 <!-- --- -->
 

@@ -45,7 +45,7 @@ Agents should use the following commands to build and run the project:
 ## 6. Extra Instructions
 
 ### Commit Message Guidelines
-We strictly follow the **Conventional Commits** specification for auto-generating changelogs:
+**Conventional Commits** specification are strictly followed for auto-generating changelogs:
 - `feat:` (new feature for the user)
 - `fix:` (bug fix for the user)
 - `docs:` (changes to documentation)

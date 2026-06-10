@@ -47,17 +47,17 @@ For a deep dive into the architecture, please refer to the [Root README](https:/
 
 ### Running the Core Engine via Docker
 
-You can use the official Docker images mentioned in our [DockerHub README](https://github.com/AatirNadim/getMe/blob/main/DOCKERHUB.md). 
+You can use the official Docker images mentioned in our [DockerHub README](https://github.com/AatirNadim/getMe/blob/main/DOCKERHUB.md).
 
-For maximum performance, we recommend using the Core Server Only container (`ContainerFile.server`), which isolates the database engine:
+For maximum performance, using the Core Server Only container (`ContainerFile.server`) is recommended, which isolates the database engine:
 
 ```bash
-docker build -t getme-core -f ../../ContainerFile.server ../../
+docker build -t getme.server -f ../../ContainerFile.server ../../
 docker run -d \
   --name getme-engine \
   -v getme_data:/var/lib/getMeStore \
   -v /tmp/getMeStore/sockDir:/tmp/getMeStore/sockDir \
-  getme-core
+  getme.server
 ```
 
 ### Connecting the SDK to the Core Engine
@@ -65,6 +65,7 @@ docker run -d \
 The SDK communicates with the engine via the Unix Domain Socket (`getMe.sock`). Because the engine creates the socket in `/tmp/getMeStore/sockDir`, it is **critical** that this exact directory is bind-mounted when running the container so that your local Java application can reach it.
 
 To connect your Java SDK to the core engine:
+
 1. Ensure the `getMe` server is running (either locally or via Docker with the `/tmp/getMeStore/sockDir` volume mounted).
 2. Point your SDK initialization to the socket file location (default: `/tmp/getMeStore/sockDir/getMe.sock`).
 
