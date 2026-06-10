@@ -153,7 +153,7 @@ To ensure no performance regressions or to stress test the database:
 
 ## 📦 SDKs
 
-We provide SDKs across different languages. Find them in the `sdks/` directory:
+SDKs are available across different languages. Find them in the `sdks/` directory:
 
 - [**Go SDK**](./sdks/goSdk/)
 - [**JavaScript / TypeScript SDK**](./sdks/jsSdk/)

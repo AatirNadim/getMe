@@ -48,9 +48,9 @@ For a deep dive into the architecture, please refer to the [Root README](https:/
 
 ### Running the Core Engine via Docker
 
-You can use the official Docker images mentioned in our [DockerHub README](https://github.com/AatirNadim/getMe/blob/main/DOCKERHUB.md). 
+You can use the official Docker images mentioned in our [DockerHub README](https://github.com/AatirNadim/getMe/blob/main/DOCKERHUB.md).
 
-For maximum performance, we recommend using the Core Server Only container (`ContainerFile.server`), which isolates the database engine:
+For maximum performance, using the Core Server Only container (`ContainerFile.server`) is recommended, which isolates the database engine:
 
 ```bash
 docker build -t getme-core -f ../../ContainerFile.server ../../
@@ -66,6 +66,7 @@ docker run -d \
 The SDK communicates with the engine via the Unix Domain Socket (`getMe.sock`). Because the engine creates the socket in `/tmp/getMeStore/sockDir`, it is **critical** that this exact directory is bind-mounted when running the container so that your local Node.js application can reach it.
 
 To connect your JS/TS SDK to the core engine:
+
 1. Ensure the `getMe` server is running (either locally or via Docker with the `/tmp/getMeStore/sockDir` volume mounted).
 2. Point your SDK initialization to the socket file location by setting the `GETME_SOCKET_PATH` environment variable (default: `/tmp/getMeStore/sockDir/getMe.sock`).
 
@@ -98,17 +99,17 @@ export GETME_SOCKET_PATH=/tmp/getMeStore/sockDir/getMe.sock
 ### Basic Example
 
 ```typescript
-import { GetMeClient } from 'getme-js-sdk';
+import { GetMeClient } from "getme-js-sdk";
 
 const client = new GetMeClient(); // Connects automatically using GETME_SOCKET_PATH
 
 async function run() {
   // Store a value
-  await client.put('myKey', 'myValue');
+  await client.put("myKey", "myValue");
 
   // Retrieve the value
-  const value = await client.get('myKey');
-  console.log('Value:', value);
+  const value = await client.get("myKey");
+  console.log("Value:", value);
 }
 
 run();

@@ -59,7 +59,7 @@ docker run -d \
 
 ### Using the Built-in CLI
 
-The image comes with the `getme` CLI pre-installed. We have configured the image to automatically load an alias (`getme-cli`), allowing you to interact with the database directly from your host using `docker exec`:
+The image comes with the `getme` CLI pre-installed. The image is configured to automatically load an alias (`getme-cli`), allowing you to interact with the database directly from your host using `docker exec`:
 
 ```bash
 # Set a value

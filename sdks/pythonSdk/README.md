@@ -49,7 +49,7 @@ For a deep dive into the architecture, please refer to the [Root README](https:/
 
 You can use the official Docker images mentioned in our [DockerHub README](https://github.com/AatirNadim/getMe/blob/main/DOCKERHUB.md). 
 
-For maximum performance, we recommend using the Core Server Only container (`ContainerFile.server`), which isolates the database engine:
+For maximum performance, using the Core Server Only container (`ContainerFile.server`) is recommended, which isolates the database engine:
 
 ```bash
 docker build -t getme-core -f ../../ContainerFile.server ../../
