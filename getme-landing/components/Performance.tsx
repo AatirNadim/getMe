@@ -12,115 +12,118 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Performance() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    const mm = gsap.matchMedia();
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
 
-    mm.add("(min-width: 768px)", () => {
-      gsap.fromTo(
-        ".perf-card",
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: containerRef.current!.closest("section"),
-            start: "top -50%",
-          },
-        }
-      );
-
-      gsap.fromTo(
-        ".perf-block",
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: containerRef.current!.closest("section"),
-            start: "top -50%",
-          },
-        }
-      );
-
-      const bars = gsap.utils.toArray<HTMLElement>(".perf-bar");
-      bars.forEach((bar, i) => {
-        const width = bar.getAttribute("data-width");
+      mm.add("(min-width: 768px)", () => {
         gsap.fromTo(
-          bar,
-          { width: 0 },
+          ".perf-card",
+          { opacity: 0, y: 24 },
           {
-            width: width || "0%",
-            duration: 1,
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.1,
             ease: "power2.out",
-            delay: 0.1 + i * 0.1,
             scrollTrigger: {
               trigger: containerRef.current!.closest("section"),
               start: "top -50%",
             },
-          }
+          },
         );
-      });
-    });
 
-    mm.add("(max-width: 767px)", () => {
-      gsap.fromTo(
-        ".perf-card",
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          stagger: 0.1,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: ".perf-cards-container",
-            start: "top 85%",
-          },
-        }
-      );
-
-      gsap.fromTo(
-        ".perf-block",
-        { opacity: 0, y: 24 },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: ".perf-block",
-            start: "top 85%",
-          },
-        }
-      );
-
-      const bars = gsap.utils.toArray<HTMLElement>(".perf-bar");
-      bars.forEach((bar, i) => {
-        const width = bar.getAttribute("data-width");
         gsap.fromTo(
-          bar,
-          { width: 0 },
+          ".perf-block",
+          { opacity: 0, y: 24 },
           {
-            width: width || "0%",
-            duration: 1,
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
             ease: "power2.out",
-            delay: 0.1 + i * 0.1,
+            scrollTrigger: {
+              trigger: containerRef.current!.closest("section"),
+              start: "top -50%",
+            },
+          },
+        );
+
+        const bars = gsap.utils.toArray<HTMLElement>(".perf-bar");
+        bars.forEach((bar, i) => {
+          const width = bar.getAttribute("data-width");
+          gsap.fromTo(
+            bar,
+            { width: 0 },
+            {
+              width: width || "0%",
+              duration: 1,
+              ease: "power2.out",
+              delay: 0.1 + i * 0.1,
+              scrollTrigger: {
+                trigger: containerRef.current!.closest("section"),
+                start: "top -50%",
+              },
+            },
+          );
+        });
+      });
+
+      mm.add("(max-width: 767px)", () => {
+        gsap.fromTo(
+          ".perf-card",
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: 0.1,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: ".perf-cards-container",
+              start: "top 85%",
+            },
+          },
+        );
+
+        gsap.fromTo(
+          ".perf-block",
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            ease: "power2.out",
             scrollTrigger: {
               trigger: ".perf-block",
               start: "top 85%",
             },
-          }
+          },
         );
-      });
-    });
 
-    return () => mm.revert();
-  }, { scope: containerRef });
+        const bars = gsap.utils.toArray<HTMLElement>(".perf-bar");
+        bars.forEach((bar, i) => {
+          const width = bar.getAttribute("data-width");
+          gsap.fromTo(
+            bar,
+            { width: 0 },
+            {
+              width: width || "0%",
+              duration: 1,
+              ease: "power2.out",
+              delay: 0.1 + i * 0.1,
+              scrollTrigger: {
+                trigger: ".perf-block",
+                start: "top 85%",
+              },
+            },
+          );
+        });
+      });
+
+      return () => mm.revert();
+    },
+    { scope: containerRef },
+  );
 
   const titleContent = (
     <>
@@ -128,12 +131,12 @@ export default function Performance() {
         Benchmarks
       </div>
 
-      <h2
-        className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-[-0.03em] text-blue-950 dark:text-white mb-4 font-display leading-[1.1]"
-      >
+      <h2 className="text-[1.8rem] min-[480px]:text-[clamp(2rem,3.5vw,2.8rem)] font-extrabold tracking-[-0.03em] text-blue-950 dark:text-white mb-4 font-display leading-[1.1]">
         Built and Benchmarked
         <br />
-        <span className="lenis-title-accent text-blue-600 dark:text-blue-300">to Scale.</span>
+        <span className="lenis-title-accent text-blue-600 dark:text-blue-300">
+          to Scale.
+        </span>
       </h2>
 
       <p className="text-[1.05rem] text-(--text-secondary) max-w-145 leading-[1.7] flex flex-col gap-1">
@@ -141,23 +144,21 @@ export default function Performance() {
           Transparent performance and correctness.
         </span>{" "}
         <span className="text-sm">
-          These baselines were captured on a <strong>Linux AMD64</strong> environment powered by an{" "}
-          <strong>AMD Ryzen 7 5800HS</strong> processor. Expect{" "}
+          These baselines were captured on a <strong>Linux AMD64</strong>{" "}
+          environment powered by an <strong>AMD Ryzen 7 5800HS</strong>{" "}
+          processor. Expect{" "}
           <span className="font-semibold italic underline decoration-dotted decoration-1">
             even higher
           </span>{" "}
-          throughput on more modern or <strong>dedicated server</strong> infrastructure.
+          throughput on more modern or <strong>dedicated server</strong>{" "}
+          infrastructure.
         </span>
       </p>
     </>
   );
 
   return (
-    <ParallaxSection
-      id="performance"
-      className=""
-      title={titleContent}
-    >
+    <ParallaxSection id="performance" className="" title={titleContent}>
       <div className="w-full" ref={containerRef}>
         <div className="perf-cards-container grid grid-cols-2 lg:grid-cols-4 gap-5 my-14">
           {/* Card 1 */}
@@ -169,7 +170,9 @@ export default function Performance() {
                 className="text-blue-950 dark:text-white"
               />
             </div>
-            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">ns/op</div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">
+              ns/op
+            </div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               Single Put
             </div>
@@ -184,7 +187,9 @@ export default function Performance() {
                 className="text-blue-950 dark:text-white"
               />
             </div>
-            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">ns/op</div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">
+              ns/op
+            </div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               Single Get
             </div>
@@ -199,7 +204,9 @@ export default function Performance() {
                 className="text-blue-950 dark:text-white"
               />
             </div>
-            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">ns/op</div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">
+              ns/op
+            </div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               90% Read / 10% Write
             </div>
@@ -214,7 +221,9 @@ export default function Performance() {
                 className="text-blue-950 dark:text-white"
               />
             </div>
-            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">ns/op</div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 font-mono mt-0.5">
+              ns/op
+            </div>
             <div className="text-[0.8rem] text-(--text-secondary) mt-2">
               Delete Operation
             </div>
@@ -228,11 +237,11 @@ export default function Performance() {
           </div>
 
           {/* Row 1 */}
-          <div className="flex items-center gap-3 mb-3.5">
-            <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) w-48 md:w-64 shrink-0 truncate">
+          <div className="flex items-center justify-between gap-3 mb-3.5">
+            <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) md:w-64 shrink-0 truncate">
               BenchmarkDelete
             </div>
-            <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
+            <div className="hidden md:block flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <div
                 data-width="1%"
                 className="perf-bar h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300 w-0"
@@ -244,11 +253,11 @@ export default function Performance() {
           </div>
 
           {/* Row 2 */}
-          <div className="flex items-center gap-3 mb-3.5">
-            <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) w-48 md:w-64 shrink-0 truncate">
+          <div className="flex items-center justify-between gap-3 mb-3.5">
+            <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) md:w-64 shrink-0 truncate">
               BenchmarkGet
             </div>
-            <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
+            <div className="hidden md:block flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <div
                 data-width="4%"
                 className="perf-bar h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300 w-0"
@@ -260,11 +269,11 @@ export default function Performance() {
           </div>
 
           {/* Row 3 */}
-          <div className="flex items-center gap-3 mb-3.5">
-            <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) w-48 md:w-64 shrink-0 truncate">
+          <div className="flex items-center justify-between gap-3 mb-3.5">
+            <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) md:w-64 shrink-0 truncate">
               BenchmarkReadWriteMixed_90_10
             </div>
-            <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
+            <div className="hidden md:block flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <div
                 data-width="41%"
                 className="perf-bar h-full rounded-full bg-linear-to-r from-blue-600 to-cyan-400 w-0"
@@ -276,11 +285,11 @@ export default function Performance() {
           </div>
 
           {/* Row 4 */}
-          <div className="flex items-center gap-3 mb-3.5">
-            <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) w-48 md:w-64 shrink-0 truncate">
+          <div className="flex items-center justify-between gap-3 mb-3.5">
+            <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) md:w-64 shrink-0 truncate">
               BenchmarkReadWriteMixed_80_20
             </div>
-            <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
+            <div className="hidden md:block flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <div
                 data-width="55%"
                 className="perf-bar h-full rounded-full bg-linear-to-r from-blue-500 to-blue-300 w-0"
@@ -292,11 +301,11 @@ export default function Performance() {
           </div>
 
           {/* Row 5 */}
-          <div className="flex items-center gap-3 mb-3.5">
-            <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) w-48 md:w-64 shrink-0 truncate">
+          <div className="flex items-center justify-between gap-3 mb-3.5">
+            <div className="font-mono text-[0.66rem] md:text-[0.72rem] text-(--text-secondary) md:w-64 shrink-0 truncate">
               BenchmarkPut
             </div>
-            <div className="flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
+            <div className="hidden md:block flex-1 h-2 bg-blue-100 dark:bg-blue-800/80 rounded-full overflow-hidden">
               <div
                 data-width="100%"
                 className="perf-bar h-full rounded-full bg-linear-to-r from-blue-400 to-green-400 w-0"
